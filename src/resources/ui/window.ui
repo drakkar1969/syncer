@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// AppWindow template //-->
+  <template class="AppWindow" parent="AdwApplicationWindow">
+    <property name="default-width">600</property>
+    <property name="default-height">600</property>
+    <property name="title">RsyncGUI</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkBox">
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>
