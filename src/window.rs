@@ -18,7 +18,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::AppWindow)]
-    #[template(resource = "/com/github/RsyncGUI/ui/window.ui")]
+    #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
     }
 
