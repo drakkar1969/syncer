@@ -24,33 +24,31 @@
                   <object class="AdwPreferencesGroup">
                     <property name="title">Paths</property>
                     <child>
-                      <object class="AdwEntryRow" id="source_entry">
+                      <object class="AdwActionRow" id="source_row">
+                        <property name="activatable">true</property>
                         <property name="title">_Source</property>
                         <property name="use-underline">true</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
                         <child>
-                          <object class="GtkButton" id="source_folder_button">
-                            <property name="valign">center</property>
+                          <object class="GtkImage">
                             <property name="icon-name">folder-open-symbolic</property>
-                            <style>
-                              <class name="flat"/>
-                              <class name="circular"/>
-                            </style>
                           </object>
                         </child>
                       </object>
                     </child>
                     <child>
-                      <object class="AdwEntryRow" id="destination_entry">
+                      <object class="AdwActionRow" id="destination_row">
+                        <property name="activatable">true</property>
                         <property name="title">_Destination</property>
                         <property name="use-underline">true</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
                         <child>
-                          <object class="GtkButton" id="destination_folder_button">
-                            <property name="valign">center</property>
+                          <object class="GtkImage">
                             <property name="icon-name">folder-open-symbolic</property>
-                            <style>
-                              <class name="flat"/>
-                              <class name="circular"/>
-                            </style>
                           </object>
                         </child>
                       </object>
