@@ -20,11 +20,11 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
-        pub(super) profile_view: TemplateChild<gtk::ListView>,
+        pub(super) sidebar_view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub(super) profile_selection: TemplateChild<gtk::SingleSelection>,
+        pub(super) sidebar_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) profile_model: TemplateChild<gio::ListStore>,
+        pub(super) sidebar_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) profile_nav_page: TemplateChild<adw::NavigationPage>,
         #[template_child]
@@ -98,10 +98,10 @@ impl AppWindow {
         let imp = self.imp();
 
         // Add default profile to sidebar
-        imp.profile_model.append(&ProfileObject::default());
+        imp.sidebar_model.append(&ProfileObject::default());
 
         // Bind sidebar selection to profile pane title
-        imp.profile_selection.bind_property("selected-item", &imp.profile_nav_page.get(), "title")
+        imp.sidebar_selection.bind_property("selected-item", &imp.profile_nav_page.get(), "title")
             .transform_to(|_, obj: Option<glib::Object>| {
                 let name = obj
                     .and_downcast::<ProfileObject>()

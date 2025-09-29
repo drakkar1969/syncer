@@ -23,7 +23,7 @@
                         <property name="margin-top">6</property>
                         <property name="margin-bottom">12</property>
                         <property name="child">
-                          <object class="GtkListView" id="profile_view">
+                          <object class="GtkListView" id="sidebar_view">
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>
@@ -31,9 +31,9 @@
                             <property name="margin-end">6</property>
                             <property name="tab-behavior">item</property>
                             <property name="model">
-                              <object class="GtkSingleSelection" id="profile_selection">
+                              <object class="GtkSingleSelection" id="sidebar_selection">
                                 <property name="model">
-                                  <object class="GListStore" id="profile_model">
+                                  <object class="GListStore" id="sidebar_model">
                                     <property name="item-type">ProfileObject</property>
                                   </object>
                                 </property>
@@ -41,7 +41,7 @@
                             </property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/RsyncUI/ui/profile_view/item.ui</property>
+                                <property name="resource">/com/github/RsyncUI/ui/sidebar_view/item.ui</property>
                               </object>
                             </property>
                           </object>
