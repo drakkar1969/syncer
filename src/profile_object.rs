@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -18,6 +18,8 @@ mod imp {
     pub struct ProfileObject {
         #[property(get, set, construct_only)]
         name: RefCell<String>,
+        #[property(get, set, construct_only)]
+        is_default: Cell<bool>,
     }
 
     //---------------------------------------
@@ -41,9 +43,25 @@ glib::wrapper! {
 }
 
 impl ProfileObject {
+    //---------------------------------------
+    // New function
+    //---------------------------------------
     pub fn new(name: &str) -> Self {
         glib::Object::builder()
             .property("name", name)
+            .property("is-default", false)
+            .build()
+    }
+}
+
+impl Default for ProfileObject {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder()
+            .property("name", "Default")
+            .property("is-default", true)
             .build()
     }
 }

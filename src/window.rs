@@ -88,6 +88,6 @@ impl AppWindow {
     // Setup widgets
     //---------------------------------------
     pub fn setup_widgets(&self) {
-        self.imp().profile_model.append(&ProfileObject::new("Default"));
+        self.imp().profile_model.append(&ProfileObject::default());
     }
 }
