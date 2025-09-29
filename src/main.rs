@@ -1,6 +1,7 @@
 mod app;
 mod window;
 mod profile_object;
+mod profile_pane;
 
 use gtk::{glib, gio};
 use gtk::prelude::*;

@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">ui/profile_view/item.ui</file>
+    <file compressed="true">ui/profile_pane.ui</file>
     <file compressed="true">ui/window.ui</file>
   </gresource>
 </gresources>

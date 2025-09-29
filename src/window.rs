@@ -4,6 +4,7 @@ use adw::prelude::*;
 
 use crate::Application;
 use crate::profile_object::ProfileObject;
+use crate::profile_pane::ProfilePane;
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -22,6 +23,8 @@ mod imp {
         pub(super) profile_view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) profile_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) profile_pane: TemplateChild<ProfilePane>,
     }
 
     //---------------------------------------

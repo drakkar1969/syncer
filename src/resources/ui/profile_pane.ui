@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// ProfilePane template //-->
+  <template class="ProfilePane" parent="AdwBin">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">24</property>
+            <property name="spacing">48</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="margin-start">24</property>
+                <property name="margin-end">24</property>
+                <property name="spacing">36</property>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Paths</property>
+                    <child>
+                      <object class="AdwEntryRow" id="source_entry">
+                        <property name="title">_Source</property>
+                        <property name="use-underline">true</property>
+                        <child>
+                          <object class="GtkButton" id="source_folder_button">
+                            <property name="valign">center</property>
+                            <property name="icon-name">folder-open-symbolic</property>
+                            <style>
+                              <class name="flat"/>
+                              <class name="circular"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwEntryRow" id="destination_entry">
+                        <property name="title">_Destination</property>
+                        <property name="use-underline">true</property>
+                        <child>
+                          <object class="GtkButton" id="destination_folder_button">
+                            <property name="valign">center</property>
+                            <property name="icon-name">folder-open-symbolic</property>
+                            <style>
+                              <class name="flat"/>
+                              <class name="circular"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="halign">center</property>
+                    <property name="homogeneous">true</property>
+                    <property name="spacing">36</property>
+                    <child>
+                      <object class="GtkButton" id="dryrun_button">
+                        <property name="label">Dr_y Run</property>
+                        <property name="use-underline">true</property>
+                        <style>
+                          <class name="pill"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="rsync_button">
+                        <property name="label">Start _Rsync</property>
+                        <property name="use-underline">true</property>
+                        <style>
+                          <class name="suggested-action"/>
+                          <class name="pill"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="margin-start">24</property>
+                    <property name="margin-end">24</property>
+                    <property name="spacing">24</property>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_time_switch">
+                            <property name="title">Preserve Time</property>
+                            <property name="active">true</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_permissions_switch">
+                            <property name="title">Preserve Permissions</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_owner_switch">
+                            <property name="title">Preserve Owner</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_group_switch">
+                            <property name="title">Preserve Group</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="delete_destination_switch">
+                            <property name="title">Delete on Destination</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="no_leave_filesystem_switch">
+                            <property name="title">Do Not Leave Filesystem</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="verbose_switch">
+                            <property name="title">Verbose</property>
+                            <property name="active">true</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="show_progress_switch">
+                            <property name="title">Show Progress</property>
+                            <property name="active">true</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="ignore_existing_switch">
+                            <property name="title">Ignore Existing</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="size_only_switch">
+                            <property name="title">Size Only</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="skip_newer_switch">
+                            <property name="title">Skip Newer</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="always_checksum_switch">
+                            <property name="title">Always Checksum</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="compress_file_data_switch">
+                            <property name="title">Compress File Data</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_devices_switch">
+                            <property name="title">Preserve Devices</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>
