@@ -20,6 +20,9 @@ mod imp {
         name: RefCell<String>,
         #[property(get, set, construct_only)]
         is_default: Cell<bool>,
+
+        #[property(get, set, default = true, construct)]
+        preserve_time: Cell<bool>,
     }
 
     //---------------------------------------

@@ -19,6 +19,9 @@ mod imp {
     #[properties(wrapper_type = super::ProfilePane)]
     #[template(resource = "/com/github/RsyncUI/ui/profile_pane.ui")]
     pub struct ProfilePane {
+        #[template_child]
+        pub(super) preserve_time_switch: TemplateChild<adw::SwitchRow>,
+
         #[property(get, set)]
         profile: RefCell<ProfileObject>,
     }
@@ -73,6 +76,14 @@ impl ProfilePane {
     // Constructor
     //---------------------------------------
     fn setup_widgets(&self) {
+        let imp = self.imp();
 
+        // Bind profile property to widgets
+        let profile = self.profile();
+
+        profile.bind_property("preserve-time", &imp.preserve_time_switch.get(), "active")
+            .bidirectional()
+            .sync_create()
+            .build();
     }
 }
