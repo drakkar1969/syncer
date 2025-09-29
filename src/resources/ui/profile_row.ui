@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// ProfileRow template //-->
+  <template class="ProfileRow" parent="GtkListBoxRow">
+    <property name="child">
+      <object class="GtkLabel" id="label">
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="margin-top">2</property>
+        <property name="margin-bottom">2</property>
+        <property name="hexpand">true</property>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,11 +1,10 @@
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::clone;
 
-
-use crate::APP_ID;
 use crate::Application;
+use crate::profile_row::ProfileRow;
+use crate::profile_object::ProfileObject;
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -20,6 +19,8 @@ mod imp {
     #[properties(wrapper_type = super::AppWindow)]
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
+        #[template_child]
+        pub(super) profile_listbox: TemplateChild<gtk::ListBox>,
     }
 
     //---------------------------------------
@@ -49,6 +50,8 @@ mod imp {
             self.parent_constructed();
 
             let obj = self.obj();
+
+            obj.setup_widgets();
         }
     }
 
@@ -76,5 +79,24 @@ impl AppWindow {
         glib::Object::builder()
             .property("application", app)
             .build()
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    pub fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        let profile_model = gio::ListStore::new::<ProfileObject>();
+        profile_model.append(&ProfileObject::new("Default"));
+
+        imp.profile_listbox.bind_model(Some(&profile_model), |obj| {
+            let profile = obj
+                .downcast_ref::<ProfileObject>()
+                .expect("Could not downcast to 'ProfileObject'");
+
+            ProfileRow::new(&profile.name())
+                .upcast::<gtk::Widget>()
+        });
     }
 }

@@ -17,6 +17,20 @@
                 </child>
                 <property name="content">
                   <object class="GtkBox">
+                    <child>
+                      <object class="GtkListBox" id="profile_listbox">
+                        <property name="hexpand">true</property>
+                        <property name="margin-start">6</property>
+                        <property name="margin-end">6</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">12</property>
+                        <property name="selection-mode">browse</property>
+                        <property name="tab-behavior">item</property>
+                        <style>
+                          <class name="navigation-sidebar"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </property>
               </object>
