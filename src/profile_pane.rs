@@ -105,7 +105,7 @@ impl ProfilePane {
         dialog.set_initial_folder(
             row.subtitle()
                 .filter(|subtitle| !subtitle.is_empty())
-                .map(|subtitle| gio::File::for_path(subtitle))
+                .map(gio::File::for_path)
                 .as_ref()
         );
 

@@ -41,7 +41,7 @@ mod imp {
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
-            ProfileObject::ensure_type();;
+            ProfileObject::ensure_type();
 
             klass.bind_template();
         }
