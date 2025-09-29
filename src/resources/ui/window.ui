@@ -18,17 +18,34 @@
                 <property name="content">
                   <object class="GtkBox">
                     <child>
-                      <object class="GtkListBox" id="profile_listbox">
+                      <object class="GtkScrolledWindow">
                         <property name="hexpand">true</property>
-                        <property name="margin-start">6</property>
-                        <property name="margin-end">6</property>
                         <property name="margin-top">6</property>
                         <property name="margin-bottom">12</property>
-                        <property name="selection-mode">browse</property>
-                        <property name="tab-behavior">item</property>
-                        <style>
-                          <class name="navigation-sidebar"/>
-                        </style>
+                        <property name="child">
+                          <object class="GtkListView" id="profile_view">
+                            <style>
+                              <class name="navigation-sidebar"/>
+                            </style>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="tab-behavior">item</property>
+                            <property name="model">
+                              <object class="GtkSingleSelection" id="profile_selection">
+                                <property name="model">
+                                  <object class="GListStore" id="profile_model">
+                                    <property name="item-type">ProfileObject</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/RsyncUI/ui/profile_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </property>
                       </object>
                     </child>
                   </object>

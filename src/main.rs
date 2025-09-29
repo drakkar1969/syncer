@@ -1,6 +1,5 @@
 mod app;
 mod window;
-mod profile_row;
 mod profile_object;
 
 use gtk::{glib, gio};

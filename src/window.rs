@@ -3,7 +3,6 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 
 use crate::Application;
-use crate::profile_row::ProfileRow;
 use crate::profile_object::ProfileObject;
 
 //------------------------------------------------------------------------------
@@ -20,7 +19,9 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
-        pub(super) profile_listbox: TemplateChild<gtk::ListBox>,
+        pub(super) profile_view: TemplateChild<gtk::ListView>,
+        #[template_child]
+        pub(super) profile_model: TemplateChild<gio::ListStore>,
     }
 
     //---------------------------------------
@@ -33,6 +34,8 @@ mod imp {
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
+            ProfileObject::ensure_type();;
+
             klass.bind_template();
         }
 
@@ -85,18 +88,6 @@ impl AppWindow {
     // Setup widgets
     //---------------------------------------
     pub fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        let profile_model = gio::ListStore::new::<ProfileObject>();
-        profile_model.append(&ProfileObject::new("Default"));
-
-        imp.profile_listbox.bind_model(Some(&profile_model), |obj| {
-            let profile = obj
-                .downcast_ref::<ProfileObject>()
-                .expect("Could not downcast to 'ProfileObject'");
-
-            ProfileRow::new(&profile.name())
-                .upcast::<gtk::Widget>()
-        });
+        self.imp().profile_model.append(&ProfileObject::new("Default"));
     }
 }

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// ProfileRow template //-->
-  <template class="ProfileRow" parent="GtkListBoxRow">
+  <template class="GtkListItem">
     <property name="child">
       <object class="GtkLabel" id="label">
         <property name="margin-start">6</property>
@@ -10,6 +9,11 @@
         <property name="margin-bottom">2</property>
         <property name="hexpand">true</property>
         <property name="xalign">0</property>
+        <binding name="label">
+          <lookup name="name" type="ProfileObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
       </object>
     </property>
   </template>
