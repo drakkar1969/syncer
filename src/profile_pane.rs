@@ -1,6 +1,10 @@
+use std::cell::RefCell;
+
 use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+
+use crate::profile_object::ProfileObject;
 
 //------------------------------------------------------------------------------
 // MODULE: ProfilePane
@@ -15,6 +19,8 @@ mod imp {
     #[properties(wrapper_type = super::ProfilePane)]
     #[template(resource = "/com/github/RsyncUI/ui/profile_pane.ui")]
     pub struct ProfilePane {
+        #[property(get, set)]
+        profile: RefCell<ProfileObject>,
     }
 
     //---------------------------------------
@@ -44,6 +50,8 @@ mod imp {
             self.parent_constructed();
 
             let obj = self.obj();
+
+            obj.setup_widgets();
         }
     }
 
@@ -58,4 +66,13 @@ glib::wrapper! {
     pub struct ProfilePane(ObjectSubclass<imp::ProfilePane>)
         @extends adw::Bin, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+}
+
+impl ProfilePane {
+    //---------------------------------------
+    // Constructor
+    //---------------------------------------
+    fn setup_widgets(&self) {
+
+    }
 }

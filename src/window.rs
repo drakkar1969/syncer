@@ -22,7 +22,11 @@ mod imp {
         #[template_child]
         pub(super) profile_view: TemplateChild<gtk::ListView>,
         #[template_child]
+        pub(super) profile_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
         pub(super) profile_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) profile_nav_page: TemplateChild<adw::NavigationPage>,
         #[template_child]
         pub(super) profile_pane: TemplateChild<ProfilePane>,
     }
@@ -91,6 +95,22 @@ impl AppWindow {
     // Setup widgets
     //---------------------------------------
     pub fn setup_widgets(&self) {
-        self.imp().profile_model.append(&ProfileObject::default());
+        let imp = self.imp();
+
+        // Add default profile to sidebar
+        imp.profile_model.append(&ProfileObject::default());
+
+        // Bind sidebar selection to profile pane title
+        imp.profile_selection.bind_property("selected-item", &imp.profile_nav_page.get(), "title")
+            .transform_to(|_, obj: Option<glib::Object>| {
+                let name = obj
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                Some(name)
+            })
+            .sync_create()
+            .build();
     }
 }
