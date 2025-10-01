@@ -100,6 +100,45 @@
                             <property name="title">Preserve Time</property>
                           </object>
                         </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_permissions_switch">
+                            <property name="title">Preserve Permissions</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_owner_switch">
+                            <property name="title">Preserve Owner</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_group_switch">
+                            <property name="title">Preserve Group</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="delete_destination_switch">
+                            <property name="title">Delete on Destination</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="no_leave_filesystem_switch">
+                            <property name="title">Do Not Leave Filesystem</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="ignore_existing_switch">
+                            <property name="title">Ignore Existing</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="skip_newer_switch">
+                            <property name="title">Skip Newer</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>

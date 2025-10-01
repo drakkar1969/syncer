@@ -24,8 +24,23 @@ mod imp {
         pub(super) source_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
+
         #[template_child]
         pub(super) preserve_time_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) preserve_permissions_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) preserve_owner_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) preserve_group_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) delete_destination_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) no_leave_filesystem_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) ignore_existing_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) skip_newer_switch: TemplateChild<adw::SwitchRow>,
 
         #[property(get, set)]
         profile: RefCell<Option<ProfileObject>>,
@@ -111,7 +126,7 @@ impl ProfilePane {
     //---------------------------------------
     // Bind widget helper function
     //---------------------------------------
-    fn bind_widget(&self, profile: ProfileObject, source: &str, widget: &impl IsA<gtk::Widget>, target: &str) -> glib::Binding{
+    fn bind_widget(&self, profile: &ProfileObject, source: &str, widget: &impl IsA<gtk::Widget>, target: &str) -> glib::Binding{
         profile.bind_property(source, widget, target)
             .bidirectional()
             .sync_create()
@@ -143,7 +158,14 @@ impl ProfilePane {
                     .build());
 
                 // Bind profile property to widgets
-                bindings.push(pane.bind_widget(profile, "preserve-time", &imp.preserve_time_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "no-leave-filesystem", &imp.no_leave_filesystem_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"));
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));

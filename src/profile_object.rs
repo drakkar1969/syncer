@@ -23,6 +23,20 @@ mod imp {
 
         #[property(get, set, default = true, construct)]
         preserve_time: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        preserve_permissions: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        preserve_owner: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        preserve_group: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        delete_destination: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        no_leave_filesystem: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        ignore_existing: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        skip_newer: Cell<bool>,
     }
 
     //---------------------------------------
