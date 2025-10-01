@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// ProfilePane template //-->
-  <template class="ProfilePane" parent="AdwBin">
+  <template class="ProfilePane" parent="AdwNavigationPage">
     <property name="child">
       <object class="AdwToolbarView">
         <child type="top">

@@ -25,8 +25,7 @@ mod imp {
         pub(super) sidebar_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) sidebar_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub(super) profile_nav_page: TemplateChild<adw::NavigationPage>,
+
         #[template_child]
         pub(super) profile_pane: TemplateChild<ProfilePane>,
     }
@@ -100,16 +99,8 @@ impl AppWindow {
         // Add default profile to sidebar
         imp.sidebar_model.append(&ProfileObject::default());
 
-        // Bind sidebar selection to profile pane title
-        imp.sidebar_selection.bind_property("selected-item", &imp.profile_nav_page.get(), "title")
-            .transform_to(|_, obj: Option<glib::Object>| {
-                let name = obj
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'")
-                    .name();
-
-                Some(name)
-            })
+        // Bind sidebar selected item to profile pane
+        imp.sidebar_selection.bind_property("selected-item", &imp.profile_pane.get(), "profile")
             .sync_create()
             .build();
     }

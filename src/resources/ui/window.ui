@@ -88,11 +88,7 @@
           </object>
         </property>
         <property name="content">
-          <object class="AdwNavigationPage" id="profile_nav_page">
-            <property name="child">
-              <object class="ProfilePane" id="profile_pane"/>
-            </property>
-          </object>
+          <object class="ProfilePane" id="profile_pane"/>
         </property>
       </object>
     </property>

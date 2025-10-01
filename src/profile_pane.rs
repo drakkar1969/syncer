@@ -29,6 +29,8 @@ mod imp {
 
         #[property(get, set)]
         profile: RefCell<ProfileObject>,
+
+        pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>
     }
 
     //---------------------------------------
@@ -38,7 +40,7 @@ mod imp {
     impl ObjectSubclass for ProfilePane {
         const NAME: &'static str = "ProfilePane";
         type Type = super::ProfilePane;
-        type ParentType = adw::Bin;
+        type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -59,13 +61,12 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
         }
     }
 
     impl WidgetImpl for ProfilePane {}
-    impl BinImpl for ProfilePane {}
+    impl NavigationPageImpl for ProfilePane {}
 }
 
 //------------------------------------------------------------------------------
@@ -73,26 +74,11 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ProfilePane(ObjectSubclass<imp::ProfilePane>)
-        @extends adw::Bin, gtk::Widget,
+        @extends adw::NavigationPage, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl ProfilePane {
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind profile property to widgets
-        let profile = self.profile();
-
-        profile.bind_property("preserve-time", &imp.preserve_time_switch.get(), "active")
-            .bidirectional()
-            .sync_create()
-            .build();
-    }
-
     //---------------------------------------
     // Select folder helper function
     //---------------------------------------
@@ -123,10 +109,45 @@ impl ProfilePane {
     }
 
     //---------------------------------------
+    // Bind widget helper function
+    //---------------------------------------
+    fn bind_widget(&self, source: &str, widget: &impl IsA<gtk::Widget>, target: &str) -> glib::Binding{
+        self.profile().bind_property(source, widget, target)
+            .bidirectional()
+            .sync_create()
+            .build()
+    }
+
+        //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Profile property notify signal
+        self.connect_profile_notify(|pane| {
+            let imp = pane.imp();
+
+            if let Some(bindings) = imp.bindings.take() {
+                for binding in bindings {
+                    binding.unbind();
+                }
+            }
+
+            let mut bindings: Vec<glib::Binding> = vec![];
+
+            // Bind profile property to pane title
+            let profile = pane.profile();
+
+            bindings.push(profile.bind_property("name", pane, "title")
+                .sync_create()
+                .build());
+
+            // Bind profile property to widgets
+            bindings.push(pane.bind_widget("preserve-time", &imp.preserve_time_switch.get(), "active"));
+
+            imp.bindings.replace(Some(bindings));
+        });
 
         // Source row activated signal
         imp.source_row.connect_activated(clone!(
