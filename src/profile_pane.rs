@@ -28,7 +28,7 @@ mod imp {
         pub(super) preserve_time_switch: TemplateChild<adw::SwitchRow>,
 
         #[property(get, set)]
-        profile: RefCell<ProfileObject>,
+        profile: RefCell<Option<ProfileObject>>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>
     }
@@ -111,8 +111,8 @@ impl ProfilePane {
     //---------------------------------------
     // Bind widget helper function
     //---------------------------------------
-    fn bind_widget(&self, source: &str, widget: &impl IsA<gtk::Widget>, target: &str) -> glib::Binding{
-        self.profile().bind_property(source, widget, target)
+    fn bind_widget(&self, profile: ProfileObject, source: &str, widget: &impl IsA<gtk::Widget>, target: &str) -> glib::Binding{
+        profile.bind_property(source, widget, target)
             .bidirectional()
             .sync_create()
             .build()
@@ -134,19 +134,20 @@ impl ProfilePane {
                 }
             }
 
-            let mut bindings: Vec<glib::Binding> = vec![];
+            if let Some(profile) = pane.profile() {
+                let mut bindings: Vec<glib::Binding> = vec![];
 
-            // Bind profile property to pane title
-            let profile = pane.profile();
+                // Bind profile property to pane title
+                bindings.push(profile.bind_property("name", pane, "title")
+                    .sync_create()
+                    .build());
 
-            bindings.push(profile.bind_property("name", pane, "title")
-                .sync_create()
-                .build());
+                // Bind profile property to widgets
+                bindings.push(pane.bind_widget(profile, "preserve-time", &imp.preserve_time_switch.get(), "active"));
 
-            // Bind profile property to widgets
-            bindings.push(pane.bind_widget("preserve-time", &imp.preserve_time_switch.get(), "active"));
-
-            imp.bindings.replace(Some(bindings));
+                // Store bindings
+                imp.bindings.replace(Some(bindings));
+            }
         });
 
         // Source row activated signal
