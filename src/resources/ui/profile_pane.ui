@@ -134,6 +134,32 @@
                     <child>
                       <object class="AdwPreferencesGroup">
                         <child>
+                          <object class="AdwSwitchRow" id="preserve_symlinks_switch">
+                            <property name="title">Preserve Symlinks</property>
+                            <property name="subtitle">Copy symlinks as symlinks [ --links | -l ]</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_hardlinks_switch">
+                            <property name="title">Preserve Hardlinks</property>
+                            <property name="subtitle">Copy hardlinks as hardlinks [ --hard-links | -H ]</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="preserve_devices_switch">
+                            <property name="title">Preserve Devices</property>
+                            <property name="subtitle">Preserve device and special files [ --devices --specials | -D ]</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
                           <object class="AdwSwitchRow" id="delete_destination_switch">
                             <property name="title">Delete on Destination</property>
                             <property name="subtitle">Delete extraneous files on destination [ --delete ]</property>
@@ -146,9 +172,15 @@
                           </object>
                         </child>
                         <child>
+                          <object class="AdwSwitchRow" id="existing_switch">
+                            <property name="title">Existing Only</property>
+                            <property name="subtitle">Skip creating new files and directories on destination [ --existing ]</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="AdwSwitchRow" id="ignore_existing_switch">
                             <property name="title">Ignore Existing</property>
-                            <property name="subtitle">Skip files that exist on destination [ --ignore-existing ]</property>
+                            <property name="subtitle">Skip files (not directories) that exist on destination [ --ignore-existing ]</property>
                           </object>
                         </child>
                         <child>

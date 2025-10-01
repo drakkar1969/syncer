@@ -37,9 +37,17 @@ mod imp {
         #[property(get, set, default = false, construct)]
         preserve_group: Cell<bool>,
         #[property(get, set, default = false, construct)]
+        preserve_symlinks: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        preserve_hardlinks: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        preserve_devices: Cell<bool>,
+        #[property(get, set, default = false, construct)]
         delete_destination: Cell<bool>,
         #[property(get, set, default = false, construct)]
         no_leave_filesystem: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        existing: Cell<bool>,
         #[property(get, set, default = false, construct)]
         ignore_existing: Cell<bool>,
         #[property(get, set, default = false, construct)]

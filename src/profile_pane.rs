@@ -36,9 +36,17 @@ mod imp {
         #[template_child]
         pub(super) preserve_group_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) preserve_symlinks_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) preserve_hardlinks_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) preserve_devices_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) delete_destination_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) no_leave_filesystem_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) existing_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) ignore_existing_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
@@ -168,8 +176,12 @@ impl ProfilePane {
                 bindings.push(pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "no-leave-filesystem", &imp.no_leave_filesystem_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"));
 
