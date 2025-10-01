@@ -158,6 +158,9 @@ impl ProfilePane {
                     .build());
 
                 // Bind profile property to widgets
+                bindings.push(pane.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"));
+                bindings.push(pane.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"));
+
                 bindings.push(pane.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"));
