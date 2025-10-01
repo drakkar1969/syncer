@@ -27,6 +27,8 @@ mod imp {
         destination: RefCell<String>,
 
         #[property(get, set, default = true, construct)]
+        recursive: Cell<bool>,
+        #[property(get, set, default = true, construct)]
         preserve_time: Cell<bool>,
         #[property(get, set, default = false, construct)]
         preserve_permissions: Cell<bool>,

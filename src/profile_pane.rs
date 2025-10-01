@@ -26,6 +26,8 @@ mod imp {
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
+        pub(super) recursive_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) preserve_time_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) preserve_permissions_switch: TemplateChild<adw::SwitchRow>,
@@ -161,6 +163,7 @@ impl ProfilePane {
                 bindings.push(pane.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"));
                 bindings.push(pane.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"));
 
+                bindings.push(pane.bind_widget(&profile, "recursive", &imp.recursive_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"));

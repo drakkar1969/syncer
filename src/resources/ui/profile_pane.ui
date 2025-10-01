@@ -96,6 +96,16 @@
                     <child>
                       <object class="AdwPreferencesGroup">
                         <child>
+                          <object class="AdwSwitchRow" id="recursive_switch">
+                            <property name="title">Recursive</property>
+                            <property name="subtitle">Recurse into directories [ --recursive | -r ]</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
                           <object class="AdwSwitchRow" id="preserve_time_switch">
                             <property name="title">Preserve Time</property>
                             <property name="subtitle">Preserve modification times [ --times | -t ]</property>
