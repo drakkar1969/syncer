@@ -1,6 +1,5 @@
 <interface>
   <object class="AdwAlertDialog" id="dialog">
-    <property name="heading">Add New Profile</property>
     <property name="default-response">add</property>
     <property name="close-response">cancel</property>
     <property name="focus-widget">entry</property>

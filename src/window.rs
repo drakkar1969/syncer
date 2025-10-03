@@ -50,7 +50,7 @@ mod imp {
             //---------------------------------------
             // Refresh action
             klass.install_action("sidebar.new-profile", None, |window, _, _| {
-                window.profile_name_dialog();
+                window.profile_name_dialog("Add New Profile");
             });
         }
 
@@ -102,12 +102,14 @@ impl AppWindow {
     //---------------------------------------
     // Profile name dialog helper function
     //---------------------------------------
-    fn profile_name_dialog(&self) {
+    fn profile_name_dialog(&self, heading: &str) {
         let imp = self.imp();
 
         let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/profile_name_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog").unwrap();
+        dialog.set_heading(Some(heading));
+
         let entry: adw::EntryRow = builder.object("entry").unwrap();
 
         entry.connect_changed(clone!(
