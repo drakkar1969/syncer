@@ -233,5 +233,19 @@ impl ProfilePane {
                 pane.select_folder(row);
             }
         ));
+
+        // Check mode combo selected property notify
+        imp.check_mode_combo.connect_selected_notify(|row| {
+            let i = row.selected();
+
+            let subtitle = match i {
+                0 => "Check file size and modification time",
+                1 => "Check file size only",
+                2 => "Compare 128-bit checksum for files with matching size",
+                _ => unreachable!()
+            };
+
+            row.set_subtitle(subtitle);
+        });
     }
 }

@@ -98,7 +98,7 @@
                         <child>
                           <object class="AdwComboRow" id="check_mode_combo">
                             <property name="title">File Transfer Check</property>
-                            <property name="subtitle">Method to check if files have changed and need to be transferred</property>
+                            <property name="subtitle">Check file size and modification time</property>
                             <property name="model">
                               <object class="AdwEnumListModel">
                                 <property name="enum-type">CheckMode</property>
