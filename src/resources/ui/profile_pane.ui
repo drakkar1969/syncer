@@ -155,6 +155,12 @@
                             <property name="subtitle">Preserve device and special files [ --devices --specials | -D ]</property>
                           </object>
                         </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="no_leave_filesystem_switch">
+                            <property name="title">Do Not Leave Filesystem</property>
+                            <property name="subtitle">Do not cross filesystem boundaries [ --one-file-system | -x ]</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
@@ -163,12 +169,6 @@
                           <object class="AdwSwitchRow" id="delete_destination_switch">
                             <property name="title">Delete on Destination</property>
                             <property name="subtitle">Delete extraneous files on destination [ --delete ]</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="AdwSwitchRow" id="no_leave_filesystem_switch">
-                            <property name="title">Do Not Leave Filesystem</property>
-                            <property name="subtitle">Do not cross filesystem boundaries [ --one-file-system | -x ]</property>
                           </object>
                         </child>
                         <child>
