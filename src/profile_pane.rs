@@ -167,7 +167,7 @@ impl ProfilePane {
             .build()
     }
 
-        //---------------------------------------
+    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -184,34 +184,34 @@ impl ProfilePane {
             }
 
             if let Some(profile) = pane.profile() {
-                let mut bindings: Vec<glib::Binding> = vec![];
+                let bindings: Vec<glib::Binding> = vec![
+                    // Bind profile property to pane title
+                    profile.bind_property("name", pane, "title")
+                        .sync_create()
+                        .build(),
 
-                // Bind profile property to pane title
-                bindings.push(profile.bind_property("name", pane, "title")
-                    .sync_create()
-                    .build());
+                    // Bind profile property to widgets
+                    pane.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"),
+                    pane.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"),
 
-                // Bind profile property to widgets
-                bindings.push(pane.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"));
-                bindings.push(pane.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"));
-
-                bindings.push(pane.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"));
-                bindings.push(pane.bind_widget(&profile, "recursive", &imp.recursive_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "numeric-ids", &imp.numeric_ids_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "no-leave-filesystem", &imp.no_leave_filesystem_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "compress-data", &imp.compress_data_switch.get(), "active"));
-                bindings.push(pane.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active"));
+                    pane.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"),
+                    pane.bind_widget(&profile, "recursive", &imp.recursive_switch.get(), "active"),
+                    pane.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"),
+                    pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"),
+                    pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"),
+                    pane.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"),
+                    pane.bind_widget(&profile, "numeric-ids", &imp.numeric_ids_switch.get(), "active"),
+                    pane.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"),
+                    pane.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"),
+                    pane.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"),
+                    pane.bind_widget(&profile, "no-leave-filesystem", &imp.no_leave_filesystem_switch.get(), "active"),
+                    pane.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"),
+                    pane.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"),
+                    pane.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"),
+                    pane.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"),
+                    pane.bind_widget(&profile, "compress-data", &imp.compress_data_switch.get(), "active"),
+                    pane.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active")
+                ];
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
