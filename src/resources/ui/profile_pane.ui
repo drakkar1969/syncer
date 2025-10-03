@@ -117,6 +117,10 @@
                             <property name="subtitle">Preserve permissions [ --perms | -p ]</property>
                           </object>
                         </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
                         <child>
                           <object class="AdwSwitchRow" id="preserve_owner_switch">
                             <property name="title">Preserve Owner</property>
@@ -127,6 +131,12 @@
                           <object class="AdwSwitchRow" id="preserve_group_switch">
                             <property name="title">Preserve Group</property>
                             <property name="subtitle">Preserve group [ --group | -g ]</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="numeric_ids_switch">
+                            <property name="title">Keep Numeric IDs</property>
+                            <property name="subtitle">Do not map numeric uid/gid to user and group names [ --numeric-ids ]</property>
                           </object>
                         </child>
                       </object>
@@ -187,6 +197,22 @@
                           <object class="AdwSwitchRow" id="skip_newer_switch">
                             <property name="title">Skip Newer</property>
                             <property name="subtitle">Skip files that are newer on destination [ --update | -u ]</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="compress_data_switch">
+                            <property name="title">Compress File Data</property>
+                            <property name="subtitle">Compress file data when transferring (useful if at least one side is remote) [ --compress | -z ]</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSwitchRow" id="backup_switch">
+                            <property name="title">Backup Files</property>
+                            <property name="subtitle">Make backups of existing files on destination [ --backup | -b ]</property>
                           </object>
                         </child>
                       </object>

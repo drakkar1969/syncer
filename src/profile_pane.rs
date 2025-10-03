@@ -36,6 +36,8 @@ mod imp {
         #[template_child]
         pub(super) preserve_group_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) numeric_ids_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) preserve_symlinks_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) preserve_hardlinks_switch: TemplateChild<adw::SwitchRow>,
@@ -51,6 +53,10 @@ mod imp {
         pub(super) ignore_existing_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) skip_newer_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) compress_data_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) backup_switch: TemplateChild<adw::SwitchRow>,
 
         #[property(get, set)]
         profile: RefCell<Option<ProfileObject>>,
@@ -176,6 +182,7 @@ impl ProfilePane {
                 bindings.push(pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "numeric-ids", &imp.numeric_ids_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"));
@@ -184,6 +191,8 @@ impl ProfilePane {
                 bindings.push(pane.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"));
                 bindings.push(pane.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "compress-data", &imp.compress_data_switch.get(), "active"));
+                bindings.push(pane.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active"));
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));

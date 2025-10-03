@@ -37,6 +37,8 @@ mod imp {
         #[property(get, set, default = false, construct)]
         preserve_group: Cell<bool>,
         #[property(get, set, default = false, construct)]
+        numeric_ids: Cell<bool>,
+        #[property(get, set, default = false, construct)]
         preserve_symlinks: Cell<bool>,
         #[property(get, set, default = false, construct)]
         preserve_hardlinks: Cell<bool>,
@@ -52,6 +54,10 @@ mod imp {
         ignore_existing: Cell<bool>,
         #[property(get, set, default = false, construct)]
         skip_newer: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        compress_data: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        backup: Cell<bool>,
     }
 
     //---------------------------------------
