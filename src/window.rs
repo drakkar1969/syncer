@@ -1,6 +1,7 @@
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
+use glib::clone;
 
 use crate::Application;
 use crate::profile_object::ProfileObject;
@@ -43,6 +44,14 @@ mod imp {
             ProfileObject::ensure_type();
 
             klass.bind_template();
+
+            //---------------------------------------
+            // Add class actions
+            //---------------------------------------
+            // Refresh action
+            klass.install_action("sidebar.new-profile", None, |window, _, _| {
+                window.profile_name_dialog();
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -91,9 +100,37 @@ impl AppWindow {
     }
 
     //---------------------------------------
+    // Profile name dialog helper function
+    //---------------------------------------
+    fn profile_name_dialog(&self) {
+        let imp = self.imp();
+
+        let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/profile_name_dialog.ui");
+
+        let dialog: adw::AlertDialog = builder.object("dialog").unwrap();
+        let entry: adw::EntryRow = builder.object("entry").unwrap();
+
+        entry.connect_changed(clone!(
+            #[weak] dialog,
+            move |entry| {
+                dialog.set_response_enabled("add", !entry.text().is_empty());
+            }
+        ));
+
+        dialog.connect_response(Some("add"), clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.sidebar_model.append(&ProfileObject::new(&entry.text()));
+            }
+        ));
+
+        dialog.present(Some(self));
+    }
+
+    //---------------------------------------
     // Setup widgets
     //---------------------------------------
-    pub fn setup_widgets(&self) {
+    fn setup_widgets(&self) {
         let imp = self.imp();
 
         // Add default profile to sidebar

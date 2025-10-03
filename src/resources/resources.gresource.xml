@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/RsyncUI/">
+    <file compressed="true">ui/builder/profile_name_dialog.ui</file>
     <file compressed="true">ui/sidebar_view/item.ui</file>
     <file compressed="true">ui/profile_pane.ui</file>
     <file compressed="true">ui/window.ui</file>
