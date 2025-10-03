@@ -96,6 +96,24 @@
                     <child>
                       <object class="AdwPreferencesGroup">
                         <child>
+                          <object class="AdwComboRow" id="check_mode_combo">
+                            <property name="title">File Transfer Check</property>
+                            <property name="subtitle">Method to check if files have changed and need to be transferred</property>
+                            <property name="model">
+                              <object class="AdwEnumListModel">
+                                <property name="enum-type">CheckMode</property>
+                              </object>
+                            </property>
+                            <property name="expression">
+                              <lookup type="AdwEnumListItem" name="name"/>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
                           <object class="AdwSwitchRow" id="recursive_switch">
                             <property name="title">Recursive</property>
                             <property name="subtitle">Recurse into directories [ --recursive | -r ]</property>

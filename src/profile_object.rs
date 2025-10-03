@@ -26,6 +26,8 @@ mod imp {
         #[property(get, set)]
         destination: RefCell<String>,
 
+        #[property(get, set, default = 0, construct)]
+        check_mode: Cell<u32>,
         #[property(get, set, default = true, construct)]
         recursive: Cell<bool>,
         #[property(get, set, default = true, construct)]
