@@ -21,11 +21,11 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
-        pub(super) sidebar_view: TemplateChild<gtk::ListView>,
-        #[template_child]
         pub(super) sidebar_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) sidebar_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) sidebar_factory: TemplateChild<gtk::SignalListItemFactory>,
 
         #[template_child]
         pub(super) profile_pane: TemplateChild<ProfilePane>,
@@ -48,9 +48,24 @@ mod imp {
             //---------------------------------------
             // Add class actions
             //---------------------------------------
-            // Refresh action
+            // New profile action
             klass.install_action("sidebar.new-profile", None, |window, _, _| {
                 window.profile_name_dialog("Add New Profile");
+            });
+
+            // Delete profile action
+            klass.install_action("sidebar.delete-profile", Some(glib::VariantTy::STRING), |window, _, parameter| {
+                let imp = window.imp();
+
+                let name = parameter
+                    .and_then(|param| param.get::<String>())
+                    .expect("Could not get string from variant");
+
+                if let Some(pos) = imp.sidebar_model.iter::<ProfileObject>().flatten()
+                    .position(|obj| obj.name() == name)
+                {
+                    imp.sidebar_model.remove(pos as u32);
+                }
             });
         }
 
@@ -69,6 +84,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_signals();
             obj.setup_widgets();
         }
     }
@@ -130,6 +146,67 @@ impl AppWindow {
         ));
 
         dialog.present(Some(self));
+    }
+
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Sidebar factory setup signal
+        imp.sidebar_factory.connect_setup(clone!(
+            move |_, item| {
+                let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/sidebar_item.ui");
+
+                let child: gtk::Box = builder.object("box")
+                    .expect("Could not get object from resource");
+
+                item
+                    .downcast_ref::<gtk::ListItem>()
+                    .expect("Could not downcast to 'GtkListItem'")
+                    .set_child(Some(&child));
+            }
+        ));
+
+        // Sidebar factory bind signal
+        imp.sidebar_factory.connect_bind(clone!(
+            move |_, item| {
+                let item = item
+                    .downcast_ref::<gtk::ListItem>()
+                    .expect("Could not downcast to 'GtkListItem'");
+
+                let obj = item
+                    .item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'");
+
+                let child = item
+                    .child()
+                    .and_downcast::<gtk::Box>()
+                    .expect("Could not downcast to 'GtkBox'");
+
+                let label = child
+                    .first_child()
+                    .and_downcast::<gtk::Label>()
+                    .expect("Could not downcast to 'GtkLabel'");
+
+                label.set_label(&obj.name());
+
+                let menu_button = child
+                    .last_child()
+                    .and_downcast::<gtk::MenuButton>()
+                    .expect("Could not downcast to 'GtkMenuButton'");
+
+                let menu_model = gio::Menu::new();
+
+                let menu_item = gio::MenuItem::new(Some("Delete"), Some("sidebar.delete-profile"));
+                menu_item.set_attribute_value("target", Some(&obj.name().to_variant()));
+                menu_model.append_item(&menu_item);
+
+                menu_button.set_menu_model(Some(&menu_model));
+            }
+        ));
     }
 
     //---------------------------------------

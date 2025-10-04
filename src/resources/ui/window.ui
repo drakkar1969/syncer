@@ -49,9 +49,7 @@
                               </object>
                             </property>
                             <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/RsyncUI/ui/sidebar_view/item.ui</property>
-                              </object>
+                              <object class="GtkSignalListItemFactory" id="sidebar_factory"/>
                             </property>
                           </object>
                         </property>
