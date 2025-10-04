@@ -235,9 +235,6 @@ impl AppWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Add default profile to sidebar
-        imp.sidebar_model.append(&ProfileObject::default());
-
         // Bind sidebar selected item to profile pane
         imp.sidebar_selection.bind_property("selected-item", &imp.profile_pane.get(), "profile")
             .sync_create()

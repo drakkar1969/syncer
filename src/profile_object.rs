@@ -18,8 +18,6 @@ mod imp {
     pub struct ProfileObject {
         #[property(get, set)]
         name: RefCell<String>,
-        #[property(get, set, construct_only)]
-        is_default: Cell<bool>,
 
         #[property(get, set)]
         source: RefCell<String>,
@@ -89,19 +87,6 @@ impl ProfileObject {
     pub fn new(name: &str) -> Self {
         glib::Object::builder()
             .property("name", name)
-            .property("is-default", false)
-            .build()
-    }
-}
-
-impl Default for ProfileObject {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder()
-            .property("name", "Default")
-            .property("is-default", true)
             .build()
     }
 }

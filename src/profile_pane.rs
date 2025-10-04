@@ -35,9 +35,22 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/profile_pane.ui")]
     pub struct ProfilePane {
         #[template_child]
+        pub(super) nav_view: TemplateChild<adw::NavigationView>,
+        #[template_child]
+        pub(super) nav_page_profile: TemplateChild<adw::NavigationPage>,
+        #[template_child]
+        pub(super) nav_page_settings: TemplateChild<adw::NavigationPage>,
+        #[template_child]
+        pub(super) profile_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub(super) new_profile_button: TemplateChild<gtk::Button>,
+
+        #[template_child]
         pub(super) source_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) settings_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
@@ -186,7 +199,10 @@ impl ProfilePane {
             if let Some(profile) = pane.profile() {
                 let bindings: Vec<glib::Binding> = vec![
                     // Bind profile property to pane title
-                    profile.bind_property("name", pane, "title")
+                    profile.bind_property("name", &imp.nav_page_profile.get(), "title")
+                        .sync_create()
+                        .build(),
+                    profile.bind_property("name", &imp.nav_page_settings.get(), "title")
                         .sync_create()
                         .build(),
 
@@ -215,6 +231,16 @@ impl ProfilePane {
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
+
+                // Show profile page
+                imp.profile_stack.set_visible_child_name("profile");
+            } else {
+                // set pane title
+                imp.nav_page_profile.set_title(" ");
+                imp.nav_page_settings.set_title(" ");
+
+                // Show status page
+                imp.profile_stack.set_visible_child_name("status");
             }
         });
 
@@ -231,6 +257,14 @@ impl ProfilePane {
             #[weak(rename_to = pane)] self,
             move |row| {
                 pane.select_folder(row);
+            }
+        ));
+
+        // Settings row activated signal
+        imp.settings_row.connect_activated(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.nav_view.push_by_tag("settings");
             }
         ));
 
