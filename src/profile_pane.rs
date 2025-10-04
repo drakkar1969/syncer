@@ -50,10 +50,10 @@ mod imp {
         #[template_child]
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
         #[template_child]
+        pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
+        #[template_child]
         pub(super) settings_row: TemplateChild<adw::ActionRow>,
 
-        #[template_child]
-        pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) recursive_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
@@ -209,8 +209,8 @@ impl ProfilePane {
                     // Bind profile property to widgets
                     pane.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"),
                     pane.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"),
-
                     pane.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"),
+
                     pane.bind_widget(&profile, "recursive", &imp.recursive_switch.get(), "active"),
                     pane.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"),
                     pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"),
