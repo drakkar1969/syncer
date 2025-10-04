@@ -177,11 +177,7 @@
                         <property name="spacing">24</property>
                         <child>
                           <object class="AdwPreferencesGroup">
-                            <property name="title">Settings</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="AdwPreferencesGroup">
+                            <property name="title">Advanced Settings</property>
                             <child>
                               <object class="AdwSwitchRow" id="recursive_switch">
                                 <property name="title">Recursive</property>
