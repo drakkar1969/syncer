@@ -107,10 +107,13 @@ impl AppWindow {
 
         let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/profile_name_dialog.ui");
 
-        let dialog: adw::AlertDialog = builder.object("dialog").unwrap();
+        let dialog: adw::AlertDialog = builder.object("dialog")
+            .expect("Could not get object from resource");
+
         dialog.set_heading(Some(heading));
 
-        let entry: adw::EntryRow = builder.object("entry").unwrap();
+        let entry: adw::EntryRow = builder.object("entry")
+            .expect("Could not get object from resource");
 
         entry.connect_changed(clone!(
             #[weak] dialog,
