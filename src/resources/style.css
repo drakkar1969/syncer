@@ -1,0 +1,5 @@
+/* Sidebar row error button */
+menubutton.sidebar-menu > button {
+	min-height: 26px;
+	min-width: 26px;
+}
