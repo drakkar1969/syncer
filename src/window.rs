@@ -1,4 +1,4 @@
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
@@ -121,6 +121,12 @@ mod imp {
 
                 dialog.present(Some(window));
             });
+
+            //---------------------------------------
+            // Add class key bindings
+            //---------------------------------------
+            // New profile key binding
+            klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "sidebar.new-profile");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {

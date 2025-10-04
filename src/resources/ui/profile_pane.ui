@@ -25,7 +25,7 @@
                             <property name="child">
                               <object class="GtkButton" id="new_profile_button">
                                 <property name="halign">center</property>
-                                <property name="label">_Create New Profile</property>
+                                <property name="label">Create _New Profile</property>
                                 <property name="use-underline">true</property>
                                 <property name="action-name">sidebar.new-profile</property>
                                 <style>
