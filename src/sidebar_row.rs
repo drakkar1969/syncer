@@ -10,6 +10,8 @@ use crate::profile_object::ProfileObject;
 // MODULE: SidebarRow
 //------------------------------------------------------------------------------
 mod imp {
+    use adw::subclass::bin::BinImpl;
+
     use super::*;
 
     //---------------------------------------
@@ -33,7 +35,7 @@ mod imp {
     impl ObjectSubclass for SidebarRow {
         const NAME: &'static str = "SidebarRow";
         type Type = super::SidebarRow;
-        type ParentType = gtk::ListBoxRow;
+        type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -47,7 +49,7 @@ mod imp {
     impl ObjectImpl for SidebarRow {}
 
     impl WidgetImpl for SidebarRow {}
-    impl ListBoxRowImpl for SidebarRow {}
+    impl BinImpl for SidebarRow {}
 }
 
 //------------------------------------------------------------------------------
@@ -55,8 +57,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SidebarRow(ObjectSubclass<imp::SidebarRow>)
-        @extends gtk::ListBoxRow, gtk::Widget,
-        @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl SidebarRow {

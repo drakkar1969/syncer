@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// SidebarRow template //-->
-  <template class="SidebarRow" parent="GtkListBoxRow">
+  <template class="SidebarRow" parent="AdwBin">
     <property name="child">
       <object class="GtkBox">
         <property name="margin-start">6</property>
-        <property name="margin-end">6</property>
+        <property name="margin-end">2</property>
         <property name="margin-top">2</property>
         <property name="margin-bottom">2</property>
+        <property name="spacing">8</property>
         <child>
           <object class="GtkLabel" id="label">
             <property name="hexpand">true</property>
