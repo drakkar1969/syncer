@@ -17,8 +17,7 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::AppWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
@@ -117,7 +116,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         //---------------------------------------
         // Constructor
