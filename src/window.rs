@@ -88,11 +88,27 @@ mod imp {
                     .and_then(|param| param.get::<String>())
                     .expect("Could not get string from variant");
 
-                if let Some(pos) = imp.sidebar_model.iter::<ProfileObject>().flatten()
-                    .position(|obj| obj.name() == name)
-                {
-                    imp.sidebar_model.remove(pos as u32);
-                }
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Delete Profile?")
+                    .body("This wil permamenently delete the profile.")
+                    .default_response("delete")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("delete", "_Delete")]);
+                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("delete"), clone!(
+                    #[weak] imp,
+                    move |_, _| {
+                        if let Some(pos) = imp.sidebar_model.iter::<ProfileObject>().flatten()
+                            .position(|obj| obj.name() == name)
+                        {
+                            imp.sidebar_model.remove(pos as u32);
+                        }
+                    }
+                ));
+
+                dialog.present(Some(window));
             });
         }
 
