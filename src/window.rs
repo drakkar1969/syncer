@@ -78,14 +78,21 @@ mod imp {
                     .and_then(|param| param.get::<String>())
                     .expect("Could not get string from variant");
 
-                if let Some(obj) = imp.sidebar_model.iter::<ProfileObject>().flatten()
-                    .find(|obj| obj.name() == name)
+                if let Some(pos) = imp.sidebar_model.iter::<ProfileObject>().flatten()
+                    .position(|obj| obj.name() == name)
                 {
                     window.profile_name_dialog("Rename Profile", "Rename", clone!(
-                        #[weak] window,
+                        #[weak] imp,
                         move |name| {
+                            let obj = imp.sidebar_model.item(pos as u32)
+                                .and_downcast::<ProfileObject>()
+                                .expect("Could not downcast to 'ProfileObject'");
+
+                            imp.sidebar_model.remove(pos as u32);
+
                             obj.set_name(name);
-                            window.imp().sidebar_model.items_changed(0, window.imp().sidebar_model.n_items(), window.imp().sidebar_model.n_items());
+
+                            imp.sidebar_model.insert(pos as u32, &obj);
                         }
                     ));
                 }
