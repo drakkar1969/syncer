@@ -4,6 +4,7 @@ use adw::prelude::*;
 use glib::clone;
 
 use crate::Application;
+use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
 use crate::profile_pane::ProfilePane;
 
@@ -50,7 +51,33 @@ mod imp {
             //---------------------------------------
             // New profile action
             klass.install_action("sidebar.new-profile", None, |window, _, _| {
-                window.profile_name_dialog("Add New Profile");
+                window.profile_name_dialog("Add New Profile", "Add", clone!(
+                    #[weak] window,
+                    move |name| {
+                        window.imp().sidebar_model.append(&ProfileObject::new(name));
+                    }
+                ));
+            });
+
+            // Rename profile action
+            klass.install_action("sidebar.rename-profile", Some(glib::VariantTy::STRING), |window, _, parameter| {
+                let imp = window.imp();
+
+                let name = parameter
+                    .and_then(|param| param.get::<String>())
+                    .expect("Could not get string from variant");
+
+                if let Some(obj) = imp.sidebar_model.iter::<ProfileObject>().flatten()
+                    .find(|obj| obj.name() == name)
+                {
+                    window.profile_name_dialog("Rename Profile", "Rename", clone!(
+                        #[weak] window,
+                        move |name| {
+                            obj.set_name(name);
+                            window.imp().sidebar_model.items_changed(0, window.imp().sidebar_model.n_items(), window.imp().sidebar_model.n_items());
+                        }
+                    ));
+                }
             });
 
             // Delete profile action
@@ -118,15 +145,15 @@ impl AppWindow {
     //---------------------------------------
     // Profile name dialog helper function
     //---------------------------------------
-    fn profile_name_dialog(&self, heading: &str) {
-        let imp = self.imp();
-
+    fn profile_name_dialog<F>(&self, heading: &str, label: &str, f: F)
+    where F: Fn(&str) + 'static {
         let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/profile_name_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
             .expect("Could not get object from resource");
 
         dialog.set_heading(Some(heading));
+        dialog.set_response_label("add", label);
 
         let entry: adw::EntryRow = builder.object("entry")
             .expect("Could not get object from resource");
@@ -138,12 +165,9 @@ impl AppWindow {
             }
         ));
 
-        dialog.connect_response(Some("add"), clone!(
-            #[weak] imp,
-            move |_, _| {
-                imp.sidebar_model.append(&ProfileObject::new(&entry.text()));
-            }
-        ));
+        dialog.connect_response(Some("add"), move |_, _| {
+            f(&entry.text());
+        });
 
         dialog.present(Some(self));
     }
@@ -157,54 +181,42 @@ impl AppWindow {
         // Sidebar factory setup signal
         imp.sidebar_factory.connect_setup(clone!(
             move |_, item| {
-                let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/sidebar_item.ui");
-
-                let child: gtk::Box = builder.object("box")
-                    .expect("Could not get object from resource");
-
                 item
                     .downcast_ref::<gtk::ListItem>()
                     .expect("Could not downcast to 'GtkListItem'")
-                    .set_child(Some(&child));
+                    .set_child(Some(&SidebarRow::default()));
             }
         ));
 
         // Sidebar factory bind signal
         imp.sidebar_factory.connect_bind(clone!(
             move |_, item| {
-                let item = item
-                    .downcast_ref::<gtk::ListItem>()
-                    .expect("Could not downcast to 'GtkListItem'");
-
                 let obj = item
-                    .item()
+                    .downcast_ref::<gtk::ListItem>()
+                    .and_then(|item| item.item())
                     .and_downcast::<ProfileObject>()
                     .expect("Could not downcast to 'ProfileObject'");
 
-                let child = item
-                    .child()
-                    .and_downcast::<gtk::Box>()
-                    .expect("Could not downcast to 'GtkBox'");
+                let row = item
+                    .downcast_ref::<gtk::ListItem>()
+                    .and_then(|item| item.child())
+                    .and_downcast::<SidebarRow>()
+                    .expect("Could not downcast to 'SidebarRow'");
 
-                let label = child
-                    .first_child()
-                    .and_downcast::<gtk::Label>()
-                    .expect("Could not downcast to 'GtkLabel'");
+                row.bind(&obj);
+            }
+        ));
 
-                label.set_label(&obj.name());
+        // Sidebar factory unbind signal
+        imp.sidebar_factory.connect_unbind(clone!(
+            move |_, item| {
+                let row = item
+                    .downcast_ref::<gtk::ListItem>()
+                    .and_then(|item| item.child())
+                    .and_downcast::<SidebarRow>()
+                    .expect("Could not downcast to 'SidebarRow'");
 
-                let menu_button = child
-                    .last_child()
-                    .and_downcast::<gtk::MenuButton>()
-                    .expect("Could not downcast to 'GtkMenuButton'");
-
-                let menu_model = gio::Menu::new();
-
-                let menu_item = gio::MenuItem::new(Some("Delete"), Some("sidebar.delete-profile"));
-                menu_item.set_attribute_value("target", Some(&obj.name().to_variant()));
-                menu_model.append_item(&menu_item);
-
-                menu_button.set_menu_model(Some(&menu_model));
+                row.unbind();
             }
         ));
     }

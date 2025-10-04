@@ -16,7 +16,7 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::ProfileObject)]
     pub struct ProfileObject {
-        #[property(get, set, construct_only)]
+        #[property(get, set)]
         name: RefCell<String>,
         #[property(get, set, construct_only)]
         is_default: Cell<bool>,
