@@ -21,6 +21,8 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
+        pub(super) sidebar_view: TemplateChild<gtk::ListView>,
+        #[template_child]
         pub(super) sidebar_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) sidebar_model: TemplateChild<gio::ListStore>,
@@ -53,7 +55,17 @@ mod imp {
                 window.profile_name_dialog("Add New Profile", "Add", clone!(
                     #[weak] window,
                     move |name| {
-                        window.imp().sidebar_model.append(&ProfileObject::new(name));
+                        let imp = window.imp();
+
+                        imp.sidebar_model.append(&ProfileObject::new(name));
+
+                        imp.sidebar_view.scroll_to(
+                            imp.sidebar_model.n_items() - 1,
+                            gtk::ListScrollFlags::FOCUS | gtk::ListScrollFlags::SELECT,
+                            None
+                        );
+
+                        imp.sidebar_view.grab_focus();
                     }
                 ));
             });
