@@ -72,15 +72,29 @@ impl SidebarRow {
 
         imp.binding.set(binding).unwrap();
 
+        let name = obj.name();
+
         let menu_model = gio::Menu::new();
 
-        let menu_item = gio::MenuItem::new(Some("Rename"), Some("sidebar.rename-profile"));
-        menu_item.set_attribute_value("target", Some(&obj.name().to_variant()));
-        menu_model.append_item(&menu_item);
+        let section_model = gio::Menu::new();
 
-        let menu_item = gio::MenuItem::new(Some("Delete"), Some("sidebar.delete-profile"));
-        menu_item.set_attribute_value("target", Some(&obj.name().to_variant()));
-        menu_model.append_item(&menu_item);
+        section_model.append_item(
+            &gio::MenuItem::new(Some("Rename"), Some(&format!("sidebar.rename-profile::{name}")))
+        );
+
+        section_model.append_item(
+            &gio::MenuItem::new(Some("Delete"), Some(&format!("sidebar.delete-profile::{name}")))
+        );
+
+        menu_model.append_section(None, &section_model);
+
+        let section_model = gio::Menu::new();
+
+        section_model.append_item(
+            &gio::MenuItem::new(Some("Duplicate"), Some(&format!("sidebar.duplicate-profile::{name}")))
+        );
+
+        menu_model.append_section(None, &section_model);
 
         imp.menu_button.set_menu_model(Some(&menu_model));
     }
