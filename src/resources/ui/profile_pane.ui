@@ -22,6 +22,7 @@
                           <object class="AdwStatusPage">
                             <property name="icon-name">edit-symbolic</property>
                             <property name="title">Welcome to RsyncUI</property>
+                            <property name="description">Create a new profile to get started</property>
                             <property name="child">
                               <object class="GtkButton" id="new_profile_button">
                                 <property name="halign">center</property>

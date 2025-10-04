@@ -52,7 +52,7 @@ mod imp {
             //---------------------------------------
             // New profile action
             klass.install_action("sidebar.new-profile", None, |window, _, _| {
-                window.profile_name_dialog("Add New Profile", "Add", clone!(
+                window.profile_name_dialog("Create New Profile", "Create", clone!(
                     #[weak] window,
                     move |name| {
                         let imp = window.imp();
