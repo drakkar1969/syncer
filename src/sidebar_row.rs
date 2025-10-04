@@ -1,7 +1,7 @@
 use std::cell::OnceCell;
 
 use gtk::{glib, gio};
-use gtk::subclass::prelude::*;
+use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
 use crate::profile_object::ProfileObject;
@@ -10,8 +10,6 @@ use crate::profile_object::ProfileObject;
 // MODULE: SidebarRow
 //------------------------------------------------------------------------------
 mod imp {
-    use adw::subclass::bin::BinImpl;
-
     use super::*;
 
     //---------------------------------------
