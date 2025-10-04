@@ -193,46 +193,40 @@ impl AppWindow {
         let imp = self.imp();
 
         // Sidebar factory setup signal
-        imp.sidebar_factory.connect_setup(clone!(
-            move |_, item| {
-                item
-                    .downcast_ref::<gtk::ListItem>()
-                    .expect("Could not downcast to 'GtkListItem'")
-                    .set_child(Some(&SidebarRow::default()));
-            }
-        ));
+        imp.sidebar_factory.connect_setup(|_, item| {
+            item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Could not downcast to 'GtkListItem'")
+                .set_child(Some(&SidebarRow::default()));
+        });
 
         // Sidebar factory bind signal
-        imp.sidebar_factory.connect_bind(clone!(
-            move |_, item| {
-                let obj = item
-                    .downcast_ref::<gtk::ListItem>()
-                    .and_then(|item| item.item())
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'");
+        imp.sidebar_factory.connect_bind(|_, item| {
+            let obj = item
+                .downcast_ref::<gtk::ListItem>()
+                .and_then(|item| item.item())
+                .and_downcast::<ProfileObject>()
+                .expect("Could not downcast to 'ProfileObject'");
 
-                let row = item
-                    .downcast_ref::<gtk::ListItem>()
-                    .and_then(|item| item.child())
-                    .and_downcast::<SidebarRow>()
-                    .expect("Could not downcast to 'SidebarRow'");
+            let row = item
+                .downcast_ref::<gtk::ListItem>()
+                .and_then(|item| item.child())
+                .and_downcast::<SidebarRow>()
+                .expect("Could not downcast to 'SidebarRow'");
 
-                row.bind(&obj);
-            }
-        ));
+            row.bind(&obj);
+        });
 
         // Sidebar factory unbind signal
-        imp.sidebar_factory.connect_unbind(clone!(
-            move |_, item| {
-                let row = item
-                    .downcast_ref::<gtk::ListItem>()
-                    .and_then(|item| item.child())
-                    .and_downcast::<SidebarRow>()
-                    .expect("Could not downcast to 'SidebarRow'");
+        imp.sidebar_factory.connect_unbind(|_, item| {
+            let row = item
+                .downcast_ref::<gtk::ListItem>()
+                .and_then(|item| item.child())
+                .and_downcast::<SidebarRow>()
+                .expect("Could not downcast to 'SidebarRow'");
 
-                row.unbind();
-            }
-        ));
+            row.unbind();
+        });
     }
 
     //---------------------------------------
