@@ -30,19 +30,19 @@ mod imp {
         recursive: Cell<bool>,
         #[property(get, set, default = true, construct)]
         preserve_time: Cell<bool>,
-        #[property(get, set, default = false, construct)]
+        #[property(get, set, default = true, construct)]
         preserve_permissions: Cell<bool>,
-        #[property(get, set, default = false, construct)]
+        #[property(get, set, default = true, construct)]
         preserve_owner: Cell<bool>,
-        #[property(get, set, default = false, construct)]
+        #[property(get, set, default = true, construct)]
         preserve_group: Cell<bool>,
         #[property(get, set, default = false, construct)]
         numeric_ids: Cell<bool>,
-        #[property(get, set, default = false, construct)]
+        #[property(get, set, default = true, construct)]
         preserve_symlinks: Cell<bool>,
         #[property(get, set, default = false, construct)]
         preserve_hardlinks: Cell<bool>,
-        #[property(get, set, default = false, construct)]
+        #[property(get, set, default = true, construct)]
         preserve_devices: Cell<bool>,
         #[property(get, set, default = false, construct)]
         no_leave_filesystem: Cell<bool>,
