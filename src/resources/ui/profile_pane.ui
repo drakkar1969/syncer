@@ -244,18 +244,18 @@
                                 <property name="subtitle">Copy hardlinks as hardlinks [ --hard-links | -H ]</property>
                               </object>
                             </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="AdwPreferencesGroup">
                             <child>
                               <object class="AdwSwitchRow" id="preserve_devices_switch">
                                 <property name="title">Preserve Devices</property>
                                 <property name="subtitle">Preserve device and special files [ --devices --specials | -D ]</property>
                               </object>
                             </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwPreferencesGroup">
                             <child>
-                              <object class="AdwSwitchRow" id="no_leave_filesystem_switch">
+                              <object class="AdwSwitchRow" id="one_filesystem_switch">
                                 <property name="title">Do Not Leave Filesystem</property>
                                 <property name="subtitle">Do not cross filesystem boundaries [ --one-file-system | -x ]</property>
                               </object>
@@ -295,7 +295,7 @@
                             <child>
                               <object class="AdwSwitchRow" id="compress_data_switch">
                                 <property name="title">Compress File Data</property>
-                                <property name="subtitle">Compress file data when transferring (useful if at least one side is remote) [ --compress | -z ]</property>
+                                <property name="subtitle">Compress file data when transferring [ --compress | -z ]</property>
                               </object>
                             </child>
                             <child>

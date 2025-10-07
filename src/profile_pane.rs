@@ -100,7 +100,7 @@ mod imp {
         #[template_child]
         pub(super) preserve_devices_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub(super) no_leave_filesystem_switch: TemplateChild<adw::SwitchRow>,
+        pub(super) one_filesystem_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) delete_destination_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
@@ -250,7 +250,7 @@ impl ProfilePane {
                     pane.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"),
                     pane.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"),
                     pane.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"),
-                    pane.bind_widget(&profile, "no-leave-filesystem", &imp.no_leave_filesystem_switch.get(), "active"),
+                    pane.bind_widget(&profile, "no-leave-filesystem", &imp.one_filesystem_switch.get(), "active"),
                     pane.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"),
                     pane.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"),
                     pane.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"),
@@ -396,7 +396,7 @@ impl ProfilePane {
             args.push(String::from("-D"));
         }
 
-        if imp.no_leave_filesystem_switch.is_active() {
+        if imp.one_filesystem_switch.is_active() {
             args.push(String::from("-x"));
         }
 
