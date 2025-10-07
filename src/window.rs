@@ -21,6 +21,9 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
+        pub(super) profile_add_button: TemplateChild<gtk::Button>,
+
+        #[template_child]
         pub(super) sidebar_view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) sidebar_selection: TemplateChild<gtk::SingleSelection>,
@@ -252,6 +255,17 @@ impl AppWindow {
 
             row.unbind();
         });
+
+        // Profile pane rsync running property notify signal
+        imp.profile_pane.connect_rsync_running_notify(clone!(
+            #[weak] imp,
+            move |pane| {
+                let enabled = !pane.rsync_running();
+
+                imp.profile_add_button.set_sensitive(enabled);
+                imp.sidebar_view.set_sensitive(enabled);
+            }
+        ));
     }
 
     //---------------------------------------

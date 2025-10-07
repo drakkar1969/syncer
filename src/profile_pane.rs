@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::os::unix::process::ExitStatusExt;
 use std::sync::OnceLock;
 use std::process::Stdio;
@@ -119,6 +119,8 @@ mod imp {
 
         #[property(get, set)]
         profile: RefCell<Option<ProfileObject>>,
+        #[property(get, set)]
+        rsync_running: Cell<bool>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>
     }
@@ -274,6 +276,20 @@ impl ProfilePane {
             }
         });
 
+        // Rsync running property notify signal
+        self.connect_rsync_running_notify(|pane| {
+            let imp = pane.imp();
+
+            let enabled = !pane.rsync_running();
+
+            imp.source_row.set_sensitive(enabled);
+            imp.destination_row.set_sensitive(enabled);
+            imp.check_mode_combo.set_sensitive(enabled);
+            imp.settings_row.set_sensitive(enabled);
+
+            imp.progress_pane.set_reveal(pane.rsync_running());
+        });
+
         // Source row activated signal
         imp.source_row.connect_activated(clone!(
             #[weak(rename_to = pane)] self,
@@ -314,9 +330,9 @@ impl ProfilePane {
 
         // Rsync button clicked signal
         imp.rsync_button.connect_clicked(clone!(
-            #[weak] imp,
+            #[weak(rename_to = pane)] self,
             move |_| {
-                imp.progress_pane.set_reveal(true);
+                pane.set_rsync_running(true);
             }
         ));
 
