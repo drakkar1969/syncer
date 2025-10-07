@@ -5,6 +5,7 @@
     <property name="child">
       <object class="GtkRevealer" id="revealer">
         <property name="transition-type">slide-up</property>
+        <property name="transition-duration">150</property>
         <property name="child">
           <object class="GtkGrid">
             <property name="margin-start">24</property>
