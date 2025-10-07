@@ -314,9 +314,19 @@ impl ProfilePane {
 
         // Rsync button clicked signal
         imp.rsync_button.connect_clicked(clone!(
-            #[weak(rename_to = pane)] self,
+            #[weak] imp,
             move |_| {
-                pane.start_rsync();
+                imp.progress_pane.set_reveal(true);
+            }
+        ));
+
+        // Progress pane revealed property notify
+        imp.progress_pane.connect_revealed_notify(clone!(
+            #[weak(rename_to = pane)] self,
+            move |progress_pane| {
+                if progress_pane.revealed() {
+                    pane.start_rsync();
+                }
             }
         ));
     }

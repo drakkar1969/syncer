@@ -1,3 +1,5 @@
+use std::cell::Cell;
+
 use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -11,9 +13,13 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::ProgressPane)]
     #[template(resource = "/com/github/RsyncUI/ui/progress_pane.ui")]
     pub struct ProgressPane {
+        #[template_child]
+        pub(super) revealer: TemplateChild<gtk::Revealer>,
+
         #[template_child]
         pub(super) message_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -24,6 +30,9 @@ mod imp {
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
+
+        #[property(get, set)]
+        revealed: Cell<bool>,
     }
 
     //---------------------------------------
@@ -44,7 +53,19 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for ProgressPane {}
+    #[glib::derived_properties]
+    impl ObjectImpl for ProgressPane {
+        //---------------------------------------
+        // Constructor
+        //---------------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_widgets();
+        }
+    }
 
     impl WidgetImpl for ProgressPane {}
     impl BinImpl for ProgressPane {}
@@ -60,6 +81,24 @@ glib::wrapper! {
 }
 
 impl ProgressPane {
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        imp.revealer.bind_property("child-revealed", self, "revealed")
+            .sync_create()
+            .build();
+    }
+
+    //---------------------------------------
+    // Public set reveal function
+    //---------------------------------------
+    pub fn set_reveal(&self, reveal: bool) {
+        self.imp().revealer.set_reveal_child(reveal);
+    }
+
     //---------------------------------------
     // Public set message function
     //---------------------------------------

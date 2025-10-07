@@ -3,96 +3,101 @@
   <!--// ProgressPane template //-->
   <template class="ProgressPane" parent="AdwBin">
     <property name="child">
-      <object class="GtkGrid">
-        <property name="margin-start">24</property>
-        <property name="margin-end">24</property>
-        <property name="margin-top">16</property>
-        <property name="margin-bottom">16</property>
-        <property name="column-homogeneous">true</property>
-        <property name="column-spacing">16</property>
-        <property name="row-spacing">16</property>
-        <child>
-          <object class="GtkLabel" id="message_label">
-            <property name="xalign">0</property>
-            <property name="ellipsize">start</property>
-            <layout>
-              <property name="column">0</property>
-              <property name="row">0</property>
-              <property name="column-span">2</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="GtkBox">
-            <property name="spacing">6</property>
-            <layout>
-              <property name="column">0</property>
-              <property name="row">1</property>
-            </layout>
+      <object class="GtkRevealer" id="revealer">
+        <property name="transition-type">slide-up</property>
+        <property name="child">
+          <object class="GtkGrid">
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="margin-top">16</property>
+            <property name="margin-bottom">16</property>
+            <property name="column-homogeneous">true</property>
+            <property name="column-spacing">16</property>
+            <property name="row-spacing">16</property>
             <child>
-              <object class="GtkLabel">
-                <property name="label">Transferred:</property>
-                <style>
-                  <class name="dimmed"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="transferred_label">
+              <object class="GtkLabel" id="message_label">
                 <property name="xalign">0</property>
+                <property name="ellipsize">start</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Transferred:</property>
+                    <style>
+                      <class name="dimmed"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="transferred_label">
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Transfer Speed:</property>
+                    <style>
+                      <class name="dimmed"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="speed_label">
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                  <property name="column-span">2</property>
+                </layout>
+                <child>
+                  <object class="GtkLabel" id="progress_label">
+                    <property name="label">0%</property>
+                    <property name="xalign">0</property>
+                    <property name="width-chars">5</property>
+                    <style>
+                      <class name="numeric"/>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkProgressBar" id="progress_bar">
+                    <property name="hexpand">true</property>
+                    <property name="valign">center</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
-        </child>
-        <child>
-          <object class="GtkBox">
-            <property name="spacing">6</property>
-            <layout>
-              <property name="column">1</property>
-              <property name="row">1</property>
-            </layout>
-            <child>
-              <object class="GtkLabel">
-                <property name="label">Transfer Speed:</property>
-                <style>
-                  <class name="dimmed"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="speed_label">
-                <property name="xalign">0</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkBox">
-            <property name="spacing">6</property>
-            <layout>
-              <property name="column">0</property>
-              <property name="row">2</property>
-              <property name="column-span">2</property>
-            </layout>
-            <child>
-              <object class="GtkLabel" id="progress_label">
-                <property name="label">0%</property>
-                <property name="xalign">0</property>
-                <property name="width-chars">5</property>
-                <style>
-                  <class name="numeric"/>
-                  <class name="caption"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkProgressBar" id="progress_bar">
-                <property name="hexpand">true</property>
-                <property name="valign">center</property>
-              </object>
-            </child>
-          </object>
-        </child>
+        </property>
       </object>
     </property>
   </template>
