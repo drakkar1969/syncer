@@ -342,6 +342,95 @@ impl ProfilePane {
     }
 
     //---------------------------------------
+    // Build rsync args function
+    //---------------------------------------
+    fn build_rsync_args(&self) -> Vec<String> {
+        let imp = self.imp();
+
+        let mut args: Vec<String> = vec!["--human-readable", "-s", "--info=flist0,name1,stats2,progress2"]
+            .into_iter()
+            .map(|s| s.to_owned())
+            .collect();
+
+        match imp.check_mode_combo.selected() {
+            1 => { args.push(String::from("--size-only")) },
+            2 => { args.push(String::from("--checksum")) },
+            _ => {}
+        }
+
+        if imp.recursive_switch.is_active() {
+            args.push(String::from("-r"));
+        } else {
+            args.push(String::from("-d"));
+        }
+
+        if imp.preserve_time_switch.is_active() {
+            args.push(String::from("-t"));
+        }
+
+        if imp.preserve_permissions_switch.is_active() {
+            args.push(String::from("-p"));
+        }
+
+        if imp.preserve_owner_switch.is_active() {
+            args.push(String::from("-o"));
+        }
+
+        if imp.preserve_group_switch.is_active() {
+            args.push(String::from("-g"));
+        }
+
+        if imp.numeric_ids_switch.is_active() {
+            args.push(String::from("--numeric-ids"));
+        }
+
+        if imp.preserve_symlinks_switch.is_active() {
+            args.push(String::from("-l"));
+        }
+
+        if imp.preserve_hardlinks_switch.is_active() {
+            args.push(String::from("-H"));
+        }
+
+        if imp.preserve_devices_switch.is_active() {
+            args.push(String::from("-D"));
+        }
+
+        if imp.no_leave_filesystem_switch.is_active() {
+            args.push(String::from("-x"));
+        }
+
+        if imp.delete_destination_switch.is_active() {
+            args.push(String::from("--delete"));
+        }
+
+        if imp.existing_switch.is_active() {
+            args.push(String::from("--existing"));
+        }
+
+        if imp.ignore_existing_switch.is_active() {
+            args.push(String::from("---ignore-existing"));
+        }
+
+        if imp.skip_newer_switch.is_active() {
+            args.push(String::from("-u"));
+        }
+
+        if imp.compress_data_switch.is_active() {
+            args.push(String::from("-x"));
+        }
+
+        if imp.backup_switch.is_active() {
+            args.push(String::from("-b"));
+        }
+
+        args.push(imp.source_row.subtitle().unwrap_or_default().to_string());
+        args.push(imp.destination_row.subtitle().unwrap_or_default().to_string());
+
+        args
+    }
+
+    //---------------------------------------
     // Start rsync function
     //---------------------------------------
     fn start_rsync(&self) {
