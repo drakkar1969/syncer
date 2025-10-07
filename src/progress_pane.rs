@@ -1,0 +1,115 @@
+use gtk::glib;
+use adw::subclass::prelude::*;
+use gtk::prelude::*;
+
+//------------------------------------------------------------------------------
+// MODULE: ProgressPane
+//------------------------------------------------------------------------------
+mod imp {
+    use super::*;
+
+    //---------------------------------------
+    // Private structure
+    //---------------------------------------
+    #[derive(Default, gtk::CompositeTemplate)]
+    #[template(resource = "/com/github/RsyncUI/ui/progress_pane.ui")]
+    pub struct ProgressPane {
+        #[template_child]
+        pub(super) message_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) transferred_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) speed_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) progress_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
+    }
+
+    //---------------------------------------
+    // Subclass
+    //---------------------------------------
+    #[glib::object_subclass]
+    impl ObjectSubclass for ProgressPane {
+        const NAME: &'static str = "ProgressPane";
+        type Type = super::ProgressPane;
+        type ParentType = adw::Bin;
+
+        fn class_init(klass: &mut Self::Class) {
+            klass.bind_template();
+        }
+
+        fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
+            obj.init_template();
+        }
+    }
+
+    impl ObjectImpl for ProgressPane {}
+
+    impl WidgetImpl for ProgressPane {}
+    impl BinImpl for ProgressPane {}
+}
+
+//------------------------------------------------------------------------------
+// IMPLEMENTATION: ProgressPane
+//------------------------------------------------------------------------------
+glib::wrapper! {
+    pub struct ProgressPane(ObjectSubclass<imp::ProgressPane>)
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+}
+
+impl ProgressPane {
+    //---------------------------------------
+    // Public set message function
+    //---------------------------------------
+    pub fn set_message(&self, message: &str) {
+        self.imp().message_label.set_label(message);
+    }
+
+    //---------------------------------------
+    // Public set status function
+    //---------------------------------------
+    pub fn set_status(&self, size: &str, speed: &str, progress: f64) {
+        let imp = self.imp();
+
+        imp.transferred_label.set_label(size);
+        imp.speed_label.set_label(speed);
+        imp.progress_label.set_label(&format!("{progress}%"));
+        imp.progress_bar.set_fraction(progress/100.0);
+    }
+
+    //---------------------------------------
+    // Public set progress function
+    //---------------------------------------
+    pub fn set_progress(&self, progress: f64) {
+        let imp = self.imp();
+
+        imp.progress_label.set_label(&format!("{progress}%"));
+        imp.progress_bar.set_fraction(progress/100.0);
+    }
+
+    //---------------------------------------
+    // Public set exit status function
+    //---------------------------------------
+    pub fn set_exit_status(&self, success: bool, message: &str) {
+        let imp = self.imp();
+
+        if success {
+            imp.message_label.set_css_classes(&["success"]);
+        } else {
+            imp.message_label.set_css_classes(&["error"]);
+        }
+
+        imp.message_label.set_label(message);
+    }
+}
+
+impl Default for ProgressPane {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
+    }
+}

@@ -3,6 +3,7 @@ mod window;
 mod sidebar_row;
 mod profile_object;
 mod profile_pane;
+mod progress_pane;
 
 use gtk::{glib, gio};
 use gtk::prelude::*;

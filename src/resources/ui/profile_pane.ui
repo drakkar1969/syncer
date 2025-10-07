@@ -9,6 +9,7 @@
             <property name="tag">profile</property>
             <property name="child">
               <object class="AdwToolbarView">
+                <property name="bottom-bar-style">raised</property>
                 <child type="top">
                   <object class="AdwHeaderBar">
                   </object>
@@ -150,6 +151,10 @@
                     </child>
                   </object>
                 </property>
+                <child type="bottom">
+                  <object class="ProgressPane" id="progress_pane">
+                  </object>
+                </child>
               </object>
             </property>
           </object>

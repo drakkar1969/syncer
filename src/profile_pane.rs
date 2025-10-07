@@ -1,11 +1,20 @@
 use std::cell::RefCell;
+use std::os::unix::process::ExitStatusExt;
+use std::sync::OnceLock;
+use std::process::Stdio;
+use std::io;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
+use tokio::runtime::Runtime as TkRuntime;
+use tokio::process::Command as TkCommand;
+use tokio::io::AsyncReadExt as _;
+
 use crate::profile_object::ProfileObject;
+use crate::progress_pane::ProgressPane;
 
 //------------------------------------------------------------------------------
 // ENUM: CheckMode
@@ -19,6 +28,21 @@ pub enum CheckMode {
     #[enum_value(name = "Size Only")]
     SizeOnly,
     Checksum,
+}
+
+//------------------------------------------------------------------------------
+// ENUM: RsyncMsg
+//------------------------------------------------------------------------------
+#[derive(Debug, Default, PartialEq)]
+#[repr(u32)]
+pub enum RsyncMsg {
+    #[default]
+    None,
+    Message(String),
+    Progress(String, String, f64),
+    Stats(String),
+    Error(String),
+    Exit(Option<i32>, Option<i32>)
 }
 
 //------------------------------------------------------------------------------
@@ -55,6 +79,9 @@ mod imp {
         pub(super) settings_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
+        pub(super) rsync_button: TemplateChild<gtk::Button>,
+
+        #[template_child]
         pub(super) recursive_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) preserve_time_switch: TemplateChild<adw::SwitchRow>,
@@ -86,6 +113,9 @@ mod imp {
         pub(super) compress_data_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) backup_switch: TemplateChild<adw::SwitchRow>,
+
+        #[template_child]
+        pub(super) progress_pane: TemplateChild<ProgressPane>,
 
         #[property(get, set)]
         profile: RefCell<Option<ProfileObject>>,
@@ -260,14 +290,6 @@ impl ProfilePane {
             }
         ));
 
-        // Settings row activated signal
-        imp.settings_row.connect_activated(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.nav_view.push_by_tag("settings");
-            }
-        ));
-
         // Check mode combo selected property notify
         imp.check_mode_combo.connect_selected_notify(|row| {
             let i = row.selected();
@@ -281,5 +303,219 @@ impl ProfilePane {
 
             row.set_subtitle(subtitle);
         });
+
+        // Settings row activated signal
+        imp.settings_row.connect_activated(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.nav_view.push_by_tag("settings");
+            }
+        ));
+
+        // Rsync button clicked signal
+        imp.rsync_button.connect_clicked(clone!(
+            #[weak(rename_to = pane)] self,
+            move |_| {
+                pane.start_rsync();
+            }
+        ));
+    }
+
+    //---------------------------------------
+    // Tokio runtime helper function
+    //---------------------------------------
+    fn runtime() -> &'static TkRuntime {
+        static RUNTIME: OnceLock<TkRuntime> = OnceLock::new();
+        RUNTIME.get_or_init(|| {
+            TkRuntime::new().expect("Setting up tokio runtime needs to succeed.")
+        })
+    }
+
+    //---------------------------------------
+    // Start rsync function
+    //---------------------------------------
+    fn start_rsync(&self) {
+        let imp = self.imp();
+
+        let args = ["-r", "-t", "-s", "-H", "--progress", "--human-readable", "--info=flist0,name1,stats2,progress2", "/home/drakkar/Downloads/Torrents/Alien: Earth (ELITE)/", "/home/drakkar/Scratch/RSYNC"];
+
+        let (sender, receiver) = async_channel::bounded(1);
+
+        ProfilePane::runtime().spawn(
+            async move {
+                // Start rsync
+                let mut rsync_process = TkCommand::new("rsync")
+                    .args(args)
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .spawn()?;
+
+                // Get handles to read rsync stdout and stderr
+                let mut stdout = rsync_process.stdout.take()
+                    .ok_or_else(|| io::Error::other("Could not get stdout"))?;
+
+                let mut stderr = rsync_process.stderr.take()
+                    .ok_or_else(|| io::Error::other("Could not get stderr"))?;
+
+                // Create buffers to read stdout and stderr
+                const BUFFER_SIZE: usize = 32768;
+
+                let mut buffer_stdout = [0u8; BUFFER_SIZE];
+                let mut buffer_stderr = [0u8; BUFFER_SIZE];
+
+                let mut overflow = String::with_capacity(BUFFER_SIZE);
+
+                let mut stats = false;
+
+                loop {
+                    tokio::select! {
+                        // Read stdout when available
+                        result = stdout.read(&mut buffer_stdout) => {
+                            let bytes = result?;
+
+                            if bytes >= BUFFER_SIZE {
+                                overflow = String::from_utf8(buffer_stdout[..bytes].to_vec())
+                                    .unwrap_or_default();
+                            } else if bytes != 0 {
+                                let mut text = String::from_utf8(buffer_stdout[..bytes].to_vec())
+                                    .unwrap_or_default();
+
+                                if !overflow.is_empty() {
+                                    text.insert_str(0, &overflow);
+
+                                    overflow.clear();
+                                }
+
+                                for chunk in text.split_terminator("\n") {
+                                    if chunk.is_empty() {
+                                        continue;
+                                    }
+
+                                    if chunk.starts_with("\r") {
+                                        for line in chunk.split_terminator("\r") {
+                                            let vec: Vec<&str> = line.split_whitespace().collect();
+
+                                            let values = vec.first()
+                                                .map(|s| s.to_string())
+                                                .zip(vec.get(2).map(|s| s.to_string()))
+                                                .zip(
+                                                    vec.get(1)
+                                                        .map(|s| s.to_string().replace("%", ""))
+                                                        .and_then(|s| s.parse().ok())
+                                                );
+
+                                            if let Some(((size, speed), progress)) = values {
+                                                sender
+                                                    .send(RsyncMsg::Progress(size, speed, progress))
+                                                    .await
+                                                    .expect("Could not send through channel");
+                                            }
+                                        }
+                                    } else if chunk.starts_with("Number of files:") || stats {
+                                        stats = true;
+
+                                        sender
+                                            .send(RsyncMsg::Stats(chunk.to_owned()))
+                                            .await
+                                            .expect("Could not send through channel");
+                                    } else {
+                                        sender
+                                            .send(RsyncMsg::Message(chunk.to_owned()))
+                                            .await
+                                            .expect("Could not send through channel");
+                                    }
+                                }
+                            }
+                        }
+
+                        // Read stderr when available
+                        result = stderr.read(&mut buffer_stderr) => {
+                            let bytes = result?;
+
+                            if bytes != 0 {
+                                let error = String::from_utf8(buffer_stderr[..bytes].to_vec())
+                                    .unwrap_or_default();
+
+                                for chunk in error.split_terminator("\n") {
+                                    if chunk.is_empty() {
+                                        continue;
+                                    }
+
+                                    sender
+                                        .send(RsyncMsg::Error(chunk.to_owned()))
+                                        .await
+                                        .expect("Could not send through channel");
+                                }
+                            }
+                        }
+
+                        // Process exit
+                        result = rsync_process.wait() => {
+                            let status = result?;
+
+                            let code = status.code();
+
+                            let signal = code.map_or_else(|| status.signal(), |_| None);
+
+                            sender
+                                .send(RsyncMsg::Exit(code, signal))
+                                .await
+                                .expect("Could not send through channel");
+
+                            break;
+                        }
+                    }
+                }
+
+                Ok::<(), io::Error>(())
+            }
+        );
+
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            async move {
+                let mut stats: Vec<String> = vec![];
+                let mut errors: Vec<String> = vec![];
+
+                while let Ok(msg) = receiver.recv().await {
+                    match msg {
+                        RsyncMsg::Message(message) => {
+                            imp.progress_pane.set_message(&message);
+                        },
+
+                        RsyncMsg::Progress(size, speed, progress) => {
+                            imp.progress_pane.set_status(&size, &speed, progress);
+                        },
+
+                        RsyncMsg::Stats(stat) => {
+                            stats.push(stat);
+                        },
+
+                        RsyncMsg::Error(error) => {
+                            errors.push(error);
+                        },
+
+                        RsyncMsg::Exit(code, signal) => {
+                            println!("Exit Code = {:?}", code);
+                            println!("Signal = {:?}", signal);
+
+                            match (code, signal) {
+                                (Some(0), _) => {
+                                    imp.progress_pane.set_exit_status(true, "Transfer successfully completed");
+
+                                    imp.progress_pane.set_progress(100.0);
+                                },
+                                (Some(exit), _) => {
+                                    imp.progress_pane.set_exit_status(false, &format!("Transfer failed with error code {}", exit));
+                                },
+                                _ => {}
+                            }
+                        }
+
+                        _ => {}
+                    }
+                }
+            }
+        ));
     }
 }

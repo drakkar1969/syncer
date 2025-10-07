@@ -5,7 +5,9 @@ edition = "2024"
 
 [dependencies]
 adw = { version = "0.8", package = "libadwaita", features = ["v1_8"] }
+async-channel = "2"
 gtk = { version = "0.10", package = "gtk4", features = ["v4_20"] }
+tokio = { version = "1", features = ["rt-multi-thread", "process", "io-util", "macros"] }
 
 [build-dependencies]
 glib-build-tools = "0.21"
