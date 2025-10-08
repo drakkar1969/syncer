@@ -297,13 +297,13 @@ impl AppWindow {
             #[weak] imp,
             move |model, _, removed, added| {
                 if removed != 0 || added != 0 {
-                    imp.content_stack.set_visible_child_name(
-                        if model.n_items() == 0 {
-                            "status"
-                        } else {
-                            "profile"
-                        }
-                    );
+                    if model.n_items() == 0 {
+                        imp.content_navigation_view.pop();
+
+                        imp.content_stack.set_visible_child_name("status");
+                    } else {
+                        imp.content_stack.set_visible_child_name("profile");
+                    }
                 }
             }
         ));
