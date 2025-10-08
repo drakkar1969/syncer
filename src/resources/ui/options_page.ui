@@ -2,153 +2,152 @@
 <interface>
   <!--// OptionsPage template //-->
   <template class="OptionsPage" parent="AdwNavigationPage">
-    <property name="tag">settings</property>
+    <property name="tag">profile</property>
     <property name="child">
       <object class="AdwToolbarView">
+        <property name="bottom-bar-style">raised</property>
+        <property name="extend-content-to-bottom-edge">true</property>
         <child type="top">
           <object class="AdwHeaderBar"/>
         </child>
         <property name="content">
-          <object class="GtkScrolledWindow">
+          <object class="GtkBox" id="content_box">
+            <property name="orientation">vertical</property>
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
             <property name="margin-top">24</property>
             <property name="margin-bottom">24</property>
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
-            <property name="child">
-              <object class="GtkBox">
-                <property name="orientation">vertical</property>
-                <property name="margin-start">24</property>
-                <property name="margin-end">24</property>
-                <property name="spacing">24</property>
+            <property name="spacing">24</property>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title">Paths</property>
                 <child>
-                  <object class="AdwPreferencesGroup">
-                    <property name="title">Advanced Settings</property>
+                  <object class="AdwActionRow" id="source_row">
+                    <property name="activatable">true</property>
+                    <property name="title">_Source</property>
+                    <property name="use-underline">true</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
                     <child>
-                      <object class="AdwSwitchRow" id="recursive_switch">
-                        <property name="title">Recursive</property>
-                        <property name="subtitle">Recurse into directories [ --recursive | -r ]</property>
+                      <object class="GtkImage">
+                        <property name="icon-name">folder-open-symbolic</property>
                       </object>
                     </child>
                   </object>
                 </child>
                 <child>
-                  <object class="AdwPreferencesGroup">
+                  <object class="AdwActionRow" id="destination_row">
+                    <property name="activatable">true</property>
+                    <property name="title">_Destination</property>
+                    <property name="use-underline">true</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
                     <child>
-                      <object class="AdwSwitchRow" id="preserve_time_switch">
-                        <property name="title">Preserve Time</property>
-                        <property name="subtitle">Preserve modification times [ --times | -t ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="preserve_permissions_switch">
-                        <property name="title">Preserve Permissions</property>
-                        <property name="subtitle">Preserve permissions [ --perms | -p ]</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup">
-                    <child>
-                      <object class="AdwSwitchRow" id="preserve_owner_switch">
-                        <property name="title">Preserve Owner</property>
-                        <property name="subtitle">Preserve owner [ --owner | -o ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="preserve_group_switch">
-                        <property name="title">Preserve Group</property>
-                        <property name="subtitle">Preserve group [ --group | -g ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="numeric_ids_switch">
-                        <property name="title">Keep Numeric IDs</property>
-                        <property name="subtitle">Do not map numeric uid/gid to user and group names [ --numeric-ids ]</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup">
-                    <child>
-                      <object class="AdwSwitchRow" id="preserve_symlinks_switch">
-                        <property name="title">Preserve Symlinks</property>
-                        <property name="subtitle">Copy symlinks as symlinks [ --links | -l ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="preserve_hardlinks_switch">
-                        <property name="title">Preserve Hardlinks</property>
-                        <property name="subtitle">Copy hardlinks as hardlinks [ --hard-links | -H ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="preserve_devices_switch">
-                        <property name="title">Preserve Devices</property>
-                        <property name="subtitle">Preserve device and special files [ --devices --specials | -D ]</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup">
-                    <child>
-                      <object class="AdwSwitchRow" id="one_filesystem_switch">
-                        <property name="title">Do Not Leave Filesystem</property>
-                        <property name="subtitle">Do not cross filesystem boundaries [ --one-file-system | -x ]</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup">
-                    <child>
-                      <object class="AdwSwitchRow" id="delete_destination_switch">
-                        <property name="title">Delete on Destination</property>
-                        <property name="subtitle">Delete extraneous files on destination [ --delete ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="existing_switch">
-                        <property name="title">Existing Only</property>
-                        <property name="subtitle">Skip creating new files and directories on destination [ --existing ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="ignore_existing_switch">
-                        <property name="title">Ignore Existing</property>
-                        <property name="subtitle">Skip files (not directories) that exist on destination [ --ignore-existing ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="skip_newer_switch">
-                        <property name="title">Skip Newer</property>
-                        <property name="subtitle">Skip files that are newer on destination [ --update | -u ]</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup">
-                    <child>
-                      <object class="AdwSwitchRow" id="compress_data_switch">
-                        <property name="title">Compress File Data</property>
-                        <property name="subtitle">Compress file data when transferring [ --compress | -z ]</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwSwitchRow" id="backup_switch">
-                        <property name="title">Backup Files</property>
-                        <property name="subtitle">Make backups of existing files on destination [ --backup | -b ]</property>
+                      <object class="GtkImage">
+                        <property name="icon-name">folder-open-symbolic</property>
                       </object>
                     </child>
                   </object>
                 </child>
               </object>
-            </property>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title">Advanced Options</property>
+                <child>
+                  <object class="AdwComboRow" id="check_mode_combo">
+                    <property name="title">File Transfer Check</property>
+                    <property name="model">
+                      <object class="GListStore">
+                        <property name="item-type">CheckObject</property>
+                        <child>
+                          <object class="CheckObject">
+                            <property name="title">Ignore</property>
+                            <property name="subtitle">No check performed (all files updated)</property>
+                            <property name="switch">--ignore-times</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="CheckObject">
+                            <property name="title">Default</property>
+                            <property name="subtitle">Check file size and modification time</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="CheckObject">
+                            <property name="title">Size Only</property>
+                            <property name="subtitle">Check file size only</property>
+                            <property name="switch">--size-only</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="CheckObject">
+                            <property name="title">Checksum</property>
+                            <property name="subtitle">Compare 128-bit checksum for files with matching size</property>
+                            <property name="switch">--checksum</property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                    <property name="expression">
+                      <lookup type="CheckObject" name="title"/>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="options_row">
+                    <property name="activatable">true</property>
+                    <property name="title">_Advanced Options</property>
+                    <property name="subtitle">Configure rsync options</property>
+                    <property name="use-underline">true</property>
+                    <property name="action-name">content.push-options</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">go-next-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="halign">center</property>
+                <property name="homogeneous">true</property>
+                <property name="margin-top">24</property>
+                <property name="spacing">36</property>
+                <child>
+                  <object class="GtkButton" id="dryrun_button">
+                    <property name="label">Dr_y Run</property>
+                    <property name="use-underline">true</property>
+                    <property name="action-name">rsync.start</property>
+                    <property name="action-target">true</property>
+                    <style>
+                      <class name="pill"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="rsync_button">
+                    <property name="label">Start _Rsync</property>
+                    <property name="use-underline">true</property>
+                    <property name="action-name">rsync.start</property>
+                    <property name="action-target">false</property>
+                    <style>
+                      <class name="suggested-action"/>
+                      <class name="pill"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </property>
+        <child type="bottom">
+          <object class="RsyncPane" id="rsync_pane"/>
+        </child>
       </object>
     </property>
   </template>

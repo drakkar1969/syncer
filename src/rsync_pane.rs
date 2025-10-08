@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
 //------------------------------------------------------------------------------
-// MODULE: ProgressPane
+// MODULE: RsyncPane
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -14,9 +14,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::ProgressPane)]
-    #[template(resource = "/com/github/RsyncUI/ui/progress_pane.ui")]
-    pub struct ProgressPane {
+    #[properties(wrapper_type = super::RsyncPane)]
+    #[template(resource = "/com/github/RsyncUI/ui/rsync_pane.ui")]
+    pub struct RsyncPane {
         #[template_child]
         pub(super) revealer: TemplateChild<gtk::Revealer>,
 
@@ -39,9 +39,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for ProgressPane {
-        const NAME: &'static str = "ProgressPane";
-        type Type = super::ProgressPane;
+    impl ObjectSubclass for RsyncPane {
+        const NAME: &'static str = "RsyncPane";
+        type Type = super::RsyncPane;
         type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
@@ -54,7 +54,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for ProgressPane {
+    impl ObjectImpl for RsyncPane {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -67,20 +67,20 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for ProgressPane {}
-    impl BinImpl for ProgressPane {}
+    impl WidgetImpl for RsyncPane {}
+    impl BinImpl for RsyncPane {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: ProgressPane
+// IMPLEMENTATION: RsyncPane
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct ProgressPane(ObjectSubclass<imp::ProgressPane>)
+    pub struct RsyncPane(ObjectSubclass<imp::RsyncPane>)
         @extends adw::Bin, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl ProgressPane {
+impl RsyncPane {
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
@@ -144,7 +144,7 @@ impl ProgressPane {
     }
 }
 
-impl Default for ProgressPane {
+impl Default for RsyncPane {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

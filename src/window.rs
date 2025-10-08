@@ -8,8 +8,8 @@ use glib::clone;
 use crate::Application;
 use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
-use crate::rsync_page::RsyncPage;
 use crate::options_page::OptionsPage;
+use crate::advanced_page::AdvancedPage;
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -40,9 +40,9 @@ mod imp {
         #[template_child]
         pub(super) content_navigation_view: TemplateChild<adw::NavigationView>,
         #[template_child]
-        pub(super) rsync_page: TemplateChild<RsyncPage>,
-        #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
+        #[template_child]
+        pub(super) advanced_page: TemplateChild<AdvancedPage>,
 
         pub(super) dry_run: Cell<bool>,
     }
@@ -163,9 +163,9 @@ mod imp {
                 imp.sidebar_new_button.set_sensitive(false);
                 imp.sidebar_view.set_sensitive(false);
 
-                imp.rsync_page.content_box().set_sensitive(false);
+                imp.options_page.content_box().set_sensitive(false);
 
-                imp.rsync_page.progress_pane().set_reveal(true);
+                imp.options_page.rsync_pane().set_reveal(true);
             });
 
             //---------------------------------------
@@ -318,12 +318,12 @@ impl AppWindow {
         imp.sidebar_model.append(&ProfileObject::new("TEST"));
 
         // Bind sidebar selected item to rsync page
-        imp.sidebar_selection.bind_property("selected-item", &imp.rsync_page.get(), "profile")
+        imp.sidebar_selection.bind_property("selected-item", &imp.options_page.get(), "profile")
             .sync_create()
             .build();
 
         // Bind sidebar selected item to option page
-        imp.sidebar_selection.bind_property("selected-item", &imp.options_page.get(), "profile")
+        imp.sidebar_selection.bind_property("selected-item", &imp.advanced_page.get(), "profile")
             .sync_create()
             .build();
     }

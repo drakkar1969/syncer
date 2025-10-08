@@ -2,10 +2,10 @@ mod app;
 mod window;
 mod sidebar_row;
 mod profile_object;
-mod rsync_page;
-mod check_object;
 mod options_page;
-mod progress_pane;
+mod check_object;
+mod advanced_page;
+mod rsync_pane;
 
 use gtk::{glib, gio};
 use gtk::prelude::*;
