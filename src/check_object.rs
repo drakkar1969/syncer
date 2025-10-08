@@ -21,7 +21,7 @@ mod imp {
         #[property(get, set)]
         subtitle: RefCell<String>,
         #[property(get, set)]
-        switch: RefCell<String>,
+        switch: RefCell<Option<String>>,
     }
 
     //---------------------------------------

@@ -199,14 +199,6 @@ impl RsyncPane {
     //         .map(|s| s.to_owned())
     //         .collect();
 
-    //     match imp.check_mode_combo.selected() {
-    //         2 => { args.push(String::from("--checksum")) },
-    //         _ => {}
-    //     }
-
-
-    //     args.push(imp.source_row.subtitle().unwrap_or_default().to_string());
-    //     args.push(imp.destination_row.subtitle().unwrap_or_default().to_string());
 
     //     args
     // }
