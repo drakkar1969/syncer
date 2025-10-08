@@ -13,7 +13,7 @@
                 <child type="top">
                   <object class="AdwHeaderBar">
                     <child>
-                      <object class="GtkButton" id="profile_add_button">
+                      <object class="GtkButton" id="sidebar_new_button">
                         <property name="icon-name">list-add-symbolic</property>
                         <property name="action-name">sidebar.new-profile</property>
                         <style>
@@ -71,7 +71,7 @@
                     <property name="title">Welcome to RsyncUI</property>
                     <property name="description">Create a new profile to get started</property>
                     <property name="child">
-                      <object class="GtkButton" id="new_profile_button">
+                      <object class="GtkButton" id="content_new_button">
                         <property name="halign">center</property>
                         <property name="label">Create _New Profile</property>
                         <property name="use-underline">true</property>

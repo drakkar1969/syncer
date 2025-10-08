@@ -1,3 +1,5 @@
+use std::cell::Cell;
+
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
@@ -18,11 +20,12 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::AppWindow)]
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
-        pub(super) profile_add_button: TemplateChild<gtk::Button>,
+        pub(super) sidebar_new_button: TemplateChild<gtk::Button>,
 
         #[template_child]
         pub(super) sidebar_view: TemplateChild<gtk::ListView>,
@@ -41,6 +44,11 @@ mod imp {
         pub(super) rsync_page: TemplateChild<RsyncPage>,
         #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
+
+        #[property(get, set)]
+        rsync_running: Cell<bool>,
+
+        pub(super) dry_run: Cell<bool>,
     }
 
     //---------------------------------------
@@ -144,6 +152,13 @@ mod imp {
                 window.imp().content_navigation_view.push_by_tag("settings");
             });
 
+            // Rsync start action
+            klass.install_action("rsync.start", None, |window, _, _| {
+                window.imp().dry_run.set(false);
+
+                window.set_rsync_running(true);
+            });
+
             //---------------------------------------
             // Add class key bindings
             //---------------------------------------
@@ -156,6 +171,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         //---------------------------------------
         // Constructor
@@ -284,16 +300,18 @@ impl AppWindow {
             }
         ));
 
-        // Profile pane rsync running property notify signal
-        // imp.rsync_page.connect_rsync_running_notify(clone!(
-        //     #[weak] imp,
-        //     move |pane| {
-        //         let enabled = !pane.rsync_running();
+        // Rsync running property notify signal
+        self.connect_rsync_running_notify(clone!(
+            #[weak] imp,
+            move |pane| {
+                let enabled = !pane.rsync_running();
 
-        //         imp.profile_add_button.set_sensitive(enabled);
-        //         imp.sidebar_view.set_sensitive(enabled);
-        //     }
-        // ));
+                imp.sidebar_new_button.set_sensitive(enabled);
+                imp.sidebar_view.set_sensitive(enabled);
+
+                imp.content_navigation_view.set_sensitive(enabled);
+            }
+        ));
     }
 
     //---------------------------------------
