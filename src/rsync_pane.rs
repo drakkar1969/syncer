@@ -56,7 +56,7 @@ mod imp {
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
 
         #[property(get, set)]
-        revealed: Cell<bool>,
+        running: Cell<bool>,
     }
 
     //---------------------------------------
@@ -129,16 +129,9 @@ impl RsyncPane {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        imp.revealer.bind_property("child-revealed", self, "revealed")
+        self.bind_property("running", &imp.revealer.get(), "reveal-child")
             .sync_create()
             .build();
-    }
-
-    //---------------------------------------
-    // Public set reveal function
-    //---------------------------------------
-    pub fn set_reveal(&self, reveal: bool) {
-        self.imp().revealer.set_reveal_child(reveal);
     }
 
     //---------------------------------------

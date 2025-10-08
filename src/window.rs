@@ -320,7 +320,7 @@ impl AppWindow {
 
                 imp.options_page.content_box().set_sensitive(!running);
 
-                imp.options_page.rsync_pane().set_reveal(running);
+                imp.options_page.rsync_pane().set_running(running);
             }
         ));
     }
