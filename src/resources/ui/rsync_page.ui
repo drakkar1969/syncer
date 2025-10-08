@@ -64,6 +64,13 @@
                         <property name="item-type">CheckObject</property>
                         <child>
                           <object class="CheckObject">
+                            <property name="title">Ignore</property>
+                            <property name="subtitle">No check performed (all files updated)</property>
+                            <property name="switch">--ignore-times</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="CheckObject">
                             <property name="title">Default</property>
                             <property name="subtitle">Check file size and modification time</property>
                           </object>
