@@ -7,8 +7,8 @@
       <object class="AdwPreferencesGroup">
       <child>
         <object class="AdwEntryRow" id="entry">
-        <property name="title">Profile Name</property>
-        <property name="activates-default">true</property>
+          <property name="title">Profile Name</property>
+          <property name="activates-default">true</property>
         </object>
       </child>
       </object>

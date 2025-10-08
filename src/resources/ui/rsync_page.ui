@@ -8,8 +8,7 @@
         <property name="bottom-bar-style">raised</property>
         <property name="extend-content-to-bottom-edge">true</property>
         <child type="top">
-          <object class="AdwHeaderBar">
-          </object>
+          <object class="AdwHeaderBar"/>
         </child>
         <property name="content">
           <object class="GtkStack" id="profile_stack">
@@ -149,8 +148,7 @@
           </object>
         </property>
         <child type="bottom">
-          <object class="ProgressPane" id="progress_pane">
-          </object>
+          <object class="ProgressPane" id="progress_pane"/>
         </child>
       </object>
     </property>
