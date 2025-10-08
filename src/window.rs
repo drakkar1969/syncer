@@ -158,8 +158,6 @@ mod imp {
 
                 imp.dry_run.set(dry_run);
 
-                println!("{:?}", dry_run);
-
                 imp.sidebar_new_button.set_sensitive(false);
                 imp.sidebar_view.set_sensitive(false);
 
