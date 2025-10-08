@@ -61,7 +61,14 @@
           </object>
         </property>
         <property name="content">
-          <object class="RsyncPage" id="rsync_page"/>
+          <object class="AdwNavigationView" id="nav_view">
+            <child>
+              <object class="RsyncPage" id="rsync_page"/>
+            </child>
+            <child>
+              <object class="OptionsPage" id="options_page"/>
+            </child>
+          </object>
         </property>
       </object>
     </property>

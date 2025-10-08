@@ -3,6 +3,7 @@
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">style.css</file>
     <file compressed="true">ui/builder/profile_name_dialog.ui</file>
+    <file compressed="true">ui/options_page.ui</file>
     <file compressed="true">ui/progress_pane.ui</file>
     <file compressed="true">ui/rsync_page.ui</file>
     <file compressed="true">ui/sidebar_row.ui</file>

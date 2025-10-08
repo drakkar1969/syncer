@@ -7,6 +7,7 @@ use crate::Application;
 use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
 use crate::rsync_page::RsyncPage;
+use crate::options_page::OptionsPage;
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -34,6 +35,8 @@ mod imp {
 
         #[template_child]
         pub(super) rsync_page: TemplateChild<RsyncPage>,
+        #[template_child]
+        pub(super) options_page: TemplateChild<OptionsPage>,
     }
 
     //---------------------------------------
@@ -257,15 +260,15 @@ impl AppWindow {
         });
 
         // Profile pane rsync running property notify signal
-        imp.rsync_page.connect_rsync_running_notify(clone!(
-            #[weak] imp,
-            move |pane| {
-                let enabled = !pane.rsync_running();
+        // imp.rsync_page.connect_rsync_running_notify(clone!(
+        //     #[weak] imp,
+        //     move |pane| {
+        //         let enabled = !pane.rsync_running();
 
-                imp.profile_add_button.set_sensitive(enabled);
-                imp.sidebar_view.set_sensitive(enabled);
-            }
-        ));
+        //         imp.profile_add_button.set_sensitive(enabled);
+        //         imp.sidebar_view.set_sensitive(enabled);
+        //     }
+        // ));
     }
 
     //---------------------------------------

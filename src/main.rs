@@ -3,6 +3,7 @@ mod window;
 mod sidebar_row;
 mod profile_object;
 mod rsync_page;
+mod options_page;
 mod progress_pane;
 
 use gtk::{glib, gio};
