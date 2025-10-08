@@ -164,17 +164,17 @@ impl OptionsPage {
 
         // Source row activated signal
         imp.source_row.connect_activated(clone!(
-            #[weak(rename_to = pane)] self,
+            #[weak(rename_to = page)] self,
             move |row| {
-                pane.select_folder(row);
+                page.select_folder(row);
             }
         ));
 
         // Destination row activated signal
         imp.destination_row.connect_activated(clone!(
-            #[weak(rename_to = pane)] self,
+            #[weak(rename_to = page)] self,
             move |row| {
-                pane.select_folder(row);
+                page.select_folder(row);
             }
         ));
     }
