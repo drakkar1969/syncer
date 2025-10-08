@@ -157,4 +157,81 @@ impl AdvancedPage {
             }
         });
     }
+
+    //---------------------------------------
+    // Public args function
+    //---------------------------------------
+    pub fn args(&self) -> Vec<&str> {
+        let imp = self.imp();
+
+        let mut args: Vec<&str> = vec![];
+
+        if imp.recursive_switch.is_active() {
+            args.push("-r");
+        } else {
+            args.push("-d");
+        }
+
+        if imp.preserve_time_switch.is_active() {
+            args.push("-t");
+        }
+
+        if imp.preserve_permissions_switch.is_active() {
+            args.push("-p");
+        }
+
+        if imp.preserve_owner_switch.is_active() {
+            args.push("-o");
+        }
+
+        if imp.preserve_group_switch.is_active() {
+            args.push("-g");
+        }
+
+        if imp.numeric_ids_switch.is_active() {
+            args.push("--numeric-ids");
+        }
+
+        if imp.preserve_symlinks_switch.is_active() {
+            args.push("-l");
+        }
+
+        if imp.preserve_hardlinks_switch.is_active() {
+            args.push("-H");
+        }
+
+        if imp.preserve_devices_switch.is_active() {
+            args.push("-D");
+        }
+
+        if imp.one_filesystem_switch.is_active() {
+            args.push("-x");
+        }
+
+        if imp.delete_destination_switch.is_active() {
+            args.push("--delete");
+        }
+
+        if imp.existing_switch.is_active() {
+            args.push("--existing");
+        }
+
+        if imp.ignore_existing_switch.is_active() {
+            args.push("---ignore-existing");
+        }
+
+        if imp.skip_newer_switch.is_active() {
+            args.push("-u");
+        }
+
+        if imp.compress_data_switch.is_active() {
+            args.push("-x");
+        }
+
+        if imp.backup_switch.is_active() {
+            args.push("-b");
+        }
+
+        args
+    }
 }
