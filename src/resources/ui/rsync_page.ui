@@ -11,7 +11,7 @@
           <object class="AdwHeaderBar"/>
         </child>
         <property name="content">
-          <object class="GtkBox">
+          <object class="GtkBox" id="content_box">
             <property name="orientation">vertical</property>
             <property name="margin-start">24</property>
             <property name="margin-end">24</property>

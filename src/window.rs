@@ -20,8 +20,7 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::AppWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
@@ -44,9 +43,6 @@ mod imp {
         pub(super) rsync_page: TemplateChild<RsyncPage>,
         #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
-
-        #[property(get, set)]
-        rsync_running: Cell<bool>,
 
         pub(super) dry_run: Cell<bool>,
     }
@@ -154,9 +150,16 @@ mod imp {
 
             // Rsync start action
             klass.install_action("rsync.start", None, |window, _, _| {
-                window.imp().dry_run.set(false);
+                let imp = window.imp();
 
-                window.set_rsync_running(true);
+                imp.dry_run.set(false);
+
+                imp.sidebar_new_button.set_sensitive(false);
+                imp.sidebar_view.set_sensitive(false);
+
+                imp.rsync_page.content_box().set_sensitive(false);
+
+                imp.rsync_page.progress_pane().set_reveal(true);
             });
 
             //---------------------------------------
@@ -171,7 +174,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         //---------------------------------------
         // Constructor
@@ -297,19 +299,6 @@ impl AppWindow {
                         }
                     );
                 }
-            }
-        ));
-
-        // Rsync running property notify signal
-        self.connect_rsync_running_notify(clone!(
-            #[weak] imp,
-            move |pane| {
-                let enabled = !pane.rsync_running();
-
-                imp.sidebar_new_button.set_sensitive(enabled);
-                imp.sidebar_view.set_sensitive(enabled);
-
-                imp.content_navigation_view.set_sensitive(enabled);
             }
         ));
     }

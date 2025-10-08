@@ -52,6 +52,10 @@ mod imp {
         #[template_child]
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
 
+        #[property(get)]
+        #[template_child]
+        pub(super) content_box: TemplateChild<gtk::Box>,
+        #[property(get)]
         #[template_child]
         pub(super) progress_pane: TemplateChild<ProgressPane>,
 
@@ -177,13 +181,6 @@ impl RsyncPage {
                 imp.bindings.replace(Some(bindings));
             }
         });
-
-        // Rsync running property notify signal
-        // self.connect_rsync_running_notify(|pane| {
-        //     let imp = pane.imp();
-
-        //     imp.progress_pane.set_reveal(pane.rsync_running());
-        // });
 
         // Source row activated signal
         imp.source_row.connect_activated(clone!(
