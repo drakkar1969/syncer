@@ -104,6 +104,7 @@
                 <property name="margin-bottom">16</property>
                 <property name="label">_Close</property>
                 <property name="use-underline">true</property>
+                <property name="action-name">rsync.close</property>
                 <style>
                   <class name="pill"/>
                 </style>

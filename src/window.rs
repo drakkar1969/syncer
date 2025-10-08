@@ -20,7 +20,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::AppWindow)]
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
@@ -43,6 +44,9 @@ mod imp {
         pub(super) options_page: TemplateChild<OptionsPage>,
         #[template_child]
         pub(super) advanced_page: TemplateChild<AdvancedPage>,
+
+        #[property(get, set)]
+        rsync_running: Cell<bool>,
 
         pub(super) dry_run: Cell<bool>,
     }
@@ -150,20 +154,18 @@ mod imp {
 
             // Rsync start action
             klass.install_action("rsync.start", Some(glib::VariantTy::BOOLEAN), |window, _, parameter| {
-                let imp = window.imp();
-
                 let dry_run = parameter
                     .and_then(|param| param.get::<bool>())
                     .expect("Could not get bool from variant");
 
-                imp.dry_run.set(dry_run);
+                window.imp().dry_run.set(dry_run);
 
-                imp.sidebar_new_button.set_sensitive(false);
-                imp.sidebar_view.set_sensitive(false);
+                window.set_rsync_running(true);
+            });
 
-                imp.options_page.content_box().set_sensitive(false);
-
-                imp.options_page.rsync_pane().set_reveal(true);
+            // Rsync close action
+            klass.install_action("rsync.close", None, |window, _, _| {
+                window.set_rsync_running(false);
             });
 
             //---------------------------------------
@@ -178,6 +180,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         //---------------------------------------
         // Constructor
@@ -303,6 +306,21 @@ impl AppWindow {
                         imp.content_stack.set_visible_child_name("profile");
                     }
                 }
+            }
+        ));
+
+        // Rsync running property notify signal
+        self.connect_rsync_running_notify(clone!(
+            #[weak] imp,
+            move |window| {
+                let running = window.rsync_running();
+
+                imp.sidebar_new_button.set_sensitive(!running);
+                imp.sidebar_view.set_sensitive(!running);
+
+                imp.options_page.content_box().set_sensitive(!running);
+
+                imp.options_page.rsync_pane().set_reveal(running);
             }
         ));
     }
