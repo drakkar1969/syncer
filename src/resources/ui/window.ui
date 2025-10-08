@@ -5,11 +5,10 @@
     <property name="default-width">800</property>
     <property name="default-height">550</property>
     <property name="content">
-      <object class="AdwNavigationSplitView">
+      <object class="AdwOverlaySplitView">
         <property name="sidebar">
-          <object class="AdwNavigationPage" id="sidebar_nav_page">
-            <property name="title">RsyncUI</property>
-            <property name="child">
+          <object class="GtkBox">
+            <child>
               <object class="AdwToolbarView">
                 <child type="top">
                   <object class="AdwHeaderBar">
@@ -58,7 +57,7 @@
                   </object>
                 </property>
               </object>
-            </property>
+            </child>
           </object>
         </property>
         <property name="content">

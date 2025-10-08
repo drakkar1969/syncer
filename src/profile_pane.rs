@@ -132,7 +132,7 @@ mod imp {
     impl ObjectSubclass for ProfilePane {
         const NAME: &'static str = "ProfilePane";
         type Type = super::ProfilePane;
-        type ParentType = adw::NavigationPage;
+        type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
             CheckMode::ensure_type();
@@ -160,7 +160,7 @@ mod imp {
     }
 
     impl WidgetImpl for ProfilePane {}
-    impl NavigationPageImpl for ProfilePane {}
+    impl BinImpl for ProfilePane {}
 }
 
 //------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ProfilePane(ObjectSubclass<imp::ProfilePane>)
-        @extends adw::NavigationPage, gtk::Widget,
+        @extends adw::Bin, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
