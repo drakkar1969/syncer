@@ -55,7 +55,7 @@
             </child>
             <child>
               <object class="AdwPreferencesGroup">
-                <property name="title">Settings</property>
+                <property name="title">Advanced Options</property>
                 <child>
                   <object class="AdwComboRow" id="check_mode_combo">
                     <property name="title">File Transfer Check</property>
@@ -97,9 +97,9 @@
                   </object>
                 </child>
                 <child>
-                  <object class="AdwActionRow" id="settings_row">
+                  <object class="AdwActionRow" id="options_row">
                     <property name="activatable">true</property>
-                    <property name="title">_Advanced Settings</property>
+                    <property name="title">_Advanced Options</property>
                     <property name="subtitle">Configure rsync options</property>
                     <property name="use-underline">true</property>
                     <property name="action-name">content.push-options</property>
