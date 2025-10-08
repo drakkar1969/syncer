@@ -14,21 +14,8 @@ use tokio::process::Command as TkCommand;
 use tokio::io::AsyncReadExt as _;
 
 use crate::profile_object::ProfileObject;
+use crate::check_object::CheckObject;
 use crate::progress_pane::ProgressPane;
-
-//------------------------------------------------------------------------------
-// ENUM: CheckMode
-//------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
-#[repr(u32)]
-#[enum_type(name = "CheckMode")]
-pub enum CheckMode {
-    #[default]
-    Default,
-    #[enum_value(name = "Size Only")]
-    SizeOnly,
-    Checksum,
-}
 
 //------------------------------------------------------------------------------
 // ENUM: RsyncMsg
@@ -84,7 +71,7 @@ mod imp {
         type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
-            CheckMode::ensure_type();
+            CheckObject::ensure_type();
 
             klass.bind_template();
         }
@@ -105,6 +92,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -213,20 +201,6 @@ impl RsyncPage {
             }
         ));
 
-        // Check mode combo selected property notify
-        // imp.check_mode_combo.connect_selected_notify(|row| {
-        //     let i = row.selected();
-
-        //     let subtitle = match i {
-        //         0 => "Check file size and modification time",
-        //         1 => "Check file size only",
-        //         2 => "Compare 128-bit checksum for files with matching size",
-        //         _ => unreachable!()
-        //     };
-
-        //     row.set_subtitle(subtitle);
-        // });
-
         // Progress pane revealed property notify
         // imp.progress_pane.connect_revealed_notify(clone!(
         //     #[weak(rename_to = pane)] self,
@@ -236,6 +210,23 @@ impl RsyncPage {
         //         }
         //     }
         // ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind check mode combo selected item to subtitle
+        imp.check_mode_combo.bind_property("selected-item", &imp.check_mode_combo.get(), "subtitle")
+            .transform_to(|_, obj: Option<glib::Object>| {
+                obj
+                    .and_downcast::<CheckObject>()
+                    .map(|obj| obj.subtitle())
+            })
+            .sync_create()
+            .build();
     }
 
     //---------------------------------------
@@ -260,7 +251,6 @@ impl RsyncPage {
     //         .collect();
 
     //     match imp.check_mode_combo.selected() {
-    //         1 => { args.push(String::from("--size-only")) },
     //         2 => { args.push(String::from("--checksum")) },
     //         _ => {}
     //     }

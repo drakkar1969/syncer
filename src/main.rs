@@ -3,6 +3,7 @@ mod window;
 mod sidebar_row;
 mod profile_object;
 mod rsync_page;
+mod check_object;
 mod options_page;
 mod progress_pane;
 

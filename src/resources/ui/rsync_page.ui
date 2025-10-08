@@ -59,14 +59,33 @@
                 <child>
                   <object class="AdwComboRow" id="check_mode_combo">
                     <property name="title">File Transfer Check</property>
-                    <property name="subtitle">Check file size and modification time</property>
                     <property name="model">
-                      <object class="AdwEnumListModel">
-                        <property name="enum-type">CheckMode</property>
+                      <object class="GListStore">
+                        <property name="item-type">CheckObject</property>
+                        <child>
+                          <object class="CheckObject">
+                            <property name="title">Default</property>
+                            <property name="subtitle">Check file size and modification time</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="CheckObject">
+                            <property name="title">Size Only</property>
+                            <property name="subtitle">Check file size only</property>
+                            <property name="switch">--size-only</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="CheckObject">
+                            <property name="title">Checksum</property>
+                            <property name="subtitle">Compare 128-bit checksum for files with matching size</property>
+                            <property name="switch">--checksum</property>
+                          </object>
+                        </child>
                       </object>
                     </property>
                     <property name="expression">
-                      <lookup type="AdwEnumListItem" name="name"/>
+                      <lookup type="CheckObject" name="title"/>
                     </property>
                   </object>
                 </child>
