@@ -46,7 +46,7 @@ pub enum RsyncMsg {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: ProfilePane
+// MODULE: RsyncPage
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -55,9 +55,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::ProfilePane)]
-    #[template(resource = "/com/github/RsyncUI/ui/profile_pane.ui")]
-    pub struct ProfilePane {
+    #[properties(wrapper_type = super::RsyncPage)]
+    #[template(resource = "/com/github/RsyncUI/ui/rsync_page.ui")]
+    pub struct RsyncPage {
         #[template_child]
         pub(super) nav_view: TemplateChild<adw::NavigationView>,
         #[template_child]
@@ -129,9 +129,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for ProfilePane {
-        const NAME: &'static str = "ProfilePane";
-        type Type = super::ProfilePane;
+    impl ObjectSubclass for RsyncPage {
+        const NAME: &'static str = "RsyncPage";
+        type Type = super::RsyncPage;
         type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
@@ -146,7 +146,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for ProfilePane {
+    impl ObjectImpl for RsyncPage {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -159,20 +159,20 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for ProfilePane {}
-    impl BinImpl for ProfilePane {}
+    impl WidgetImpl for RsyncPage {}
+    impl BinImpl for RsyncPage {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: ProfilePane
+// IMPLEMENTATION: RsyncPage
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct ProfilePane(ObjectSubclass<imp::ProfilePane>)
+    pub struct RsyncPage(ObjectSubclass<imp::RsyncPage>)
         @extends adw::Bin, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl ProfilePane {
+impl RsyncPage {
     //---------------------------------------
     // Select folder helper function
     //---------------------------------------
@@ -456,7 +456,7 @@ impl ProfilePane {
 
         let (sender, receiver) = async_channel::bounded(1);
 
-        ProfilePane::runtime().spawn(
+        RsyncPage::runtime().spawn(
             async move {
                 // Start rsync
                 let mut rsync_process = TkCommand::new("rsync")

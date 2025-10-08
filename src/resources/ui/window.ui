@@ -61,7 +61,7 @@
           </object>
         </property>
         <property name="content">
-          <object class="ProfilePane" id="profile_pane"/>
+          <object class="RsyncPage" id="rsync_page"/>
         </property>
       </object>
     </property>

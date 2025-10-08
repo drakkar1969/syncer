@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// ProfilePane template //-->
-  <template class="ProfilePane" parent="AdwBin">
+  <!--// RsyncPage template //-->
+  <template class="RsyncPage" parent="AdwBin">
     <property name="child">
       <object class="AdwNavigationView" id="nav_view">
         <child>

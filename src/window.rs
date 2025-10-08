@@ -6,7 +6,7 @@ use glib::clone;
 use crate::Application;
 use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
-use crate::profile_pane::ProfilePane;
+use crate::rsync_page::RsyncPage;
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -33,7 +33,7 @@ mod imp {
         pub(super) sidebar_factory: TemplateChild<gtk::SignalListItemFactory>,
 
         #[template_child]
-        pub(super) profile_pane: TemplateChild<ProfilePane>,
+        pub(super) rsync_page: TemplateChild<RsyncPage>,
     }
 
     //---------------------------------------
@@ -257,7 +257,7 @@ impl AppWindow {
         });
 
         // Profile pane rsync running property notify signal
-        imp.profile_pane.connect_rsync_running_notify(clone!(
+        imp.rsync_page.connect_rsync_running_notify(clone!(
             #[weak] imp,
             move |pane| {
                 let enabled = !pane.rsync_running();
@@ -277,7 +277,7 @@ impl AppWindow {
         imp.sidebar_model.append(&ProfileObject::new("TEST"));
 
         // Bind sidebar selected item to profile pane
-        imp.sidebar_selection.bind_property("selected-item", &imp.profile_pane.get(), "profile")
+        imp.sidebar_selection.bind_property("selected-item", &imp.rsync_page.get(), "profile")
             .sync_create()
             .build();
     }
