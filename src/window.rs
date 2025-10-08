@@ -322,8 +322,13 @@ impl AppWindow {
 
         imp.sidebar_model.append(&ProfileObject::new("TEST"));
 
-        // Bind sidebar selected item to profile pane
+        // Bind sidebar selected item to rsync page
         imp.sidebar_selection.bind_property("selected-item", &imp.rsync_page.get(), "profile")
+            .sync_create()
+            .build();
+
+        // Bind sidebar selected item to option page
+        imp.sidebar_selection.bind_property("selected-item", &imp.options_page.get(), "profile")
             .sync_create()
             .build();
     }
