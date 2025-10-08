@@ -61,12 +61,45 @@
           </object>
         </property>
         <property name="content">
-          <object class="AdwNavigationView" id="nav_view">
+          <object class="GtkStack" id="content_stack">
             <child>
-              <object class="RsyncPage" id="rsync_page"/>
+              <object class="GtkStackPage">
+                <property name="name">status</property>
+                <property name="child">
+                  <object class="AdwStatusPage">
+                    <property name="icon-name">edit-symbolic</property>
+                    <property name="title">Welcome to RsyncUI</property>
+                    <property name="description">Create a new profile to get started</property>
+                    <property name="child">
+                      <object class="GtkButton" id="new_profile_button">
+                        <property name="halign">center</property>
+                        <property name="label">Create _New Profile</property>
+                        <property name="use-underline">true</property>
+                        <property name="action-name">sidebar.new-profile</property>
+                        <style>
+                          <class name="suggested-action"/>
+                          <class name="pill"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+              </object>
             </child>
             <child>
-              <object class="OptionsPage" id="options_page"/>
+              <object class="GtkStackPage">
+                <property name="name">profile</property>
+                <property name="child">
+                  <object class="AdwNavigationView" id="nav_view">
+                    <child>
+                      <object class="RsyncPage" id="rsync_page"/>
+                    </child>
+                    <child>
+                      <object class="OptionsPage" id="options_page"/>
+                    </child>
+                  </object>
+                </property>
+              </object>
             </child>
           </object>
         </property>

@@ -194,12 +194,6 @@ impl RsyncPage {
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
-
-                // Show profile page
-                // imp.profile_stack.set_visible_child_name("profile");
-            } else {
-                // Show status page
-                // imp.profile_stack.set_visible_child_name("status");
             }
         });
 

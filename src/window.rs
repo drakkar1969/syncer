@@ -34,6 +34,8 @@ mod imp {
         pub(super) sidebar_factory: TemplateChild<gtk::SignalListItemFactory>,
 
         #[template_child]
+        pub(super) content_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
         pub(super) rsync_page: TemplateChild<RsyncPage>,
         #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
@@ -258,6 +260,22 @@ impl AppWindow {
 
             row.unbind();
         });
+
+        // Sidebar model items changed signal
+        imp.sidebar_model.connect_items_changed(clone!(
+            #[weak] imp,
+            move |model, _, removed, added| {
+                if removed != 0 || added != 0 {
+                    imp.content_stack.set_visible_child_name(
+                        if model.n_items() == 0 {
+                            "status"
+                        } else {
+                            "profile"
+                        }
+                    );
+                }
+            }
+        ));
 
         // Profile pane rsync running property notify signal
         // imp.rsync_page.connect_rsync_running_notify(clone!(
