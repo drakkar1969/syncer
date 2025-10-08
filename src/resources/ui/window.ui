@@ -90,7 +90,7 @@
               <object class="GtkStackPage">
                 <property name="name">profile</property>
                 <property name="child">
-                  <object class="AdwNavigationView" id="nav_view">
+                  <object class="AdwNavigationView" id="content_navigation_view">
                     <child>
                       <object class="RsyncPage" id="rsync_page"/>
                     </child>

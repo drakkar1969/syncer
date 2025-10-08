@@ -76,6 +76,7 @@
                     <property name="title">_Advanced Settings</property>
                     <property name="subtitle">Configure rsync options</property>
                     <property name="use-underline">true</property>
+                    <property name="action-name">content.push-options</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>

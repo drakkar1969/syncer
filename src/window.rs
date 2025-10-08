@@ -36,6 +36,8 @@ mod imp {
         #[template_child]
         pub(super) content_stack: TemplateChild<gtk::Stack>,
         #[template_child]
+        pub(super) content_navigation_view: TemplateChild<adw::NavigationView>,
+        #[template_child]
         pub(super) rsync_page: TemplateChild<RsyncPage>,
         #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
@@ -135,6 +137,11 @@ mod imp {
                 ));
 
                 dialog.present(Some(window));
+            });
+
+            // Content push options action
+            klass.install_action("content.push-options", None, |window, _, _| {
+                window.imp().content_navigation_view.push_by_tag("settings");
             });
 
             //---------------------------------------

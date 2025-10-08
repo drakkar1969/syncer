@@ -241,14 +241,6 @@ impl RsyncPage {
         //     row.set_subtitle(subtitle);
         // });
 
-        // Settings row activated signal
-        // imp.settings_row.connect_activated(clone!(
-        //     #[weak] imp,
-        //     move |_| {
-        //         imp.nav_view.push_by_tag("settings");
-        //     }
-        // ));
-
         // Rsync button clicked signal
         // imp.rsync_button.connect_clicked(clone!(
         //     #[weak(rename_to = pane)] self,
