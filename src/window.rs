@@ -149,10 +149,16 @@ mod imp {
             });
 
             // Rsync start action
-            klass.install_action("rsync.start", None, |window, _, _| {
+            klass.install_action("rsync.start", Some(glib::VariantTy::BOOLEAN), |window, _, parameter| {
                 let imp = window.imp();
 
-                imp.dry_run.set(false);
+                let dry_run = parameter
+                    .and_then(|param| param.get::<bool>())
+                    .expect("Could not get bool from variant");
+
+                imp.dry_run.set(dry_run);
+
+                println!("{:?}", dry_run);
 
                 imp.sidebar_new_button.set_sensitive(false);
                 imp.sidebar_view.set_sensitive(false);
