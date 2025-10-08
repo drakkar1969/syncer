@@ -151,6 +151,9 @@ impl AdvancedPage {
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
+
+                // Set page title
+                pane.set_title(&profile.name());
             }
         });
     }
