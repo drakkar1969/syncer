@@ -259,7 +259,7 @@ impl AppWindow {
 
         imp.options_page.args()
             .map(|mut options| {
-                let mut args: Vec<String> = ["-s", "--human-readable", "--info=flist0,name1,stats2,progress2"]
+                let mut args: Vec<String> = ["-s", "--human-readable", "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"]
                     .into_iter()
                     .map(|s| s.to_owned())
                     .collect();
@@ -269,8 +269,6 @@ impl AppWindow {
                 );
 
                 args.append(&mut options);
-
-                println!("{:?}", args);
 
                 args
             })
