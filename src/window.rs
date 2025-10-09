@@ -252,6 +252,32 @@ impl AppWindow {
     }
 
     //---------------------------------------
+    // Rsync args function
+    //---------------------------------------
+    fn rsync_args(&self) -> Vec<String> {
+        let imp = self.imp();
+
+        imp.options_page.args()
+            .map(|mut options| {
+                let mut args: Vec<String> = ["-s", "--human-readable", "--info=flist0,name1,stats2,progress2"]
+                    .into_iter()
+                    .map(|s| s.to_owned())
+                    .collect();
+
+                args.append(
+                    &mut imp.advanced_page.args().into_iter().map(|s| s.to_owned()).collect()
+                );
+
+                args.append(&mut options);
+
+                println!("{:?}", args);
+
+                args
+            })
+            .unwrap_or_default()
+    }
+
+    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -320,7 +346,10 @@ impl AppWindow {
 
                 imp.options_page.content_box().set_sensitive(!running);
 
-                imp.options_page.rsync_pane().set_running(running);
+                let rsync_pane = imp.options_page.rsync_pane();
+
+                rsync_pane.set_args(window.rsync_args());
+                rsync_pane.set_running(running);
             }
         ));
     }

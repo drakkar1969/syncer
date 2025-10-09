@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::sync::OnceLock;
 use std::io;
 use std::process::Stdio;
@@ -55,6 +55,8 @@ mod imp {
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
 
+        #[property(get, set)]
+        args: RefCell<Vec<String>>,
         #[property(get, set)]
         running: Cell<bool>,
     }
@@ -121,7 +123,9 @@ impl RsyncPane {
             #[weak(rename_to = pane)] self,
             move |revealer| {
                 if revealer.reveals_child() {
-                    pane.start_rsync();
+                    if !pane.args().is_empty() {
+                        pane.start_rsync();
+                    }
                 } else {
                     pane.reset();
                 }
@@ -199,25 +203,10 @@ impl RsyncPane {
     }
 
     //---------------------------------------
-    // Build rsync args function
-    //---------------------------------------
-    // fn build_rsync_args(&self) -> Vec<String> {
-    //     let imp = self.imp();
-
-    //     let mut args: Vec<String> = vec!["--human-readable", "-s", "--info=flist0,name1,stats2,progress2"]
-    //         .into_iter()
-    //         .map(|s| s.to_owned())
-    //         .collect();
-
-
-    //     args
-    // }
-
-    //---------------------------------------
     // Start rsync function
     //---------------------------------------
     fn start_rsync(&self) {
-        let args = ["-r", "-t", "-s", "-H", "--progress", "--human-readable", "--info=flist0,name1,stats2,progress2", "/home/drakkar/Downloads/Torrents/Alien: Earth (ELITE)/", "/home/drakkar/Scratch/RSYNC"];
+        let args = self.args();
 
         let (sender, receiver) = async_channel::bounded(1);
 
