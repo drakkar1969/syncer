@@ -88,7 +88,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
-            obj.setup_widgets();
         }
     }
 
@@ -112,7 +111,12 @@ impl RsyncPane {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Revealed property notify
+        // Running property notify signal
+        self.connect_running_notify(|pane| {
+            pane.imp().revealer.set_reveal_child(pane.running());
+        });
+
+        // Revealer child revealed signal
         imp.revealer.connect_child_revealed_notify(clone!(
             #[weak(rename_to = pane)] self,
             move |revealer| {
@@ -121,17 +125,6 @@ impl RsyncPane {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        self.bind_property("running", &imp.revealer.get(), "reveal-child")
-            .sync_create()
-            .build();
     }
 
     //---------------------------------------
