@@ -122,10 +122,27 @@ impl RsyncPane {
             move |revealer| {
                 if revealer.reveals_child() {
                     pane.start_rsync();
+                } else {
+                    pane.reset();
                 }
             }
         ));
     }
+
+    //---------------------------------------
+    // Reset function
+    //---------------------------------------
+    fn reset(&self) {
+        let imp = self.imp();
+
+        imp.message_label.set_label("");
+
+        imp.transferred_label.set_label("");
+        imp.speed_label.set_label("");
+        imp.progress_label.set_label("");
+        imp.progress_bar.set_fraction(0.0);
+    }
+
 
     //---------------------------------------
     // Set message function
