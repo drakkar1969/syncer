@@ -54,11 +54,11 @@ mod imp {
             //---------------------------------------
             // New profile action
             //---------------------------------------
-            klass.install_action("sidebar.new-profile", None, |window, _, _| {
-                window.profile_name_dialog("Create New Profile", "Create", clone!(
-                    #[weak] window,
+            klass.install_action("sidebar.new-profile", None, |sidebar, _, _| {
+                sidebar.profile_name_dialog("Create New Profile", "Create", clone!(
+                    #[weak] sidebar,
                     move |name| {
-                        let imp = window.imp();
+                        let imp = sidebar.imp();
 
                         imp.model.append(&ProfileObject::new(name));
 
@@ -76,8 +76,8 @@ mod imp {
             //---------------------------------------
             // Rename profile action
             //---------------------------------------
-            klass.install_action("sidebar.rename-profile", Some(glib::VariantTy::STRING), |window, _, parameter| {
-                let imp = window.imp();
+            klass.install_action("sidebar.rename-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+                let imp = sidebar.imp();
 
                 let name = parameter
                     .and_then(|param| param.get::<String>())
@@ -86,7 +86,7 @@ mod imp {
                 if let Some(pos) = imp.model.iter::<ProfileObject>().flatten()
                     .position(|obj| obj.name() == name)
                 {
-                    window.profile_name_dialog("Rename Profile", "Rename", clone!(
+                    sidebar.profile_name_dialog("Rename Profile", "Rename", clone!(
                         #[weak] imp,
                         move |name| {
                             let obj = imp.model.item(pos as u32)
@@ -106,8 +106,8 @@ mod imp {
             //---------------------------------------
             // Delete profile action
             //---------------------------------------
-            klass.install_action("sidebar.delete-profile", Some(glib::VariantTy::STRING), |window, _, parameter| {
-                let imp = window.imp();
+            klass.install_action("sidebar.delete-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+                let imp = sidebar.imp();
 
                 let name = parameter
                     .and_then(|param| param.get::<String>())
@@ -133,7 +133,7 @@ mod imp {
                     }
                 ));
 
-                dialog.present(Some(window));
+                dialog.present(Some(sidebar));
             });
         }
 
