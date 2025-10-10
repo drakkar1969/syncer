@@ -475,6 +475,8 @@ impl AppWindow {
                                 _ => {}
                             }
 
+                            rsync_pane.show_stats();
+
                             println!("{:?}", errors);
                             println!("{:?}", stats);
                         }

@@ -30,6 +30,9 @@ mod imp {
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
+
+        #[template_child]
+        pub(super) button_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) stop_button: TemplateChild<gtk::Button>,
 
@@ -113,6 +116,8 @@ impl RsyncPane {
         imp.speed_label.set_label("");
         imp.progress_label.set_label("");
         imp.progress_bar.set_fraction(0.0);
+
+        imp.button_stack.set_visible_child_name("stop");
     }
 
     //---------------------------------------
@@ -157,6 +162,15 @@ impl RsyncPane {
         }
 
         imp.message_label.set_label(message);
+    }
+
+    //---------------------------------------
+    // Public show stats function
+    //---------------------------------------
+    pub fn show_stats(&self) {
+        let imp = self.imp();
+
+        imp.button_stack.set_visible_child_name("stats");
     }
 }
 
