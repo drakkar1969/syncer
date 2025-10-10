@@ -8,7 +8,7 @@ adw = { version = "0.8", package = "libadwaita", features = ["v1_8"] }
 async-channel = "2"
 gtk = { version = "0.10", package = "gtk4", features = ["v4_20"] }
 nix = { version = "0.30", features = ["signal"] }
-tokio = { version = "1", features = ["rt-multi-thread", "process", "io-util", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "process", "io-util", "macros", "time"] }
 
 [build-dependencies]
 glib-build-tools = "0.21"

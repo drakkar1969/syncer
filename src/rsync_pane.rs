@@ -95,6 +95,13 @@ impl RsyncPane {
     }
 
     //---------------------------------------
+    // Public transition duration function
+    //---------------------------------------
+    pub fn transition_duration(&self) -> u32 {
+        self.imp().revealer.transition_duration()
+    }
+
+    //---------------------------------------
     // Public reset function
     //---------------------------------------
     pub fn reset(&self) {

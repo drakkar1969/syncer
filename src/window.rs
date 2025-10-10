@@ -12,6 +12,7 @@ use glib::clone;
 use tokio::runtime::Runtime as TkRuntime;
 use tokio::process::Command as TkCommand;
 use tokio::io::AsyncReadExt as _;
+use tokio::time::{sleep, Duration as TkDuration};
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
 
@@ -278,13 +279,22 @@ impl AppWindow {
     // Start rsync function
     //---------------------------------------
     fn start_rsync(&self) {
+        let imp = self.imp();
+
         let args = self.rsync_args();
+
+        let rsync_pane = imp.options_page.rsync_pane();
+
+        let transition_duration = rsync_pane.transition_duration();
 
         let (sender, receiver) = async_channel::bounded(1);
 
         // Spawn tokio task to run rsync
         AppWindow::runtime().spawn(
             async move {
+                // Sleep until progress pane is revealed
+                sleep(TkDuration::from_millis(transition_duration as u64)).await;
+
                 // Start rsync
                 let mut rsync_process = TkCommand::new("rsync")
                     .args(args)
@@ -421,12 +431,9 @@ impl AppWindow {
 
         // Attach receiver for tokio task
         glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            #[weak] rsync_pane,
             async move {
-                let imp = window.imp();
-
-                let pane = imp.options_page.rsync_pane();
-
                 let mut stats: Vec<String> = vec![];
                 let mut errors: Vec<String> = vec![];
 
@@ -437,11 +444,11 @@ impl AppWindow {
                         },
 
                         RsyncMsg::Message(message) => {
-                            pane.set_message(&message);
+                            rsync_pane.set_message(&message);
                         },
 
                         RsyncMsg::Progress(size, speed, progress) => {
-                            pane.set_status(&size, &speed, progress);
+                            rsync_pane.set_status(&size, &speed, progress);
                         },
 
                         RsyncMsg::Stats(stat) => {
@@ -458,12 +465,12 @@ impl AppWindow {
 
                             match (code, signal) {
                                 (Some(0), _) => {
-                                    pane.set_exit_status(true, "Transfer successfully completed");
+                                    rsync_pane.set_exit_status(true, "Transfer successfully completed");
 
-                                    pane.set_progress(100.0);
+                                    rsync_pane.set_progress(100.0);
                                 },
                                 (Some(exit), _) => {
-                                    pane.set_exit_status(false, &format!("Transfer failed with error code {}", exit));
+                                    rsync_pane.set_exit_status(false, &format!("Transfer failed with error code {}", exit));
                                 },
                                 _ => {}
                             }
