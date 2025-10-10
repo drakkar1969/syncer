@@ -6,6 +6,7 @@
     <file compressed="true">ui/advanced_page.ui</file>
     <file compressed="true">ui/options_page.ui</file>
     <file compressed="true">ui/rsync_pane.ui</file>
+    <file compressed="true">ui/sidebar.ui</file>
     <file compressed="true">ui/sidebar_row.ui</file>
     <file compressed="true">ui/window.ui</file>
   </gresource>

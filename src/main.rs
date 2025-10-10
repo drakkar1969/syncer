@@ -1,5 +1,6 @@
 mod app;
 mod window;
+mod sidebar;
 mod sidebar_row;
 mod profile_object;
 mod options_page;

@@ -9,7 +9,7 @@ use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
 
 use crate::Application;
-use crate::sidebar_row::SidebarRow;
+use crate::sidebar::Sidebar;
 use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
@@ -28,16 +28,7 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
-        pub(super) sidebar_new_button: TemplateChild<gtk::Button>,
-
-        #[template_child]
-        pub(super) sidebar_view: TemplateChild<gtk::ListView>,
-        #[template_child]
-        pub(super) sidebar_selection: TemplateChild<gtk::SingleSelection>,
-        #[template_child]
-        pub(super) sidebar_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub(super) sidebar_factory: TemplateChild<gtk::SignalListItemFactory>,
+        pub(super) sidebar: TemplateChild<Sidebar>,
 
         #[template_child]
         pub(super) content_stack: TemplateChild<gtk::Stack>,
@@ -67,88 +58,6 @@ mod imp {
             ProfileObject::ensure_type();
 
             klass.bind_template();
-
-            //---------------------------------------
-            // Add class actions
-            //---------------------------------------
-            // New profile action
-            klass.install_action("sidebar.new-profile", None, |window, _, _| {
-                window.profile_name_dialog("Create New Profile", "Create", clone!(
-                    #[weak] window,
-                    move |name| {
-                        let imp = window.imp();
-
-                        imp.sidebar_model.append(&ProfileObject::new(name));
-
-                        imp.sidebar_view.scroll_to(
-                            imp.sidebar_model.n_items() - 1,
-                            gtk::ListScrollFlags::FOCUS | gtk::ListScrollFlags::SELECT,
-                            None
-                        );
-
-                        imp.sidebar_view.grab_focus();
-                    }
-                ));
-            });
-
-            // Rename profile action
-            klass.install_action("sidebar.rename-profile", Some(glib::VariantTy::STRING), |window, _, parameter| {
-                let imp = window.imp();
-
-                let name = parameter
-                    .and_then(|param| param.get::<String>())
-                    .expect("Could not get string from variant");
-
-                if let Some(pos) = imp.sidebar_model.iter::<ProfileObject>().flatten()
-                    .position(|obj| obj.name() == name)
-                {
-                    window.profile_name_dialog("Rename Profile", "Rename", clone!(
-                        #[weak] imp,
-                        move |name| {
-                            let obj = imp.sidebar_model.item(pos as u32)
-                                .and_downcast::<ProfileObject>()
-                                .expect("Could not downcast to 'ProfileObject'");
-
-                            imp.sidebar_model.remove(pos as u32);
-
-                            obj.set_name(name);
-
-                            imp.sidebar_model.insert(pos as u32, &obj);
-                        }
-                    ));
-                }
-            });
-
-            // Delete profile action
-            klass.install_action("sidebar.delete-profile", Some(glib::VariantTy::STRING), |window, _, parameter| {
-                let imp = window.imp();
-
-                let name = parameter
-                    .and_then(|param| param.get::<String>())
-                    .expect("Could not get string from variant");
-
-                let dialog = adw::AlertDialog::builder()
-                    .heading("Delete Profile?")
-                    .body("This wil permamenently delete the profile.")
-                    .default_response("delete")
-                    .build();
-
-                dialog.add_responses(&[("cancel", "_Cancel"), ("delete", "_Delete")]);
-                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
-
-                dialog.connect_response(Some("delete"), clone!(
-                    #[weak] imp,
-                    move |_, _| {
-                        if let Some(pos) = imp.sidebar_model.iter::<ProfileObject>().flatten()
-                            .position(|obj| obj.name() == name)
-                        {
-                            imp.sidebar_model.remove(pos as u32);
-                        }
-                    }
-                ));
-
-                dialog.present(Some(window));
-            });
 
             // Content push options action
             klass.install_action("content.push-options", None, |window, _, _| {
@@ -183,10 +92,14 @@ mod imp {
             });
 
             //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
             // New profile key binding
-            klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "sidebar.new-profile");
+            //---------------------------------------
+            klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |window| {
+                window.imp().sidebar.activate_action("sidebar.new-profile", None)
+                    .unwrap();
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -236,36 +149,6 @@ impl AppWindow {
     }
 
     //---------------------------------------
-    // Profile name dialog helper function
-    //---------------------------------------
-    fn profile_name_dialog<F>(&self, heading: &str, label: &str, f: F)
-    where F: Fn(&str) + 'static {
-        let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/profile_name_dialog.ui");
-
-        let dialog: adw::AlertDialog = builder.object("dialog")
-            .expect("Could not get object from resource");
-
-        dialog.set_heading(Some(heading));
-        dialog.set_response_label("add", label);
-
-        let entry: adw::EntryRow = builder.object("entry")
-            .expect("Could not get object from resource");
-
-        entry.connect_changed(clone!(
-            #[weak] dialog,
-            move |entry| {
-                dialog.set_response_enabled("add", !entry.text().is_empty());
-            }
-        ));
-
-        dialog.connect_response(Some("add"), move |_, _| {
-            f(&entry.text());
-        });
-
-        dialog.present(Some(self));
-    }
-
-    //---------------------------------------
     // Rsync args function
     //---------------------------------------
     fn rsync_args(&self) -> Vec<String> {
@@ -295,75 +178,37 @@ impl AppWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Sidebar factory setup signal
-        imp.sidebar_factory.connect_setup(|_, item| {
-            item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Could not downcast to 'GtkListItem'")
-                .set_child(Some(&SidebarRow::default()));
-        });
-
-        // Sidebar factory bind signal
-        imp.sidebar_factory.connect_bind(|_, item| {
-            let obj = item
-                .downcast_ref::<gtk::ListItem>()
-                .and_then(|item| item.item())
-                .and_downcast::<ProfileObject>()
-                .expect("Could not downcast to 'ProfileObject'");
-
-            let row = item
-                .downcast_ref::<gtk::ListItem>()
-                .and_then(|item| item.child())
-                .and_downcast::<SidebarRow>()
-                .expect("Could not downcast to 'SidebarRow'");
-
-            row.bind(&obj);
-        });
-
-        // Sidebar factory unbind signal
-        imp.sidebar_factory.connect_unbind(|_, item| {
-            let row = item
-                .downcast_ref::<gtk::ListItem>()
-                .and_then(|item| item.child())
-                .and_downcast::<SidebarRow>()
-                .expect("Could not downcast to 'SidebarRow'");
-
-            row.unbind();
-        });
-
-        // Sidebar model items changed signal
-        imp.sidebar_model.connect_items_changed(clone!(
+        // Sidebar n_items property notify signal
+        imp.sidebar.connect_n_items_notify(clone!(
             #[weak] imp,
-            move |model, _, removed, added| {
-                if removed != 0 || added != 0 {
-                    if model.n_items() == 0 {
-                        imp.content_navigation_view.pop();
+            move |sidebar| {
+                if sidebar.n_items() == 0 {
+                    imp.content_navigation_view.pop();
 
-                        imp.content_stack.set_visible_child_name("status");
-                    } else {
-                        imp.content_stack.set_visible_child_name("profile");
-                    }
+                    imp.content_stack.set_visible_child_name("status");
+                } else {
+                    imp.content_stack.set_visible_child_name("profile");
                 }
             }
         ));
 
         // Rsync running property notify signal
-        self.connect_rsync_running_notify(clone!(
-            #[weak] imp,
-            move |window| {
-                let running = window.rsync_running();
+        // self.connect_rsync_running_notify(clone!(
+        //     #[weak] imp,
+        //     move |window| {
+        //         let running = window.rsync_running();
 
-                imp.sidebar_new_button.set_sensitive(!running);
-                imp.sidebar_view.set_sensitive(!running);
+        //         imp.sidebar_new_button.set_sensitive(!running);
+        //         imp.sidebar_view.set_sensitive(!running);
 
-                imp.options_page.content_box().set_sensitive(!running);
+        //         imp.options_page.content_box().set_sensitive(!running);
 
-                let rsync_pane = imp.options_page.rsync_pane();
+        //         let rsync_pane = imp.options_page.rsync_pane();
 
-                rsync_pane.set_args(window.rsync_args());
-                rsync_pane.set_running(running);
-            }
-        ));
+        //         rsync_pane.set_args(window.rsync_args());
+        //         rsync_pane.set_running(running);
+        //     }
+        // ));
     }
 
     //---------------------------------------
@@ -372,15 +217,13 @@ impl AppWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        imp.sidebar_model.append(&ProfileObject::new("TEST"));
-
         // Bind sidebar selected item to rsync page
-        imp.sidebar_selection.bind_property("selected-item", &imp.options_page.get(), "profile")
+        imp.sidebar.bind_property("selected-item", &imp.options_page.get(), "profile")
             .sync_create()
             .build();
 
         // Bind sidebar selected item to option page
-        imp.sidebar_selection.bind_property("selected-item", &imp.advanced_page.get(), "profile")
+        imp.sidebar.bind_property("selected-item", &imp.advanced_page.get(), "profile")
             .sync_create()
             .build();
     }
