@@ -55,11 +55,11 @@ mod imp {
             // New profile action
             //---------------------------------------
             klass.install_action("sidebar.new-profile", None, |sidebar, _, _| {
-                sidebar.profile_name_dialog("Create New Profile", "Create", clone!(
-                    #[weak] sidebar,
-                    move |name| {
-                        let imp = sidebar.imp();
+                let imp = sidebar.imp();
 
+                sidebar.profile_name_dialog("Create New Profile", "Create", clone!(
+                    #[weak] imp,
+                    move |name| {
                         imp.model.append(&ProfileObject::new(name));
 
                         imp.view.scroll_to(
