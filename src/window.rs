@@ -1,10 +1,17 @@
 use std::cell::Cell;
+use std::sync::OnceLock;
+use std::io;
+use std::process::Stdio;
+use std::os::unix::process::ExitStatusExt;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
+use tokio::runtime::Runtime as TkRuntime;
+use tokio::process::Command as TkCommand;
+use tokio::io::AsyncReadExt as _;
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
 
@@ -15,6 +22,22 @@ use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
 
 //------------------------------------------------------------------------------
+// ENUM: RsyncMsg
+//------------------------------------------------------------------------------
+#[derive(Debug, Default, PartialEq)]
+#[repr(u32)]
+pub enum RsyncMsg {
+    #[default]
+    None,
+    Pid(Option<i32>),
+    Message(String),
+    Progress(String, String, f64),
+    Stats(String),
+    Error(String),
+    Exit(Option<i32>, Option<i32>)
+}
+
+//------------------------------------------------------------------------------
 // MODULE: AppWindow
 //------------------------------------------------------------------------------
 mod imp {
@@ -23,8 +46,7 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::AppWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
@@ -39,10 +61,8 @@ mod imp {
         #[template_child]
         pub(super) advanced_page: TemplateChild<AdvancedPage>,
 
-        #[property(get, set)]
-        rsync_running: Cell<bool>,
-
         pub(super) dry_run: Cell<bool>,
+        pub(super) rsync_id: Cell<Option<i32>>,
     }
 
     //---------------------------------------
@@ -59,36 +79,71 @@ mod imp {
 
             klass.bind_template();
 
+            //---------------------------------------
             // Content push options action
+            //---------------------------------------
             klass.install_action("content.push-options", None, |window, _, _| {
                 window.imp().content_navigation_view.push_by_tag("settings");
             });
 
+            //---------------------------------------
             // Rsync start action
+            //---------------------------------------
             klass.install_action("rsync.start", Some(glib::VariantTy::BOOLEAN), |window, _, parameter| {
+                let imp = window.imp();
+
+                // Check if dry run
                 let dry_run = parameter
                     .and_then(|param| param.get::<bool>())
                     .expect("Could not get bool from variant");
 
                 window.imp().dry_run.set(dry_run);
 
-                window.set_rsync_running(true);
+                // Set sensitive state for widgets
+                imp.sidebar.set_sensitive(false);
+
+                imp.options_page.content_box().set_sensitive(false);
+
+                // Show progress pane
+                imp.options_page.rsync_pane().set_reveal_child(true);
+
+                // Start rsync
+                window.start_rsync();
             });
 
-            // Rsync stop action
-            klass.install_action("rsync.stop", None, |window, _, _| {
+            //---------------------------------------
+            // Rsync close action
+            //---------------------------------------
+            klass.install_action("rsync.close", None, |window, _, _| {
                 let imp = window.imp();
 
-                if let Some(id) = imp.options_page.rsync_pane().rsync_id() {
+                // Set sensitive state for widgets
+                imp.sidebar.set_sensitive(true);
+
+                imp.options_page.content_box().set_sensitive(true);
+
+                // Hide and reset progress pane
+                let rsync_pane = imp.options_page.rsync_pane();
+
+                rsync_pane.set_reveal_child(false);
+
+                rsync_pane.reset();
+
+                // Reset rsync id
+                imp.rsync_id.set(None);
+            });
+
+            //---------------------------------------
+            // Rsync terminate action
+            //---------------------------------------
+            klass.install_action("rsync.terminate", None, |window, _, _| {
+                let imp = window.imp();
+
+                if let Some(id) = imp.rsync_id.get() {
                     let pid = NixPid::from_raw(id);
 
                     let _ = nix_signal::kill(pid, nix_signal::Signal::SIGTERM);
                 }
-            });
-
-            // Rsync close action
-            klass.install_action("rsync.close", None, |window, _, _| {
-                window.set_rsync_running(false);
             });
 
             //---------------------------------------
@@ -107,7 +162,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         //---------------------------------------
         // Constructor
@@ -149,6 +203,54 @@ impl AppWindow {
     }
 
     //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Sidebar n_items property notify signal
+        imp.sidebar.connect_n_items_notify(clone!(
+            #[weak] imp,
+            move |sidebar| {
+                if sidebar.n_items() == 0 {
+                    imp.content_navigation_view.pop();
+
+                    imp.content_stack.set_visible_child_name("status");
+                } else {
+                    imp.content_stack.set_visible_child_name("profile");
+                }
+            }
+        ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind sidebar selected item to rsync page
+        imp.sidebar.bind_property("selected-item", &imp.options_page.get(), "profile")
+            .sync_create()
+            .build();
+
+        // Bind sidebar selected item to option page
+        imp.sidebar.bind_property("selected-item", &imp.advanced_page.get(), "profile")
+            .sync_create()
+            .build();
+    }
+
+    //---------------------------------------
+    // Tokio runtime helper function
+    //---------------------------------------
+    fn runtime() -> &'static TkRuntime {
+        static RUNTIME: OnceLock<TkRuntime> = OnceLock::new();
+        RUNTIME.get_or_init(|| {
+            TkRuntime::new().expect("Setting up tokio runtime needs to succeed.")
+        })
+    }
+
+    //---------------------------------------
     // Rsync args function
     //---------------------------------------
     fn rsync_args(&self) -> Vec<String> {
@@ -173,58 +275,207 @@ impl AppWindow {
     }
 
     //---------------------------------------
-    // Setup signals
+    // Start rsync function
     //---------------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
+    fn start_rsync(&self) {
+        let args = self.rsync_args();
 
-        // Sidebar n_items property notify signal
-        imp.sidebar.connect_n_items_notify(clone!(
-            #[weak] imp,
-            move |sidebar| {
-                if sidebar.n_items() == 0 {
-                    imp.content_navigation_view.pop();
+        let (sender, receiver) = async_channel::bounded(1);
 
-                    imp.content_stack.set_visible_child_name("status");
-                } else {
-                    imp.content_stack.set_visible_child_name("profile");
+        // Spawn tokio task to run rsync
+        AppWindow::runtime().spawn(
+            async move {
+                // Start rsync
+                let mut rsync_process = TkCommand::new("rsync")
+                    .args(args)
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .spawn()?;
+
+                // Send rsync process id
+                sender
+                    .send(RsyncMsg::Pid(rsync_process.id().map(|id| id as i32)))
+                    .await
+                    .expect("Could not send through channel");
+
+                // Get handles to read rsync stdout and stderr
+                let mut stdout = rsync_process.stdout.take()
+                    .ok_or_else(|| io::Error::other("Could not get stdout"))?;
+
+                let mut stderr = rsync_process.stderr.take()
+                    .ok_or_else(|| io::Error::other("Could not get stderr"))?;
+
+                // Create buffers to read stdout and stderr
+                const BUFFER_SIZE: usize = 32768;
+
+                let mut buffer_stdout = [0u8; BUFFER_SIZE];
+                let mut buffer_stderr = [0u8; BUFFER_SIZE];
+
+                let mut overflow = String::with_capacity(BUFFER_SIZE);
+
+                let mut stats = false;
+
+                loop {
+                    tokio::select! {
+                        // Read stdout when available
+                        result = stdout.read(&mut buffer_stdout) => {
+                            let bytes = result?;
+
+                            if bytes >= BUFFER_SIZE {
+                                overflow = String::from_utf8(buffer_stdout[..bytes].to_vec())
+                                    .unwrap_or_default();
+                            } else if bytes != 0 {
+                                let mut text = String::from_utf8(buffer_stdout[..bytes].to_vec())
+                                    .unwrap_or_default();
+
+                                if !overflow.is_empty() {
+                                    text.insert_str(0, &overflow);
+
+                                    overflow.clear();
+                                }
+
+                                for chunk in text.split_terminator("\n") {
+                                    if chunk.is_empty() {
+                                        continue;
+                                    }
+
+                                    if chunk.starts_with("\r") {
+                                        for line in chunk.split_terminator("\r") {
+                                            let vec: Vec<&str> = line.split_whitespace().collect();
+
+                                            let values = vec.first()
+                                                .map(|s| s.to_string())
+                                                .zip(vec.get(2).map(|s| s.to_string()))
+                                                .zip(
+                                                    vec.get(1)
+                                                        .map(|s| s.to_string().replace("%", ""))
+                                                        .and_then(|s| s.parse().ok())
+                                                );
+
+                                            if let Some(((size, speed), progress)) = values {
+                                                sender
+                                                    .send(RsyncMsg::Progress(size, speed, progress))
+                                                    .await
+                                                    .expect("Could not send through channel");
+                                            }
+                                        }
+                                    } else if chunk.starts_with("Number of files:") || stats {
+                                        stats = true;
+
+                                        sender
+                                            .send(RsyncMsg::Stats(chunk.to_owned()))
+                                            .await
+                                            .expect("Could not send through channel");
+                                    } else {
+                                        sender
+                                            .send(RsyncMsg::Message(chunk.to_owned()))
+                                            .await
+                                            .expect("Could not send through channel");
+                                    }
+                                }
+                            }
+                        }
+
+                        // Read stderr when available
+                        result = stderr.read(&mut buffer_stderr) => {
+                            let bytes = result?;
+
+                            if bytes != 0 {
+                                let error = String::from_utf8(buffer_stderr[..bytes].to_vec())
+                                    .unwrap_or_default();
+
+                                for chunk in error.split_terminator("\n") {
+                                    if chunk.is_empty() {
+                                        continue;
+                                    }
+
+                                    sender
+                                        .send(RsyncMsg::Error(chunk.to_owned()))
+                                        .await
+                                        .expect("Could not send through channel");
+                                }
+                            }
+                        }
+
+                        // Process exit
+                        result = rsync_process.wait() => {
+                            let status = result?;
+
+                            let code = status.code();
+
+                            let signal = code.map_or_else(|| status.signal(), |_| None);
+
+                            sender
+                                .send(RsyncMsg::Exit(code, signal))
+                                .await
+                                .expect("Could not send through channel");
+
+                            break;
+                        }
+                    }
+                }
+
+                Ok::<(), io::Error>(())
+            }
+        );
+
+        // Attach receiver for tokio task
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            async move {
+                let imp = window.imp();
+
+                let pane = imp.options_page.rsync_pane();
+
+                let mut stats: Vec<String> = vec![];
+                let mut errors: Vec<String> = vec![];
+
+                while let Ok(msg) = receiver.recv().await {
+                    match msg {
+                        RsyncMsg::Pid(id) => {
+                            imp.rsync_id.set(id);
+                        },
+
+                        RsyncMsg::Message(message) => {
+                            pane.set_message(&message);
+                        },
+
+                        RsyncMsg::Progress(size, speed, progress) => {
+                            pane.set_status(&size, &speed, progress);
+                        },
+
+                        RsyncMsg::Stats(stat) => {
+                            stats.push(stat);
+                        },
+
+                        RsyncMsg::Error(error) => {
+                            errors.push(error);
+                        },
+
+                        RsyncMsg::Exit(code, signal) => {
+                            println!("Exit Code = {:?}", code);
+                            println!("Signal = {:?}", signal);
+
+                            match (code, signal) {
+                                (Some(0), _) => {
+                                    pane.set_exit_status(true, "Transfer successfully completed");
+
+                                    pane.set_progress(100.0);
+                                },
+                                (Some(exit), _) => {
+                                    pane.set_exit_status(false, &format!("Transfer failed with error code {}", exit));
+                                },
+                                _ => {}
+                            }
+
+                            println!("{:?}", errors);
+                            println!("{:?}", stats);
+                        }
+
+                        _ => {}
+                    }
                 }
             }
         ));
-
-        // Rsync running property notify signal
-        // self.connect_rsync_running_notify(clone!(
-        //     #[weak] imp,
-        //     move |window| {
-        //         let running = window.rsync_running();
-
-        //         imp.sidebar_new_button.set_sensitive(!running);
-        //         imp.sidebar_view.set_sensitive(!running);
-
-        //         imp.options_page.content_box().set_sensitive(!running);
-
-        //         let rsync_pane = imp.options_page.rsync_pane();
-
-        //         rsync_pane.set_args(window.rsync_args());
-        //         rsync_pane.set_running(running);
-        //     }
-        // ));
-    }
-
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind sidebar selected item to rsync page
-        imp.sidebar.bind_property("selected-item", &imp.options_page.get(), "profile")
-            .sync_create()
-            .build();
-
-        // Bind sidebar selected item to option page
-        imp.sidebar.bind_property("selected-item", &imp.advanced_page.get(), "profile")
-            .sync_create()
-            .build();
     }
 }

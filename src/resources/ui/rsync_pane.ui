@@ -122,7 +122,7 @@
                 <property name="margin-bottom">16</property>
                 <property name="label">_Stop</property>
                 <property name="use-underline">true</property>
-                <property name="action-name">rsync.stop</property>
+                <property name="action-name">rsync.terminate</property>
                 <style>
                   <class name="pill"/>
                   <class name="destructive-action"/>
