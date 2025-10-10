@@ -21,6 +21,7 @@ use tokio::io::AsyncReadExt as _;
 pub enum RsyncMsg {
     #[default]
     None,
+    Pid(Option<i32>),
     Message(String),
     Progress(String, String, f64),
     Stats(String),
@@ -54,11 +55,15 @@ mod imp {
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
+        #[template_child]
+        pub(super) stop_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
         args: RefCell<Vec<String>>,
         #[property(get, set)]
         running: Cell<bool>,
+
+        pub(super) rsync_id: Cell<Option<i32>>,
     }
 
     //---------------------------------------
@@ -131,6 +136,13 @@ impl RsyncPane {
                 }
             }
         ));
+    }
+
+    //---------------------------------------
+    // Public rsync ID function
+    //---------------------------------------
+    pub fn rsync_id(&self) -> Option<i32> {
+        self.imp().rsync_id.get()
     }
 
     //---------------------------------------
@@ -218,6 +230,12 @@ impl RsyncPane {
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
                     .spawn()?;
+
+                // Send rsync process id
+                sender
+                    .send(RsyncMsg::Pid(rsync_process.id().map(|id| id as i32)))
+                    .await
+                    .expect("Could not send through channel");
 
                 // Get handles to read rsync stdout and stderr
                 let mut stdout = rsync_process.stdout.take()
@@ -348,6 +366,10 @@ impl RsyncPane {
 
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
+                        RsyncMsg::Pid(id) => {
+                            pane.imp().rsync_id.set(id);
+                        },
+
                         RsyncMsg::Message(message) => {
                             pane.set_message(&message);
                         },
@@ -379,6 +401,9 @@ impl RsyncPane {
                                 },
                                 _ => {}
                             }
+
+                            println!("{:?}", errors);
+                            println!("{:?}", stats);
                         }
 
                         _ => {}

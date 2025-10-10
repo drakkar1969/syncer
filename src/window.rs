@@ -5,6 +5,9 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
+use nix::sys::signal as nix_signal;
+use nix::unistd::Pid as NixPid;
+
 use crate::Application;
 use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
@@ -161,6 +164,17 @@ mod imp {
                 window.imp().dry_run.set(dry_run);
 
                 window.set_rsync_running(true);
+            });
+
+            // Rsync stop action
+            klass.install_action("rsync.stop", None, |window, _, _| {
+                let imp = window.imp();
+
+                if let Some(id) = imp.options_page.rsync_pane().rsync_id() {
+                    let pid = NixPid::from_raw(id);
+
+                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGTERM);
+                }
             });
 
             // Rsync close action
