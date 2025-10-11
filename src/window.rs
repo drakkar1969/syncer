@@ -305,10 +305,11 @@ impl AppWindow {
                     .map(|s| s.to_owned())
                     .collect();
 
-                args.append(
-                    &mut imp.advanced_page.args().into_iter().map(|s| s.to_owned()).collect()
-                );
+                if imp.dry_run.get() {
+                    args.push(String::from("--dry-run"));
+                }
 
+                args.append(&mut imp.advanced_page.args());
                 args.append(&mut options);
 
                 args

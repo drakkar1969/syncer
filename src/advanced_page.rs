@@ -161,7 +161,7 @@ impl AdvancedPage {
     //---------------------------------------
     // Public args function
     //---------------------------------------
-    pub fn args(&self) -> Vec<&str> {
+    pub fn args(&self) -> Vec<String> {
         let imp = self.imp();
 
         let mut args: Vec<&str> = vec![];
@@ -232,6 +232,6 @@ impl AdvancedPage {
             args.push("-b");
         }
 
-        args
+        args.into_iter().map(|s| s.to_owned()).collect()
     }
 }
