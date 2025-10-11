@@ -109,7 +109,7 @@ mod imp {
 
                 let dialog = adw::AlertDialog::builder()
                     .heading("Delete Profile?")
-                    .body("This wil permamenently delete the profile.")
+                    .body(format!("Permamenently delete the \"{}\" profile.", name))
                     .default_response("delete")
                     .build();
 
