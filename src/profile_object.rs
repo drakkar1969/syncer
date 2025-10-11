@@ -89,4 +89,22 @@ impl ProfileObject {
             .property("name", name)
             .build()
     }
+    //---------------------------------------
+    // Public duplicate function
+    //---------------------------------------
+    pub fn duplicate(&self, name: &str) -> Self {
+        let dup_obj: Self = glib::Object::builder()
+            .property("name", name)
+            .build();
+
+        for property in self.list_properties() {
+            let nick = property.nick();
+
+            if nick != "name" {
+                dup_obj.set_property(nick, self.property_value(nick));
+            }
+        }
+
+        dup_obj
+    }
 }

@@ -5,6 +5,8 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
+use itertools::Itertools;
+
 use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
 
@@ -128,6 +130,38 @@ mod imp {
                 ));
 
                 dialog.present(Some(sidebar));
+            });
+
+            //---------------------------------------
+            // Duplicate profile action
+            //---------------------------------------
+            klass.install_action("sidebar.duplicate-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+                let imp = sidebar.imp();
+
+                let name = parameter
+                    .and_then(|param| param.get::<String>())
+                    .expect("Could not get string from variant");
+
+                if let Some((pos, obj)) = imp.model.iter::<ProfileObject>().flatten()
+                    .find_position(|obj| obj.name() == name)
+                {
+                    sidebar.profile_name_dialog("Duplicate Profile", "Duplicate", clone!(
+                        #[weak] imp,
+                        move |new_name| {
+                            let dup_obj = obj.duplicate(&new_name);
+
+                            imp.model.insert(pos as u32 + 1, &dup_obj);
+
+                            imp.view.scroll_to(
+                                pos as u32 + 1,
+                                gtk::ListScrollFlags::FOCUS | gtk::ListScrollFlags::SELECT,
+                                None
+                            );
+
+                            imp.view.grab_focus();
+                        }
+                    ));
+                }
             });
         }
 
