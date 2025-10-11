@@ -43,7 +43,7 @@ mod imp {
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
 
         #[property(get, set)]
-        reveal_child: Cell<bool>,
+        running: Cell<bool>,
         #[property(get, set)]
         paused: Cell<bool>,
     }
@@ -101,7 +101,7 @@ impl RsyncPane {
         let imp = self.imp();
 
         // Bind reveal child property to revealer
-        self.bind_property("reveal-child", &imp.revealer.get(), "reveal-child")
+        self.bind_property("running", &imp.revealer.get(), "reveal-child")
             .sync_create()
             .build();
 
