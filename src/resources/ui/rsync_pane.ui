@@ -109,7 +109,7 @@
                 </layout>
                 <child>
                   <object class="GtkStackPage">
-                    <property name="name">stop</property>
+                    <property name="name">running</property>
                     <property name="child">
                       <object class="GtkBox">
                         <property name="halign">center</property>
@@ -152,7 +152,7 @@
                 </child>
                 <child>
                   <object class="GtkStackPage">
-                    <property name="name">stats</property>
+                    <property name="name">finished</property>
                     <property name="child">
                       <object class="GtkButton" id="close_button">
                         <property name="halign">center</property>

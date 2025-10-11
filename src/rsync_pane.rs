@@ -157,7 +157,7 @@ impl RsyncPane {
         imp.message_label.set_css_classes(&[]);
         imp.message_label.set_label("");
 
-        imp.button_stack.set_visible_child_name("stop");
+        imp.button_stack.set_visible_child_name("running");
     }
 
     //---------------------------------------
@@ -233,7 +233,7 @@ impl RsyncPane {
             _ => ()
         }
 
-        imp.button_stack.set_visible_child_name("stats");
+        imp.button_stack.set_visible_child_name("finished");
     }
 }
 
