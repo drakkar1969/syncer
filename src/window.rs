@@ -122,10 +122,8 @@ mod imp {
 
                 imp.options_page.content_box().set_sensitive(true);
 
-                // Hide and reset progress pane
-                let rsync_pane = imp.options_page.rsync_pane();
-
-                rsync_pane.set_running(false);
+                // Hide progress pane
+                imp.options_page.rsync_pane().set_running(false);
 
                 // Reset rsync id
                 imp.rsync_id.set(None);
@@ -142,12 +140,14 @@ mod imp {
 
                     let rsync_pane = imp.options_page.rsync_pane();
 
+                    // Resume if paused
                     if rsync_pane.paused() {
                         let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
 
                         rsync_pane.set_paused(false);
                     }
 
+                    // Terminate rsync
                     let _ = nix_signal::kill(pid, nix_signal::Signal::SIGTERM);
                 }
             });
@@ -160,6 +160,7 @@ mod imp {
 
                 let rsync_pane = imp.options_page.rsync_pane();
 
+                // Pause rsync if not paused
                 if !rsync_pane.paused() && let Some(id) = imp.rsync_id.get() {
                     let pid = NixPid::from_raw(id);
 
@@ -177,6 +178,7 @@ mod imp {
 
                 let rsync_pane = imp.options_page.rsync_pane();
 
+                // Resume rsync if paused
                 if rsync_pane.paused() && let Some(id) = imp.rsync_id.get() {
                     let pid = NixPid::from_raw(id);
 
@@ -269,12 +271,12 @@ impl AppWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind sidebar selected item to rsync page
+        // Bind sidebar selected item to options page
         imp.sidebar.bind_property("selected-item", &imp.options_page.get(), "profile")
             .sync_create()
             .build();
 
-        // Bind sidebar selected item to option page
+        // Bind sidebar selected item to advanced page
         imp.sidebar.bind_property("selected-item", &imp.advanced_page.get(), "profile")
             .sync_create()
             .build();
