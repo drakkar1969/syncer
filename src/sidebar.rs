@@ -5,6 +5,8 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
+use itertools::Itertools;
+
 use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
 
@@ -83,21 +85,23 @@ mod imp {
                     .and_then(|param| param.get::<String>())
                     .expect("Could not get string from variant");
 
-                if let Some(pos) = imp.model.iter::<ProfileObject>().flatten()
-                    .position(|obj| obj.name() == name)
+                if let Some((pos, obj)) = imp.model.iter::<ProfileObject>().flatten()
+                    .find_position(|obj| obj.name() == name)
                 {
                     sidebar.profile_name_dialog("Rename Profile", "Rename", clone!(
                         #[weak] imp,
                         move |name| {
-                            let obj = imp.model.item(pos as u32)
-                                .and_downcast::<ProfileObject>()
-                                .expect("Could not downcast to 'ProfileObject'");
-
                             imp.model.remove(pos as u32);
 
                             obj.set_name(name);
 
                             imp.model.insert(pos as u32, &obj);
+
+                            imp.view.scroll_to(
+                                pos as u32,
+                                gtk::ListScrollFlags::FOCUS | gtk::ListScrollFlags::SELECT,
+                                None
+                            );
                         }
                     ));
                 }
