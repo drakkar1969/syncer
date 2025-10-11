@@ -128,8 +128,6 @@ mod imp {
 
                 rsync_pane.set_running(false);
 
-                rsync_pane.reset();
-
                 // Reset rsync id
                 imp.rsync_id.set(None);
             });

@@ -76,6 +76,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_signals();
             obj.setup_widgets();
         }
     }
@@ -94,6 +95,18 @@ glib::wrapper! {
 }
 
 impl RsyncPane {
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        // Running property notify signal
+        self.connect_running_notify(|pane| {
+            if !pane.running() {
+                pane.reset();
+            }
+        });
+    }
+
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
@@ -130,9 +143,9 @@ impl RsyncPane {
     }
 
     //---------------------------------------
-    // Public reset function
+    // Reset function
     //---------------------------------------
-    pub fn reset(&self) {
+    fn reset(&self) {
         let imp = self.imp();
 
         imp.progress_label.set_label("");
