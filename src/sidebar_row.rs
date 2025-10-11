@@ -98,7 +98,7 @@ impl SidebarRow {
 
         imp.binding.set(binding).unwrap();
 
-        // Create menu
+        // Create menu model
         let name = obj.name();
 
         let menu = gio::Menu::new();
@@ -120,7 +120,7 @@ impl SidebarRow {
 
         menu.append_section(None, &section);
 
-        // Create popover
+        // Set popover menu model
         let popover = imp.popover.get();
         popover.set_menu_model(Some(&menu));
 
