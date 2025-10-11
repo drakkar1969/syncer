@@ -2,7 +2,6 @@ use std::cell::Cell;
 use std::sync::OnceLock;
 use std::io;
 use std::process::Stdio;
-use std::os::unix::process::ExitStatusExt;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -35,7 +34,7 @@ pub enum RsyncMsg {
     Progress(String, String, f64),
     Stats(String),
     Error(String),
-    Exit(Option<i32>, Option<i32>)
+    Exit(Option<i32>)
 }
 
 //------------------------------------------------------------------------------
@@ -451,12 +450,8 @@ impl AppWindow {
                         result = rsync_process.wait() => {
                             let status = result?;
 
-                            let code = status.code();
-
-                            let signal = code.map_or_else(|| status.signal(), |_| None);
-
                             sender
-                                .send(RsyncMsg::Exit(code, signal))
+                                .send(RsyncMsg::Exit(status.code()))
                                 .await
                                 .expect("Could not send through channel");
 
@@ -499,7 +494,7 @@ impl AppWindow {
                             errors.push(error);
                         },
 
-                        RsyncMsg::Exit(code, _) => {
+                        RsyncMsg::Exit(code) => {
                             rsync_pane.set_exit_status(code, &stats);
 
                             println!("{:?}", errors);
