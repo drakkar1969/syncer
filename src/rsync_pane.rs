@@ -39,6 +39,8 @@ mod imp {
         pub(super) button_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) pause_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) pause_content: TemplateChild<adw::ButtonContent>,
 
         #[property(get, set)]
         reveal_child: Cell<bool>,
@@ -104,7 +106,12 @@ impl RsyncPane {
             .build();
 
         // Bind paused property to pause button
-        self.bind_property("paused", &imp.pause_button.get(), "label")
+        self.bind_property("paused", &imp.pause_content.get(), "icon-name")
+            .transform_to(|_, paused: bool| Some(if paused { "start-symbolic" } else { "pause-symbolic" }))
+            .sync_create()
+            .build();
+
+        self.bind_property("paused", &imp.pause_content.get(), "label")
             .transform_to(|_, paused: bool| Some(if paused { "_Resume" } else { "_Pause" }))
             .sync_create()
             .build();

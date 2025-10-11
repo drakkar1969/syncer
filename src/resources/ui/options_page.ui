@@ -132,10 +132,15 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="rsync_button">
-                    <property name="label">Start _Rsync</property>
-                    <property name="use-underline">true</property>
                     <property name="action-name">rsync.start</property>
                     <property name="action-target">false</property>
+                    <property name="child">
+                      <object class="AdwButtonContent">
+                        <property name="icon-name">start-symbolic</property>
+                        <property name="label">Start _Rsync</property>
+                        <property name="use-underline">true</property>
+                      </object>
+                    </property>
                     <style>
                       <class name="suggested-action"/>
                       <class name="pill"/>
