@@ -131,6 +131,13 @@ impl SidebarRow {
 
                     menu.append_section(None, &section);
 
+                    let section = gio::Menu::new();
+
+                    section.append_item(&gio::MenuItem::new(Some("Reset to Default"),
+                        Some(&format!("sidebar.reset-profile::{name}"))));
+
+                    menu.append_section(None, &section);
+
                     Some(menu)
                 })
                 .sync_create()

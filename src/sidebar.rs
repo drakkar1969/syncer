@@ -163,6 +163,25 @@ mod imp {
                     ));
                 }
             });
+
+            //---------------------------------------
+            // Reset profile action
+            //---------------------------------------
+            klass.install_action("sidebar.reset-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+                let imp = sidebar.imp();
+
+                let name = parameter
+                    .and_then(|param| param.get::<String>())
+                    .expect("Could not get string from variant");
+
+                if let Some(obj) = imp.model.iter::<ProfileObject>().flatten()
+                    .find(|obj| obj.name() == name)
+                {
+                    obj.reset();
+
+                    sidebar.notify_selected_item();
+                }
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {

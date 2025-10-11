@@ -19,9 +19,9 @@ mod imp {
         #[property(get, set)]
         name: RefCell<String>,
 
-        #[property(get, set)]
+        #[property(get, set, default = "")]
         source: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, default = "")]
         destination: RefCell<String>,
 
         #[property(get, set, default = 1, construct)]
@@ -89,6 +89,7 @@ impl ProfileObject {
             .property("name", name)
             .build()
     }
+
     //---------------------------------------
     // Public duplicate function
     //---------------------------------------
@@ -106,5 +107,18 @@ impl ProfileObject {
         }
 
         dup_obj
+    }
+
+    //---------------------------------------
+    // Public reset function
+    //---------------------------------------
+    pub fn reset(&self) {
+        for property in self.list_properties() {
+            let nick = property.nick();
+
+            if nick != "name" {
+                self.set_property_from_value(nick, property.default_value());
+            }
+        }
     }
 }
