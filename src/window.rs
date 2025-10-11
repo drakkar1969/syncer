@@ -29,7 +29,7 @@ use crate::advanced_page::AdvancedPage;
 pub enum RsyncMsg {
     #[default]
     None,
-    Pid(Option<i32>),
+    Start(Option<i32>),
     Message(String),
     Progress(String, String, f64),
     Stats(String),
@@ -63,6 +63,8 @@ mod imp {
 
         pub(super) dry_run: Cell<bool>,
         pub(super) rsync_id: Cell<Option<i32>>,
+        pub(super) rsync_running: Cell<bool>,
+        pub(super) close_request: Cell<bool>,
     }
 
     //---------------------------------------
@@ -105,7 +107,7 @@ mod imp {
                 imp.options_page.content_box().set_sensitive(false);
 
                 // Show progress pane
-                imp.options_page.rsync_pane().set_running(true);
+                imp.options_page.rsync_pane().set_active(true);
 
                 // Start rsync
                 window.start_rsync();
@@ -123,10 +125,7 @@ mod imp {
                 imp.options_page.content_box().set_sensitive(true);
 
                 // Hide progress pane
-                imp.options_page.rsync_pane().set_running(false);
-
-                // Reset rsync id
-                imp.rsync_id.set(None);
+                imp.options_page.rsync_pane().set_active(false);
             });
 
             //---------------------------------------
@@ -250,6 +249,46 @@ impl AppWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Window close request signal
+        self.connect_close_request(|window| {
+            let imp = window.imp();
+
+            let rsync_pane = imp.options_page.rsync_pane();
+
+            if imp.rsync_running.get() {
+                if !rsync_pane.paused() {
+                    gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
+                        .unwrap();
+                }
+
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Exit RsyncUI?")
+                    .body("Terminate transfer process and exit.")
+                    .default_response("exit")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("exit", "E_xit")]);
+                dialog.set_response_appearance("exit", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("exit"), clone!(
+                    #[weak] window,
+                    #[weak] imp,
+                    move |_, _| {
+                        imp.close_request.set(true);
+
+                        gtk::prelude::WidgetExt::activate_action(&window, "rsync.terminate", None)
+                            .unwrap();
+                    }
+                ));
+
+                dialog.present(Some(window));
+
+                return glib::Propagation::Stop;
+            }
+
+            glib::Propagation::Proceed
+        });
+
         // Sidebar n_items property notify signal
         imp.sidebar.connect_n_items_notify(clone!(
             #[weak] imp,
@@ -346,7 +385,7 @@ impl AppWindow {
 
                 // Send rsync process id
                 sender
-                    .send(RsyncMsg::Pid(rsync_process.id().map(|id| id as i32)))
+                    .send(RsyncMsg::Start(rsync_process.id().map(|id| id as i32)))
                     .await
                     .expect("Could not send through channel");
 
@@ -469,16 +508,19 @@ impl AppWindow {
 
         // Attach receiver for tokio task
         glib::spawn_future_local(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             #[weak] rsync_pane,
             async move {
+                let imp = window.imp();
+
                 let mut stats: Vec<String> = vec![];
                 let mut errors: Vec<String> = vec![];
 
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
-                        RsyncMsg::Pid(id) => {
+                        RsyncMsg::Start(id) => {
                             imp.rsync_id.set(id);
+                            imp.rsync_running.set(true);
                         },
 
                         RsyncMsg::Message(message) => {
@@ -498,7 +540,14 @@ impl AppWindow {
                         },
 
                         RsyncMsg::Exit(code) => {
-                            rsync_pane.set_exit_status(code, &stats);
+                            imp.rsync_running.set(false);
+                            imp.rsync_id.set(None);
+
+                            if imp.close_request.get() {
+                                window.close();
+                            } else {
+                                rsync_pane.set_exit_status(code, &stats);
+                            }
 
                             println!("{:?}", errors);
                             println!("{:?}", stats);

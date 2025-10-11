@@ -43,7 +43,7 @@ mod imp {
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
 
         #[property(get, set)]
-        running: Cell<bool>,
+        active: Cell<bool>,
         #[property(get, set)]
         paused: Cell<bool>,
     }
@@ -99,9 +99,9 @@ impl RsyncPane {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        // Running property notify signal
-        self.connect_running_notify(|pane| {
-            if !pane.running() {
+        // Active property notify signal
+        self.connect_active_notify(|pane| {
+            if !pane.active() {
                 pane.reset();
             }
         });
@@ -114,7 +114,7 @@ impl RsyncPane {
         let imp = self.imp();
 
         // Bind reveal child property to revealer
-        self.bind_property("running", &imp.revealer.get(), "reveal-child")
+        self.bind_property("active", &imp.revealer.get(), "reveal-child")
             .sync_create()
             .build();
 
