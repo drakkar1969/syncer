@@ -111,16 +111,31 @@
                   <object class="GtkStackPage">
                     <property name="name">stop</property>
                     <property name="child">
-                      <object class="GtkButton" id="stop_button">
+                      <object class="GtkBox">
                         <property name="halign">center</property>
                         <property name="valign">center</property>
-                        <property name="label">_Stop</property>
-                        <property name="use-underline">true</property>
-                        <property name="action-name">rsync.terminate</property>
-                        <style>
-                          <class name="pill"/>
-                          <class name="destructive-action"/>
-                        </style>
+                        <property name="spacing">24</property>
+                        <child>
+                          <object class="GtkButton" id="pause_button">
+                            <property name="label">_Pause</property>
+                            <property name="use-underline">true</property>
+                            <property name="action-name">rsync.pause</property>
+                            <style>
+                              <class name="pill"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="stop_button">
+                            <property name="label">_Stop</property>
+                            <property name="use-underline">true</property>
+                            <property name="action-name">rsync.terminate</property>
+                            <style>
+                              <class name="pill"/>
+                              <class name="destructive-action"/>
+                            </style>
+                          </object>
+                        </child>
                       </object>
                     </property>
                   </object>

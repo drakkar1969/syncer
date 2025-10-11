@@ -148,6 +148,36 @@ mod imp {
             });
 
             //---------------------------------------
+            // Rsync pause action
+            //---------------------------------------
+            klass.install_action("rsync.pause", None, |window, _, _| {
+                let imp = window.imp();
+
+                if let Some(id) = imp.rsync_id.get() {
+                    let pid = NixPid::from_raw(id);
+
+                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
+
+                    imp.options_page.rsync_pane().set_paused(true);
+                }
+            });
+
+            //---------------------------------------
+            // Rsync resume action
+            //---------------------------------------
+            klass.install_action("rsync.resume", None, |window, _, _| {
+                let imp = window.imp();
+
+                if let Some(id) = imp.rsync_id.get() {
+                    let pid = NixPid::from_raw(id);
+
+                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
+
+                    imp.options_page.rsync_pane().set_paused(false);
+                }
+            });
+
+            //---------------------------------------
             // New profile key binding
             //---------------------------------------
             klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |window| {

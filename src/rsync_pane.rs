@@ -37,9 +37,13 @@ mod imp {
 
         #[template_child]
         pub(super) button_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub(super) pause_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
         reveal_child: Cell<bool>,
+        #[property(get, set)]
+        paused: Cell<bool>,
     }
 
     //---------------------------------------
@@ -94,7 +98,19 @@ impl RsyncPane {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
+        // Bind reveal child property to revealer
         self.bind_property("reveal-child", &imp.revealer.get(), "reveal-child")
+            .sync_create()
+            .build();
+
+        // Bind paused property to pause button
+        self.bind_property("paused", &imp.pause_button.get(), "label")
+            .transform_to(|_, paused: bool| Some(if paused { "_Resume" } else { "_Pause" }))
+            .sync_create()
+            .build();
+
+        self.bind_property("paused", &imp.pause_button.get(), "action-name")
+            .transform_to(|_, paused: bool| Some(if paused { "rsync.resume" } else { "rsync.pause" }))
             .sync_create()
             .build();
     }
