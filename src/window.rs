@@ -57,6 +57,8 @@ mod imp {
         #[template_child]
         pub(super) content_navigation_view: TemplateChild<adw::NavigationView>,
         #[template_child]
+        pub(super) new_profile_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
         #[template_child]
         pub(super) advanced_page: TemplateChild<AdvancedPage>,
@@ -288,6 +290,15 @@ impl AppWindow {
 
             glib::Propagation::Proceed
         });
+
+        // New profile button clicked signal
+        imp.new_profile_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.sidebar.activate_action("sidebar.new-profile", None)
+                    .unwrap();
+            }
+        ));
 
         // Sidebar n_items property notify signal
         imp.sidebar.connect_n_items_notify(clone!(

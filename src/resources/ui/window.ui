@@ -20,11 +20,10 @@
                     <property name="title">Welcome to RsyncUI</property>
                     <property name="description">Create a new profile to get started</property>
                     <property name="child">
-                      <object class="GtkButton" id="content_new_button">
+                      <object class="GtkButton" id="new_profile_button">
                         <property name="halign">center</property>
                         <property name="label">Create _New Profile</property>
                         <property name="use-underline">true</property>
-                        <property name="action-name">sidebar.new-profile</property>
                         <style>
                           <class name="suggested-action"/>
                           <class name="pill"/>
