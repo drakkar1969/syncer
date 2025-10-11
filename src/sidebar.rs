@@ -148,7 +148,7 @@ mod imp {
                     sidebar.profile_name_dialog("Duplicate Profile", "Duplicate", clone!(
                         #[weak] imp,
                         move |new_name| {
-                            let dup_obj = obj.duplicate(&new_name);
+                            let dup_obj = obj.duplicate(new_name);
 
                             imp.model.insert(pos as u32 + 1, &dup_obj);
 

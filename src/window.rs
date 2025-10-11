@@ -161,14 +161,12 @@ mod imp {
 
                 let rsync_pane = imp.options_page.rsync_pane();
 
-                if !rsync_pane.paused() {
-                    if let Some(id) = imp.rsync_id.get() {
-                        let pid = NixPid::from_raw(id);
+                if !rsync_pane.paused() && let Some(id) = imp.rsync_id.get() {
+                    let pid = NixPid::from_raw(id);
 
-                        let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
+                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
 
-                        rsync_pane.set_paused(true);
-                    }
+                    rsync_pane.set_paused(true);
                 }
             });
 
@@ -180,14 +178,12 @@ mod imp {
 
                 let rsync_pane = imp.options_page.rsync_pane();
 
-                if rsync_pane.paused() {
-                    if let Some(id) = imp.rsync_id.get() {
-                        let pid = NixPid::from_raw(id);
+                if rsync_pane.paused() && let Some(id) = imp.rsync_id.get() {
+                    let pid = NixPid::from_raw(id);
 
-                        let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
+                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
 
-                        rsync_pane.set_paused(false);
-                    }
+                    rsync_pane.set_paused(false);
                 }
             });
 

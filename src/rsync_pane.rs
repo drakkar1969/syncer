@@ -223,7 +223,7 @@ impl RsyncPane {
             (Some(0), None) => {
                 imp.message_label.set_css_classes(&["warning"]);
 
-                imp.message_label.set_label(&format!("Transfer successful: could not retrieve stats"));
+                imp.message_label.set_label("Transfer successful: could not retrieve stats");
             },
             (Some(code), _) => {
                 imp.message_label.set_css_classes(&["error"]);
