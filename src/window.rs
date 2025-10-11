@@ -106,7 +106,7 @@ mod imp {
                 imp.options_page.content_box().set_sensitive(false);
 
                 // Show progress pane
-                imp.options_page.rsync_pane().set_reveal_child(true);
+                imp.options_page.rsync_pane().set_running(true);
 
                 // Start rsync
                 window.start_rsync();
@@ -126,7 +126,7 @@ mod imp {
                 // Hide and reset progress pane
                 let rsync_pane = imp.options_page.rsync_pane();
 
-                rsync_pane.set_reveal_child(false);
+                rsync_pane.set_running(false);
 
                 rsync_pane.reset();
 
@@ -143,6 +143,14 @@ mod imp {
                 if let Some(id) = imp.rsync_id.get() {
                     let pid = NixPid::from_raw(id);
 
+                    let rsync_pane = imp.options_page.rsync_pane();
+
+                    if rsync_pane.paused() {
+                        let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
+
+                        rsync_pane.set_paused(false);
+                    }
+
                     let _ = nix_signal::kill(pid, nix_signal::Signal::SIGTERM);
                 }
             });
@@ -153,12 +161,16 @@ mod imp {
             klass.install_action("rsync.pause", None, |window, _, _| {
                 let imp = window.imp();
 
-                if let Some(id) = imp.rsync_id.get() {
-                    let pid = NixPid::from_raw(id);
+                let rsync_pane = imp.options_page.rsync_pane();
 
-                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
+                if !rsync_pane.paused() {
+                    if let Some(id) = imp.rsync_id.get() {
+                        let pid = NixPid::from_raw(id);
 
-                    imp.options_page.rsync_pane().set_paused(true);
+                        let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
+
+                        rsync_pane.set_paused(true);
+                    }
                 }
             });
 
@@ -168,12 +180,16 @@ mod imp {
             klass.install_action("rsync.resume", None, |window, _, _| {
                 let imp = window.imp();
 
-                if let Some(id) = imp.rsync_id.get() {
-                    let pid = NixPid::from_raw(id);
+                let rsync_pane = imp.options_page.rsync_pane();
 
-                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
+                if rsync_pane.paused() {
+                    if let Some(id) = imp.rsync_id.get() {
+                        let pid = NixPid::from_raw(id);
 
-                    imp.options_page.rsync_pane().set_paused(false);
+                        let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
+
+                        rsync_pane.set_paused(false);
+                    }
                 }
             });
 
