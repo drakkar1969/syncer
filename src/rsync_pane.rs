@@ -1,8 +1,12 @@
 use std::cell::Cell;
+use std::sync::LazyLock;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+
+use regex::Regex;
+use itertools::Itertools;
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPane
@@ -21,20 +25,18 @@ mod imp {
         pub(super) revealer: TemplateChild<gtk::Revealer>,
 
         #[template_child]
-        pub(super) message_label: TemplateChild<gtk::Label>,
+        pub(super) progress_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
         #[template_child]
         pub(super) transferred_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) speed_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) progress_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
+        pub(super) message_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) button_stack: TemplateChild<gtk::Stack>,
-        #[template_child]
-        pub(super) stop_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
         reveal_child: Cell<bool>,
@@ -110,12 +112,14 @@ impl RsyncPane {
     pub fn reset(&self) {
         let imp = self.imp();
 
-        imp.message_label.set_label("");
+        imp.progress_label.set_label("");
+        imp.progress_bar.set_fraction(0.0);
 
         imp.transferred_label.set_label("");
         imp.speed_label.set_label("");
-        imp.progress_label.set_label("");
-        imp.progress_bar.set_fraction(0.0);
+
+        imp.message_label.set_css_classes(&[]);
+        imp.message_label.set_label("");
 
         imp.button_stack.set_visible_child_name("stop");
     }
@@ -133,42 +137,65 @@ impl RsyncPane {
     pub fn set_status(&self, size: &str, speed: &str, progress: f64) {
         let imp = self.imp();
 
+        imp.progress_label.set_label(&format!("{progress}%"));
+        imp.progress_bar.set_fraction(progress/100.0);
+
         imp.transferred_label.set_label(size);
         imp.speed_label.set_label(speed);
-        imp.progress_label.set_label(&format!("{progress}%"));
-        imp.progress_bar.set_fraction(progress/100.0);
-    }
-
-    //---------------------------------------
-    // Public set progress function
-    //---------------------------------------
-    pub fn set_progress(&self, progress: f64) {
-        let imp = self.imp();
-
-        imp.progress_label.set_label(&format!("{progress}%"));
-        imp.progress_bar.set_fraction(progress/100.0);
     }
 
     //---------------------------------------
     // Public set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, success: bool, message: &str) {
+    pub fn set_exit_status(&self, code: Option<i32>, stats: &[String]) {
         let imp = self.imp();
 
-        if success {
-            imp.message_label.set_css_classes(&["success"]);
-        } else {
-            imp.message_label.set_css_classes(&["error"]);
+        let stats = stats.join("\n");
+
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            let expr = [
+                r"Number of files:\s*([\d,]+)(?:\s*\([^)]*\))?",
+                r"Number of created files:\s*([\d,]+)(?:\s*\([^)]*\))?",
+                r"Number of deleted files:\s*([\d,]+)(?:\s*\([^)]*\))?",
+                r".+",
+                r"Total file size: (.+) bytes",
+                "Total transferred file size: (.+) bytes"
+            ]
+            .join("\n");
+
+            Regex::new(&expr)
+                .expect("Failed to compile Regex")
+        });
+
+        let data = EXPR.captures(&stats)
+            .and_then(|caps| {
+                caps.iter()
+                    .flatten()
+                    .map(|m| m.as_str())
+                    .collect_tuple()
+            });
+
+        match (code, data) {
+            (Some(0), Some((_, files, created, _, size, transferred))) => {
+                imp.progress_label.set_label("100%");
+                imp.progress_bar.set_fraction(1.0);
+
+                imp.message_label.set_css_classes(&["success"]);
+
+                imp.message_label.set_label(&format!("Transfer successful: {created} of {files} files [{transferred} of {size}]"));
+            },
+            (Some(0), None) => {
+                imp.message_label.set_css_classes(&["warning"]);
+
+                imp.message_label.set_label(&format!("Transfer successful: could not retrieve stats"));
+            },
+            (Some(code), _) => {
+                imp.message_label.set_css_classes(&["error"]);
+
+                imp.message_label.set_label(&format!("Transfer failed: error code {code}"));
+            }
+            _ => ()
         }
-
-        imp.message_label.set_label(message);
-    }
-
-    //---------------------------------------
-    // Public show stats function
-    //---------------------------------------
-    pub fn show_stats(&self) {
-        let imp = self.imp();
 
         imp.button_stack.set_visible_child_name("stats");
     }

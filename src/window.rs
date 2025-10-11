@@ -459,23 +459,8 @@ impl AppWindow {
                             errors.push(error);
                         },
 
-                        RsyncMsg::Exit(code, signal) => {
-                            println!("Exit Code = {:?}", code);
-                            println!("Signal = {:?}", signal);
-
-                            match (code, signal) {
-                                (Some(0), _) => {
-                                    rsync_pane.set_exit_status(true, "Transfer successfully completed");
-
-                                    rsync_pane.set_progress(100.0);
-                                },
-                                (Some(exit), _) => {
-                                    rsync_pane.set_exit_status(false, &format!("Transfer failed with error code {}", exit));
-                                },
-                                _ => {}
-                            }
-
-                            rsync_pane.show_stats();
+                        RsyncMsg::Exit(code, _) => {
+                            rsync_pane.set_exit_status(code, &stats);
 
                             println!("{:?}", errors);
                             println!("{:?}", stats);

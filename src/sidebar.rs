@@ -228,6 +228,12 @@ impl Sidebar {
         imp.selection.bind_property("selected-item", self, "selected_item")
             .sync_create()
             .build();
+
+        let profile = ProfileObject::new("TEST");
+        profile.set_source("/home/drakkar/.cache");
+        profile.set_destination("/home/drakkar/Scratch/RSYNC");
+
+        imp.model.append(&profile);
     }
 
     //---------------------------------------
