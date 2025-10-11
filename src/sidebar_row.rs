@@ -3,6 +3,7 @@ use std::cell::OnceCell;
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+use glib::clone;
 
 use crate::profile_object::ProfileObject;
 
@@ -23,8 +24,7 @@ mod imp {
         #[template_child]
         pub(super) popover: TemplateChild<gtk::PopoverMenu>,
 
-        pub(super) binding: OnceCell<glib::Binding>,
-        pub(super) popup_gesture: OnceCell<gtk::GestureClick>,
+        pub(super) bindings: OnceCell<Vec<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -76,13 +76,25 @@ impl SidebarRow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
+        let imp = self.imp();
+
         let popup_gesture = gtk::GestureClick::builder()
             .button(gdk::BUTTON_SECONDARY)
             .build();
 
-        self.add_controller(popup_gesture.clone());
+        popup_gesture.connect_pressed(clone!(
+            #[weak] imp,
+            move |_, _, x, y| {
+                let popover = imp.popover.get();
+                
+                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
-        self.imp().popup_gesture.set(popup_gesture).unwrap();
+                popover.set_pointing_to(Some(&rect));
+                popover.popup();
+            }
+        ));
+
+        self.add_controller(popup_gesture);
     }
 
     //---------------------------------------
@@ -91,58 +103,51 @@ impl SidebarRow {
     pub fn bind(&self, obj: &ProfileObject) {
         let imp = self.imp();
 
-        // Bind object to label
-        let binding = obj.bind_property("name", &imp.label.get(), "label")
-            .sync_create()
-            .build();
+        let bindings = vec![
+            // Bind object to label
+            obj.bind_property("name", &imp.label.get(), "label")
+                .sync_create()
+                .build(),
 
-        imp.binding.set(binding).unwrap();
+            // Bind object to popover menu model
+            obj.bind_property("name", &imp.popover.get(), "menu-model")
+                .transform_to(|_, name: String| {
+                    let menu = gio::Menu::new();
 
-        // Create menu model
-        let name = obj.name();
+                    let section = gio::Menu::new();
 
-        let menu = gio::Menu::new();
+                    section.append_item(&gio::MenuItem::new(Some("Rename"),
+                        Some(&format!("sidebar.rename-profile::{name}"))));
 
-        let section = gio::Menu::new();
+                    section.append_item(&gio::MenuItem::new(Some("Delete"),
+                        Some(&format!("sidebar.delete-profile::{name}"))));
 
-        section.append_item(&gio::MenuItem::new(Some("Rename"),
-            Some(&format!("sidebar.rename-profile::{name}"))));
+                    menu.append_section(None, &section);
 
-        section.append_item(&gio::MenuItem::new(Some("Delete"),
-            Some(&format!("sidebar.delete-profile::{name}"))));
+                    let section = gio::Menu::new();
 
-        menu.append_section(None, &section);
+                    section.append_item(&gio::MenuItem::new(Some("Duplicate"),
+                        Some(&format!("sidebar.duplicate-profile::{name}"))));
 
-        let section = gio::Menu::new();
+                    menu.append_section(None, &section);
 
-        section.append_item(&gio::MenuItem::new(Some("Duplicate"),
-            Some(&format!("sidebar.duplicate-profile::{name}"))));
+                    Some(menu)
+                })
+                .sync_create()
+                .build()
+        ];
 
-        menu.append_section(None, &section);
-
-        // Set popover menu model
-        let popover = imp.popover.get();
-        popover.set_menu_model(Some(&menu));
-
-        // Connect popup gesture pressed signal
-        let popup_gesture = imp.popup_gesture.get().unwrap();
-
-        popup_gesture.connect_pressed(
-            move |_, _, x, y| {
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-                popover.set_pointing_to(Some(&rect));
-                popover.popup();
-            }
-        );
+        imp.bindings.set(bindings).unwrap();
     }
 
     //---------------------------------------
     // Public unbind function
     //---------------------------------------
     pub fn unbind(&self) {
-        if let Some(binding) = self.imp().binding.get() {
-            binding.unbind();
+        if let Some(bindings) = self.imp().bindings.get() {
+            for binding in bindings {
+                binding.unbind();
+            }
         }
     }
 }
