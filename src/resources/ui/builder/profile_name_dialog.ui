@@ -5,6 +5,7 @@
     <property name="focus-widget">entry</property>
     <property name="extra-child">
       <object class="AdwPreferencesGroup">
+      <property name="width-request">300</property>
       <child>
         <object class="AdwEntryRow" id="entry">
           <property name="title">Profile Name</property>

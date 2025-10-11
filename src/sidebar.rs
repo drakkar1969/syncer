@@ -59,7 +59,7 @@ mod imp {
             klass.install_action("sidebar.new-profile", None, |sidebar, _, _| {
                 let imp = sidebar.imp();
 
-                sidebar.profile_name_dialog("Create New Profile", "Create", clone!(
+                sidebar.profile_name_dialog("New", clone!(
                     #[weak] imp,
                     move |name| {
                         imp.model.append(&ProfileObject::new(name));
@@ -88,7 +88,7 @@ mod imp {
                 if let Some(obj) = imp.model.iter::<ProfileObject>().flatten()
                     .find(|obj| obj.name() == name)
                 {
-                    sidebar.profile_name_dialog("Rename Profile", "Rename", clone!(
+                    sidebar.profile_name_dialog("Rename", clone!(
                         #[weak] sidebar,
                         move |new_name| {
                             obj.set_name(new_name);
@@ -145,7 +145,7 @@ mod imp {
                 if let Some((pos, obj)) = imp.model.iter::<ProfileObject>().flatten()
                     .find_position(|obj| obj.name() == name)
                 {
-                    sidebar.profile_name_dialog("Duplicate Profile", "Duplicate", clone!(
+                    sidebar.profile_name_dialog("Duplicate", clone!(
                         #[weak] imp,
                         move |new_name| {
                             let dup_obj = obj.duplicate(new_name);
@@ -286,15 +286,15 @@ impl Sidebar {
     //---------------------------------------
     // Profile name dialog function
     //---------------------------------------
-    fn profile_name_dialog<F>(&self, heading: &str, label: &str, f: F)
+    fn profile_name_dialog<F>(&self, response: &str, f: F)
     where F: Fn(&str) + 'static {
         let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/profile_name_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
             .expect("Could not get object from resource");
 
-        dialog.set_heading(Some(heading));
-        dialog.set_response_label("add", label);
+        dialog.set_heading(Some(&format!("{response} Profile")));
+        dialog.set_response_label("add", response);
 
         let entry: adw::EntryRow = builder.object("entry")
             .expect("Could not get object from resource");
