@@ -21,14 +21,9 @@
           </object>
         </child>
         <child>
-          <object class="GtkMenuButton" id="menu_button">
-            <property name="valign">center</property>
-            <property name="icon-name">view-more-symbolic</property>
-            <style>
-              <class name="flat"/>
-              <class name="circular"/>
-              <class name="sidebar-menu"/>
-            </style>
+          <object class="GtkPopoverMenu" id="popover">
+            <property name="has-arrow">false</property>
+            <property name="halign">start</property>
           </object>
         </child>
       </object>

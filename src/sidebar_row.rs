@@ -1,6 +1,6 @@
 use std::cell::OnceCell;
 
-use gtk::{glib, gio};
+use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
@@ -21,9 +21,10 @@ mod imp {
         #[template_child]
         pub(super) label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) menu_button: TemplateChild<gtk::MenuButton>,
+        pub(super) popover: TemplateChild<gtk::PopoverMenu>,
 
         pub(super) binding: OnceCell<glib::Binding>,
+        pub(super) popup_gesture: OnceCell<gtk::GestureClick>,
     }
 
     //---------------------------------------
@@ -44,7 +45,18 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SidebarRow {}
+    impl ObjectImpl for SidebarRow {
+        //---------------------------------------
+        // Constructor
+        //---------------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_widgets();
+        }
+    }
 
     impl WidgetImpl for SidebarRow {}
     impl BinImpl for SidebarRow {}
@@ -61,42 +73,68 @@ glib::wrapper! {
 
 impl SidebarRow {
     //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let popup_gesture = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_SECONDARY)
+            .build();
+
+        self.add_controller(popup_gesture.clone());
+
+        self.imp().popup_gesture.set(popup_gesture).unwrap();
+    }
+
+    //---------------------------------------
     // Public bind function
     //---------------------------------------
     pub fn bind(&self, obj: &ProfileObject) {
         let imp = self.imp();
 
+        // Bind object to label
         let binding = obj.bind_property("name", &imp.label.get(), "label")
             .sync_create()
             .build();
 
         imp.binding.set(binding).unwrap();
 
+        // Create menu
         let name = obj.name();
 
-        let menu_model = gio::Menu::new();
+        let menu = gio::Menu::new();
 
-        let section_model = gio::Menu::new();
+        let section = gio::Menu::new();
 
-        section_model.append_item(
-            &gio::MenuItem::new(Some("Rename"), Some(&format!("sidebar.rename-profile::{name}")))
+        section.append_item(&gio::MenuItem::new(Some("Rename"),
+            Some(&format!("sidebar.rename-profile::{name}"))));
+
+        section.append_item(&gio::MenuItem::new(Some("Delete"),
+            Some(&format!("sidebar.delete-profile::{name}"))));
+
+        menu.append_section(None, &section);
+
+        let section = gio::Menu::new();
+
+        section.append_item(&gio::MenuItem::new(Some("Duplicate"),
+            Some(&format!("sidebar.duplicate-profile::{name}"))));
+
+        menu.append_section(None, &section);
+
+        // Create popover
+        let popover = imp.popover.get();
+        popover.set_menu_model(Some(&menu));
+
+        // Connect popup gesture pressed signal
+        let popup_gesture = imp.popup_gesture.get().unwrap();
+
+        popup_gesture.connect_pressed(
+            move |_, _, x, y| {
+                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+
+                popover.set_pointing_to(Some(&rect));
+                popover.popup();
+            }
         );
-
-        section_model.append_item(
-            &gio::MenuItem::new(Some("Delete"), Some(&format!("sidebar.delete-profile::{name}")))
-        );
-
-        menu_model.append_section(None, &section_model);
-
-        let section_model = gio::Menu::new();
-
-        section_model.append_item(
-            &gio::MenuItem::new(Some("Duplicate"), Some(&format!("sidebar.duplicate-profile::{name}")))
-        );
-
-        menu_model.append_section(None, &section_model);
-
-        imp.menu_button.set_menu_model(Some(&menu_model));
     }
 
     //---------------------------------------
