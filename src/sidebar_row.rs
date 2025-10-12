@@ -85,12 +85,10 @@ impl SidebarRow {
         popup_gesture.connect_pressed(clone!(
             #[weak] imp,
             move |_, _, x, y| {
-                let popover = imp.popover.get();
-                
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
-                popover.set_pointing_to(Some(&rect));
-                popover.popup();
+                imp.popover.set_pointing_to(Some(&rect));
+                imp.popover.popup();
             }
         ));
 
