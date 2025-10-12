@@ -5,8 +5,9 @@ use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 
-use regex::Regex;
-use itertools::Itertools;
+use regex::{Regex, Captures};
+
+use crate::stats_table::{Stats, StatsRow, StatsTable};
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage
@@ -42,6 +43,9 @@ mod imp {
         pub(super) pause_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
+
+        #[template_child]
+        pub(super) stats_table: TemplateChild<StatsTable>,
 
         #[property(get, set)]
         paused: Cell<bool>,
@@ -135,17 +139,19 @@ impl RsyncPage {
 
         self.set_can_pop(false);
 
-        imp.progress_label.set_label("");
+        imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
 
         imp.transferred_label.set_label("");
-        imp.speed_label.set_label("");
+        imp.speed_label.set_label("0");
 
         imp.message_box.set_css_classes(&[]);
         imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
         imp.message_label.set_label("");
 
         imp.button_stack.set_visible_child_name("running");
+
+        imp.stats_table.set_visible(false);
     }
 
     //---------------------------------------
@@ -178,12 +184,12 @@ impl RsyncPage {
 
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             let expr = [
-                r"Number of files:\s*([\d,]+)(?:\s*\([^)]*\))?",
-                r"Number of created files:\s*([\d,]+)(?:\s*\([^)]*\))?",
-                r"Number of deleted files:\s*([\d,]+)(?:\s*\([^)]*\))?",
-                r".+",
-                r"Total file size: (.+) bytes",
-                "Total transferred file size: (.+) bytes"
+                r"Number of files:\s*(?P<st>[\d,]+)\s*\(?(?:reg:\s*(?P<sf>[\d,]+))?,?\s*(?:dir:\s*(?P<sd>[\d,]+))?,?\s*(?:link:\s*(?P<sl>[\d,]+))?,?\s*(?:special:\s*(?P<ss>[\d,]+))?,?\s*\)?",
+                r"Number of created files:\s*(?P<ct>[\d,]+)\s*\(?(?:reg:\s*(?P<cf>[\d,]+))?,?\s*(?:dir:\s*(?P<cd>[\d,]+))?,?\s*(?:link:\s*(?P<cl>[\d,]+))?,?\s*(?:special:\s*(?P<cs>[\d,]+))?,?\s*\)?",
+                r"Number of deleted files:\s*(?P<dt>[\d,]+)\s*\(?(?:reg:\s*(?P<df>[\d,]+))?,?\s*(?:dir:\s*(?P<dd>[\d,]+))?,?\s*(?:link:\s*(?P<dl>[\d,]+))?,?\s*(?:special:\s*(?P<ds>[\d,]+))?,?\s*\)?",
+                r"Number of regular files transferred: (?P<nt>[\d,]+)",
+                r"Total file size: (?P<bs>.+) bytes",
+                r"Total transferred file size: (?P<bt>.+) bytes"
             ]
             .join("\n");
 
@@ -191,23 +197,66 @@ impl RsyncPage {
                 .expect("Failed to compile Regex")
         });
 
-        let data = EXPR.captures(&stats)
-            .and_then(|caps| {
-                caps.iter()
-                    .flatten()
-                    .map(|m| m.as_str())
-                    .collect_tuple()
+        let stats = EXPR.captures(&stats)
+            .map(|caps| {
+                let get_match = |caps: &Captures, m: &str| -> String {
+                    let mut text = caps.name(m)
+                        .map(|m| m.as_str().to_owned())
+                        .unwrap_or_default();
+
+                    if text.ends_with(",") {
+                        text.pop();
+                    }
+
+                    text
+                };
+
+                Stats {
+                    n_transfers: get_match(&caps, "nt"),
+                    n_source: StatsRow {
+                        total: get_match(&caps, "st"),
+                        files: get_match(&caps, "sf"),
+                        dirs: get_match(&caps, "sd"),
+                        links: get_match(&caps, "sl"),
+                        specials: get_match(&caps, "ss")
+                    },
+                    n_created: StatsRow {
+                        total: get_match(&caps, "ct"),
+                        files: get_match(&caps, "cf"),
+                        dirs: get_match(&caps, "cd"),
+                        links: get_match(&caps, "cl"),
+                        specials: get_match(&caps, "cs")
+                    },
+                    n_deleted: StatsRow {
+                        total: get_match(&caps, "dt"),
+                        files: get_match(&caps, "df"),
+                        dirs: get_match(&caps, "dd"),
+                        links: get_match(&caps, "dl"),
+                        specials: get_match(&caps, "ds")
+                    },
+                    source_bytes: get_match(&caps, "bs"),
+                    transfer_bytes: get_match(&caps, "bt")
+                }
             });
 
-        match (code, data) {
-            (Some(0), Some((_, files, created, _, size, transferred))) => {
+        match (code, stats) {
+            (Some(0), Some(stats)) => {
                 imp.progress_label.set_label("100%");
                 imp.progress_bar.set_fraction(1.0);
 
                 imp.message_box.set_css_classes(&["success"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
-                imp.message_label.set_label(&format!("Transfer successful: {created} of {files} files [{transferred} of {size}]"));
+                imp.message_label.set_label(&format!(
+                    "Transfer successful: {} of {} files [{} of {}]",
+                    stats.n_created.total,
+                    stats.n_source.total,
+                    stats.transfer_bytes,
+                    stats.source_bytes
+                ));
+
+                imp.stats_table.fill(&stats);
+                imp.stats_table.set_visible(true);
             },
             (Some(0), None) => {
                 imp.message_box.set_css_classes(&["warning"]);

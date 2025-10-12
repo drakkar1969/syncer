@@ -7,6 +7,7 @@ mod options_page;
 mod check_object;
 mod advanced_page;
 mod rsync_page;
+mod stats_table;
 
 use gtk::{glib, gio};
 use gtk::prelude::*;

@@ -10,6 +10,11 @@
     <file alias="rsync-speed-symbolic.svg">icons/rsync-speed-symbolic.svg</file>
     <file alias="rsync-success-symbolic.svg">icons/rsync-success-symbolic.svg</file>
     <file alias="rsync-error-symbolic.svg">icons/rsync-error-symbolic.svg</file>
+    <file alias="stats-symbolic.svg">icons/stats-symbolic.svg</file>
+    <file alias="stats-file-symbolic.svg">icons/stats-file-symbolic.svg</file>
+    <file alias="stats-dir-symbolic.svg">icons/stats-dir-symbolic.svg</file>
+    <file alias="stats-link-symbolic.svg">icons/stats-link-symbolic.svg</file>
+    <file alias="stats-special-symbolic.svg">icons/stats-special-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">style.css</file>
@@ -19,6 +24,7 @@
     <file compressed="true">ui/rsync_page.ui</file>
     <file compressed="true">ui/sidebar.ui</file>
     <file compressed="true">ui/sidebar_row.ui</file>
+    <file compressed="true">ui/stats_table.ui</file>
     <file compressed="true">ui/window.ui</file>
   </gresource>
 </gresources>
