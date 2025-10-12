@@ -129,6 +129,8 @@ impl RsyncPage {
     fn reset(&self) {
         let imp = self.imp();
 
+        self.set_can_pop(false);
+
         imp.progress_label.set_label("");
         imp.progress_bar.set_fraction(0.0);
 
@@ -215,6 +217,8 @@ impl RsyncPage {
         }
 
         imp.button_stack.set_visible_child_name("finished");
+
+        self.set_can_pop(true);
     }
 }
 

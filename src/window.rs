@@ -105,11 +105,6 @@ mod imp {
 
                 window.imp().dry_run.set(dry_run);
 
-                // Set sensitive state for widgets
-                imp.sidebar.set_sensitive(false);
-
-                imp.options_page.set_sensitive(false);
-
                 // Show rsync page
                 imp.content_navigation_view.push_by_tag("rsync");
 
@@ -122,11 +117,6 @@ mod imp {
             //---------------------------------------
             klass.install_action("rsync.close", None, |window, _, _| {
                 let imp = window.imp();
-
-                // Set sensitive state for widgets
-                imp.sidebar.set_sensitive(true);
-
-                imp.options_page.set_sensitive(true);
 
                 // Hide rsync page
                 imp.content_navigation_view.pop();
@@ -305,6 +295,21 @@ impl AppWindow {
                 } else {
                     imp.content_stack.set_visible_child_name("profile");
                 }
+            }
+        ));
+
+        // Rsync page shown/hidden signals
+        imp.rsync_page.connect_shown(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.sidebar.set_sensitive(false);
+            }
+        ));
+
+        imp.rsync_page.connect_hidden(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.sidebar.set_sensitive(true);
             }
         ));
     }
