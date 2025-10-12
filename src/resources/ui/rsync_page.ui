@@ -36,7 +36,7 @@
                         <property name="spacing">10</property>
                         <child>
                           <object class="GtkImage">
-                            <property name="icon-name">sync-symbolic</property>
+                            <property name="icon-name">rsync-sync-symbolic</property>
                             <style>
                               <class name="bubble"/>
                               <class name="accent"/>
@@ -59,7 +59,7 @@
                         <property name="spacing">10</property>
                         <child>
                           <object class="GtkImage" id="message_image">
-                            <property name="icon-name">message-symbolic</property>
+                            <property name="icon-name">rsync-message-symbolic</property>
                           </object>
                         </child>
                         <child>
@@ -80,7 +80,7 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">sync-symbolic</property>
+                                <property name="icon-name">rsync-sync-symbolic</property>
                               </object>
                             </child>
                             <child>
@@ -96,7 +96,7 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">transferred-symbolic</property>
+                                <property name="icon-name">rsync-transferred-symbolic</property>
                               </object>
                             </child>
                             <child>
@@ -111,7 +111,7 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">speed-symbolic</property>
+                                <property name="icon-name">rsync-speed-symbolic</property>
                               </object>
                             </child>
                             <child>
@@ -147,7 +147,7 @@
                                     <property name="action-name">rsync.pause</property>
                                     <property name="child">
                                       <object class="AdwButtonContent" id="pause_content">
-                                        <property name="icon-name">pause-symbolic</property>
+                                        <property name="icon-name">rsync-pause-symbolic</property>
                                         <property name="label">_Pause</property>
                                         <property name="use-underline">true</property>
                                       </object>
@@ -162,7 +162,7 @@
                                     <property name="action-name">rsync.terminate</property>
                                     <property name="child">
                                       <object class="AdwButtonContent">
-                                        <property name="icon-name">stop-symbolic</property>
+                                        <property name="icon-name">rsync-stop-symbolic</property>
                                         <property name="label">_Stop</property>
                                         <property name="use-underline">true</property>
                                       </object>

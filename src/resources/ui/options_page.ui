@@ -171,7 +171,7 @@
                     <property name="action-target">false</property>
                     <property name="child">
                       <object class="AdwButtonContent">
-                        <property name="icon-name">start-symbolic</property>
+                        <property name="icon-name">rsync-start-symbolic</property>
                         <property name="label">Start _Rsync</property>
                         <property name="use-underline">true</property>
                       </object>

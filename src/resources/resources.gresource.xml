@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/RsyncUI/icons/scalable/actions/">
-    <file alias="start-symbolic.svg">icons/start-symbolic.svg</file>
-    <file alias="stop-symbolic.svg">icons/stop-symbolic.svg</file>
-    <file alias="pause-symbolic.svg">icons/pause-symbolic.svg</file>
-    <file alias="sync-symbolic.svg">icons/sync-symbolic.svg</file>
-    <file alias="message-symbolic.svg">icons/message-symbolic.svg</file>
-    <file alias="transferred-symbolic.svg">icons/transferred-symbolic.svg</file>
-    <file alias="speed-symbolic.svg">icons/speed-symbolic.svg</file>
-    <file alias="success-symbolic.svg">icons/success-symbolic.svg</file>
-    <file alias="error-symbolic.svg">icons/error-symbolic.svg</file>
+    <file alias="rsync-start-symbolic.svg">icons/rsync-start-symbolic.svg</file>
+    <file alias="rsync-stop-symbolic.svg">icons/rsync-stop-symbolic.svg</file>
+    <file alias="rsync-pause-symbolic.svg">icons/rsync-pause-symbolic.svg</file>
+    <file alias="rsync-sync-symbolic.svg">icons/rsync-sync-symbolic.svg</file>
+    <file alias="rsync-message-symbolic.svg">icons/rsync-message-symbolic.svg</file>
+    <file alias="rsync-transferred-symbolic.svg">icons/rsync-transferred-symbolic.svg</file>
+    <file alias="rsync-speed-symbolic.svg">icons/rsync-speed-symbolic.svg</file>
+    <file alias="rsync-success-symbolic.svg">icons/rsync-success-symbolic.svg</file>
+    <file alias="rsync-error-symbolic.svg">icons/rsync-error-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">style.css</file>

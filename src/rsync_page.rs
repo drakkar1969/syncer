@@ -112,7 +112,7 @@ impl RsyncPage {
 
         // Bind paused property to pause button
         self.bind_property("paused", &imp.pause_content.get(), "icon-name")
-            .transform_to(|_, paused: bool| Some(if paused { "start-symbolic" } else { "pause-symbolic" }))
+            .transform_to(|_, paused: bool| Some(if paused { "rsync-start-symbolic" } else { "rsync-pause-symbolic" }))
             .sync_create()
             .build();
 
@@ -142,7 +142,7 @@ impl RsyncPage {
         imp.speed_label.set_label("");
 
         imp.message_box.set_css_classes(&[]);
-        imp.message_image.set_icon_name(Some("message-symbolic"));
+        imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
         imp.message_label.set_label("");
 
         imp.button_stack.set_visible_child_name("running");
@@ -205,19 +205,19 @@ impl RsyncPage {
                 imp.progress_bar.set_fraction(1.0);
 
                 imp.message_box.set_css_classes(&["success"]);
-                imp.message_image.set_icon_name(Some("success-symbolic"));
+                imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label(&format!("Transfer successful: {created} of {files} files [{transferred} of {size}]"));
             },
             (Some(0), None) => {
                 imp.message_box.set_css_classes(&["warning"]);
-                imp.message_image.set_icon_name(Some("success-symbolic"));
+                imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Transfer successful: could not retrieve stats");
             },
             (Some(code), _) => {
                 imp.message_box.set_css_classes(&["error"]);
-                imp.message_image.set_icon_name(Some("error-symbolic"));
+                imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
                 imp.message_label.set_label(&format!("Transfer failed: error code {code}"));
             }
