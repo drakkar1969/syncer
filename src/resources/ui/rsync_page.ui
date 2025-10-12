@@ -36,7 +36,7 @@
                         <property name="spacing">10</property>
                         <child>
                           <object class="GtkImage">
-                            <property name="icon-name">emblem-synchronizing-symbolic</property>
+                            <property name="icon-name">sync-symbolic</property>
                             <style>
                               <class name="bubble"/>
                               <class name="accent"/>
@@ -59,7 +59,7 @@
                         <property name="spacing">10</property>
                         <child>
                           <object class="GtkImage">
-                            <property name="icon-name">emblem-documents-symbolic</property>
+                            <property name="icon-name">message-symbolic</property>
                           </object>
                         </child>
                         <child>
@@ -80,7 +80,7 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">emblem-synchronizing-symbolic</property>
+                                <property name="icon-name">sync-symbolic</property>
                               </object>
                             </child>
                             <child>
@@ -96,7 +96,7 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">preferences-system-network-symbolic</property>
+                                <property name="icon-name">transferred-symbolic</property>
                               </object>
                             </child>
                             <child>
@@ -111,7 +111,7 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">power-profile-balanced-symbolic</property>
+                                <property name="icon-name">speed-symbolic</property>
                               </object>
                             </child>
                             <child>

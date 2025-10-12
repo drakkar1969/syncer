@@ -4,6 +4,10 @@
     <file alias="start-symbolic.svg">icons/start-symbolic.svg</file>
     <file alias="stop-symbolic.svg">icons/stop-symbolic.svg</file>
     <file alias="pause-symbolic.svg">icons/pause-symbolic.svg</file>
+    <file alias="sync-symbolic.svg">icons/sync-symbolic.svg</file>
+    <file alias="message-symbolic.svg">icons/message-symbolic.svg</file>
+    <file alias="transferred-symbolic.svg">icons/transferred-symbolic.svg</file>
+    <file alias="speed-symbolic.svg">icons/speed-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">style.css</file>
