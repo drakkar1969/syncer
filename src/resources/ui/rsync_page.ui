@@ -101,6 +101,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="transferred_label">
+                                <property name="label">0</property>
                                 <property name="xalign">0</property>
                               </object>
                             </child>
@@ -116,6 +117,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="speed_label">
+                                <property name="label">0</property>
                                 <property name="xalign">0</property>
                               </object>
                             </child>
