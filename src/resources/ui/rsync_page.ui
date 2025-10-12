@@ -55,10 +55,10 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkBox">
+                      <object class="GtkBox" id="message_box">
                         <property name="spacing">10</property>
                         <child>
-                          <object class="GtkImage">
+                          <object class="GtkImage" id="message_image">
                             <property name="icon-name">message-symbolic</property>
                           </object>
                         </child>

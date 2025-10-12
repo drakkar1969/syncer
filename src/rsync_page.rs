@@ -28,6 +28,10 @@ mod imp {
         #[template_child]
         pub(super) speed_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) message_box: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub(super) message_image: TemplateChild<gtk::Image>,
+        #[template_child]
         pub(super) message_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
@@ -137,7 +141,8 @@ impl RsyncPage {
         imp.transferred_label.set_label("");
         imp.speed_label.set_label("");
 
-        imp.message_label.set_css_classes(&[]);
+        imp.message_box.set_css_classes(&[]);
+        imp.message_image.set_icon_name(Some("message-symbolic"));
         imp.message_label.set_label("");
 
         imp.button_stack.set_visible_child_name("running");
@@ -199,17 +204,20 @@ impl RsyncPage {
                 imp.progress_label.set_label("100%");
                 imp.progress_bar.set_fraction(1.0);
 
-                imp.message_label.set_css_classes(&["success"]);
+                imp.message_box.set_css_classes(&["success"]);
+                imp.message_image.set_icon_name(Some("success-symbolic"));
 
                 imp.message_label.set_label(&format!("Transfer successful: {created} of {files} files [{transferred} of {size}]"));
             },
             (Some(0), None) => {
-                imp.message_label.set_css_classes(&["warning"]);
+                imp.message_box.set_css_classes(&["warning"]);
+                imp.message_image.set_icon_name(Some("success-symbolic"));
 
                 imp.message_label.set_label("Transfer successful: could not retrieve stats");
             },
             (Some(code), _) => {
-                imp.message_label.set_css_classes(&["error"]);
+                imp.message_box.set_css_classes(&["error"]);
+                imp.message_image.set_icon_name(Some("error-symbolic"));
 
                 imp.message_label.set_label(&format!("Transfer failed: error code {code}"));
             }

@@ -8,6 +8,8 @@
     <file alias="message-symbolic.svg">icons/message-symbolic.svg</file>
     <file alias="transferred-symbolic.svg">icons/transferred-symbolic.svg</file>
     <file alias="speed-symbolic.svg">icons/speed-symbolic.svg</file>
+    <file alias="success-symbolic.svg">icons/success-symbolic.svg</file>
+    <file alias="error-symbolic.svg">icons/error-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">style.css</file>
