@@ -11,7 +11,6 @@ use glib::clone;
 use tokio::runtime::Runtime as TkRuntime;
 use tokio::process::Command as TkCommand;
 use tokio::io::AsyncReadExt as _;
-use tokio::time::{sleep, Duration as TkDuration};
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
 
@@ -20,6 +19,7 @@ use crate::sidebar::Sidebar;
 use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
+use crate::rsync_page::RsyncPage;
 
 //------------------------------------------------------------------------------
 // ENUM: RsyncMsg
@@ -62,6 +62,8 @@ mod imp {
         pub(super) options_page: TemplateChild<OptionsPage>,
         #[template_child]
         pub(super) advanced_page: TemplateChild<AdvancedPage>,
+        #[template_child]
+        pub(super) rsync_page: TemplateChild<RsyncPage>,
 
         pub(super) dry_run: Cell<bool>,
         pub(super) rsync_id: Cell<Option<i32>>,
@@ -106,10 +108,10 @@ mod imp {
                 // Set sensitive state for widgets
                 imp.sidebar.set_sensitive(false);
 
-                imp.options_page.content_box().set_sensitive(false);
+                imp.options_page.set_sensitive(false);
 
-                // Show progress pane
-                imp.options_page.rsync_pane().set_active(true);
+                // Show rsync page
+                imp.content_navigation_view.push_by_tag("rsync");
 
                 // Start rsync
                 window.start_rsync();
@@ -124,10 +126,10 @@ mod imp {
                 // Set sensitive state for widgets
                 imp.sidebar.set_sensitive(true);
 
-                imp.options_page.content_box().set_sensitive(true);
+                imp.options_page.set_sensitive(true);
 
-                // Hide progress pane
-                imp.options_page.rsync_pane().set_active(false);
+                // Hide rsync page
+                imp.content_navigation_view.pop();
             });
 
             //---------------------------------------
@@ -139,13 +141,11 @@ mod imp {
                 if let Some(id) = imp.rsync_id.get() {
                     let pid = NixPid::from_raw(id);
 
-                    let rsync_pane = imp.options_page.rsync_pane();
-
                     // Resume if paused
-                    if rsync_pane.paused() {
+                    if imp.rsync_page.paused() {
                         let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
 
-                        rsync_pane.set_paused(false);
+                        imp.rsync_page.set_paused(false);
                     }
 
                     // Terminate rsync
@@ -159,15 +159,13 @@ mod imp {
             klass.install_action("rsync.pause", None, |window, _, _| {
                 let imp = window.imp();
 
-                let rsync_pane = imp.options_page.rsync_pane();
-
                 // Pause rsync if not paused
-                if !rsync_pane.paused() && let Some(id) = imp.rsync_id.get() {
+                if !imp.rsync_page.paused() && let Some(id) = imp.rsync_id.get() {
                     let pid = NixPid::from_raw(id);
 
                     let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
 
-                    rsync_pane.set_paused(true);
+                    imp.rsync_page.set_paused(true);
                 }
             });
 
@@ -177,15 +175,13 @@ mod imp {
             klass.install_action("rsync.resume", None, |window, _, _| {
                 let imp = window.imp();
 
-                let rsync_pane = imp.options_page.rsync_pane();
-
                 // Resume rsync if paused
-                if rsync_pane.paused() && let Some(id) = imp.rsync_id.get() {
+                if imp.rsync_page.paused() && let Some(id) = imp.rsync_id.get() {
                     let pid = NixPid::from_raw(id);
 
                     let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
 
-                    rsync_pane.set_paused(false);
+                    imp.rsync_page.set_paused(false);
                 }
             });
 
@@ -255,10 +251,8 @@ impl AppWindow {
         self.connect_close_request(|window| {
             let imp = window.imp();
 
-            let rsync_pane = imp.options_page.rsync_pane();
-
             if imp.rsync_running.get() {
-                if !rsync_pane.paused() {
+                if !imp.rsync_page.paused() {
                     gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
                         .unwrap();
                 }
@@ -371,22 +365,13 @@ impl AppWindow {
     // Start rsync function
     //---------------------------------------
     fn start_rsync(&self) {
-        let imp = self.imp();
-
         let args = self.rsync_args();
-
-        let rsync_pane = imp.options_page.rsync_pane();
-
-        let transition_duration = rsync_pane.transition_duration();
 
         let (sender, receiver) = async_channel::bounded(1);
 
         // Spawn tokio task to run rsync
         AppWindow::runtime().spawn(
             async move {
-                // Sleep until progress pane is revealed
-                sleep(TkDuration::from_millis(transition_duration as u64)).await;
-
                 // Start rsync
                 let mut rsync_process = TkCommand::new("rsync")
                     .args(args)
@@ -520,7 +505,6 @@ impl AppWindow {
         // Attach receiver for tokio task
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] rsync_pane,
             async move {
                 let imp = window.imp();
 
@@ -535,11 +519,11 @@ impl AppWindow {
                         },
 
                         RsyncMsg::Message(message) => {
-                            rsync_pane.set_message(&message);
+                            imp.rsync_page.set_message(&message);
                         },
 
                         RsyncMsg::Progress(size, speed, progress) => {
-                            rsync_pane.set_status(&size, &speed, progress);
+                            imp.rsync_page.set_status(&size, &speed, progress);
                         },
 
                         RsyncMsg::Stats(stat) => {
@@ -557,7 +541,7 @@ impl AppWindow {
                             if imp.close_request.get() {
                                 window.close();
                             } else {
-                                rsync_pane.set_exit_status(code, &stats);
+                                imp.rsync_page.set_exit_status(code, &stats);
                             }
 
                             println!("{:?}", errors);

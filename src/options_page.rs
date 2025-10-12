@@ -7,7 +7,6 @@ use glib::clone;
 
 use crate::profile_object::ProfileObject;
 use crate::check_object::CheckObject;
-use crate::rsync_pane::RsyncPane;
 
 //------------------------------------------------------------------------------
 // MODULE: OptionsPage
@@ -28,13 +27,6 @@ mod imp {
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
-
-        #[property(get)]
-        #[template_child]
-        pub(super) content_box: TemplateChild<gtk::Box>,
-        #[property(get)]
-        #[template_child]
-        pub(super) rsync_pane: TemplateChild<RsyncPane>,
 
         #[property(get, set)]
         profile: RefCell<Option<ProfileObject>>,
@@ -137,8 +129,8 @@ impl OptionsPage {
         let imp = self.imp();
 
         // Profile property notify signal
-        self.connect_profile_notify(|pane| {
-            let imp = pane.imp();
+        self.connect_profile_notify(|page| {
+            let imp = page.imp();
 
             if let Some(bindings) = imp.bindings.take() {
                 for binding in bindings {
@@ -146,19 +138,19 @@ impl OptionsPage {
                 }
             }
 
-            if let Some(profile) = pane.profile() {
+            if let Some(profile) = page.profile() {
                 let bindings: Vec<glib::Binding> = vec![
                     // Bind profile property to widgets
-                    pane.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"),
-                    pane.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"),
-                    pane.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"),
+                    page.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"),
+                    page.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"),
+                    page.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"),
                 ];
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
 
                 // Set page title
-                pane.set_title(&profile.name());
+                page.set_title(&profile.name());
             }
         });
 

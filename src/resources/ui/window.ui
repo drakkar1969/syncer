@@ -39,11 +39,15 @@
                 <property name="name">profile</property>
                 <property name="child">
                   <object class="AdwNavigationView" id="content_navigation_view">
+                    <property name="animate-transitions">false</property>
                     <child>
                       <object class="OptionsPage" id="options_page"/>
                     </child>
                     <child>
                       <object class="AdvancedPage" id="advanced_page"/>
+                    </child>
+                    <child>
+                      <object class="RsyncPage" id="rsync_page"/>
                     </child>
                   </object>
                 </property>

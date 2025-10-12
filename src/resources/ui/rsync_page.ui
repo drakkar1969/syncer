@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// RsyncPane template //-->
-  <template class="RsyncPane" parent="AdwBin">
+  <!--// RsyncPage template //-->
+  <template class="RsyncPage" parent="AdwNavigationPage">
+    <property name="tag">rsync</property>
+    <property name="can-pop">false</property>
     <property name="child">
-      <object class="GtkRevealer" id="revealer">
-        <property name="transition-type">slide-up</property>
-        <property name="transition-duration">150</property>
-        <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
           <object class="GtkBox" id="main_box">
             <property name="orientation">vertical</property>
             <property name="margin-start">24</property>

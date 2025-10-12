@@ -6,7 +6,7 @@ mod profile_object;
 mod options_page;
 mod check_object;
 mod advanced_page;
-mod rsync_pane;
+mod rsync_page;
 
 use gtk::{glib, gio};
 use gtk::prelude::*;

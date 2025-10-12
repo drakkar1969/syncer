@@ -5,8 +5,6 @@
     <property name="tag">profile</property>
     <property name="child">
       <object class="AdwToolbarView">
-        <property name="bottom-bar-style">raised</property>
-        <property name="extend-content-to-bottom-edge">true</property>
         <child type="top">
           <object class="AdwHeaderBar"/>
         </child>
@@ -187,9 +185,6 @@
             </child>
           </object>
         </property>
-        <child type="bottom">
-          <object class="RsyncPane" id="rsync_pane"/>
-        </child>
       </object>
     </property>
   </template>

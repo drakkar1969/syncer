@@ -3,13 +3,13 @@ use std::sync::LazyLock;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 
 use regex::Regex;
 use itertools::Itertools;
 
 //------------------------------------------------------------------------------
-// MODULE: RsyncPane
+// MODULE: RsyncPage
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -18,12 +18,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::RsyncPane)]
-    #[template(resource = "/com/github/RsyncUI/ui/rsync_pane.ui")]
-    pub struct RsyncPane {
-        #[template_child]
-        pub(super) revealer: TemplateChild<gtk::Revealer>,
-
+    #[properties(wrapper_type = super::RsyncPage)]
+    #[template(resource = "/com/github/RsyncUI/ui/rsync_page.ui")]
+    pub struct RsyncPage {
         #[template_child]
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -43,8 +40,6 @@ mod imp {
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
 
         #[property(get, set)]
-        active: Cell<bool>,
-        #[property(get, set)]
         paused: Cell<bool>,
     }
 
@@ -52,10 +47,10 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for RsyncPane {
-        const NAME: &'static str = "RsyncPane";
-        type Type = super::RsyncPane;
-        type ParentType = adw::Bin;
+    impl ObjectSubclass for RsyncPage {
+        const NAME: &'static str = "RsyncPage";
+        type Type = super::RsyncPage;
+        type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -67,7 +62,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for RsyncPane {
+    impl ObjectImpl for RsyncPage {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -81,29 +76,27 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for RsyncPane {}
-    impl BinImpl for RsyncPane {}
+    impl WidgetImpl for RsyncPage {}
+    impl NavigationPageImpl for RsyncPage {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: RsyncPane
+// IMPLEMENTATION: RsyncPage
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct RsyncPane(ObjectSubclass<imp::RsyncPane>)
-        @extends adw::Bin, gtk::Widget,
+    pub struct RsyncPage(ObjectSubclass<imp::RsyncPage>)
+        @extends adw::NavigationPage, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl RsyncPane {
+impl RsyncPage {
     //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        // Active property notify signal
-        self.connect_active_notify(|pane| {
-            if !pane.active() {
-                pane.reset();
-            }
+        // Page hidden signal
+        self.connect_hidden(|page| {
+            page.reset();
         });
     }
 
@@ -112,11 +105,6 @@ impl RsyncPane {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
-
-        // Bind reveal child property to revealer
-        self.bind_property("active", &imp.revealer.get(), "reveal-child")
-            .sync_create()
-            .build();
 
         // Bind paused property to pause button
         self.bind_property("paused", &imp.pause_content.get(), "icon-name")
@@ -133,13 +121,6 @@ impl RsyncPane {
             .transform_to(|_, paused: bool| Some(if paused { "rsync.resume" } else { "rsync.pause" }))
             .sync_create()
             .build();
-    }
-
-    //---------------------------------------
-    // Public transition duration function
-    //---------------------------------------
-    pub fn transition_duration(&self) -> u32 {
-        self.imp().revealer.transition_duration()
     }
 
     //---------------------------------------
@@ -237,7 +218,7 @@ impl RsyncPane {
     }
 }
 
-impl Default for RsyncPane {
+impl Default for RsyncPage {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

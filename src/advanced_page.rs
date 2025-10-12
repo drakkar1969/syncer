@@ -119,8 +119,8 @@ impl AdvancedPage {
     //---------------------------------------
     fn setup_signals(&self) {
         // Profile property notify signal
-        self.connect_profile_notify(|pane| {
-            let imp = pane.imp();
+        self.connect_profile_notify(|page| {
+            let imp = page.imp();
 
             if let Some(bindings) = imp.bindings.take() {
                 for binding in bindings {
@@ -128,32 +128,32 @@ impl AdvancedPage {
                 }
             }
 
-            if let Some(profile) = pane.profile() {
+            if let Some(profile) = page.profile() {
                 let bindings: Vec<glib::Binding> = vec![
                     // Bind profile property to widgets
-                    pane.bind_widget(&profile, "recursive", &imp.recursive_switch.get(), "active"),
-                    pane.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"),
-                    pane.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"),
-                    pane.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"),
-                    pane.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"),
-                    pane.bind_widget(&profile, "numeric-ids", &imp.numeric_ids_switch.get(), "active"),
-                    pane.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"),
-                    pane.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"),
-                    pane.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"),
-                    pane.bind_widget(&profile, "no-leave-filesystem", &imp.one_filesystem_switch.get(), "active"),
-                    pane.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"),
-                    pane.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"),
-                    pane.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"),
-                    pane.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"),
-                    pane.bind_widget(&profile, "compress-data", &imp.compress_data_switch.get(), "active"),
-                    pane.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active")
+                    page.bind_widget(&profile, "recursive", &imp.recursive_switch.get(), "active"),
+                    page.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"),
+                    page.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"),
+                    page.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"),
+                    page.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"),
+                    page.bind_widget(&profile, "numeric-ids", &imp.numeric_ids_switch.get(), "active"),
+                    page.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"),
+                    page.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"),
+                    page.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"),
+                    page.bind_widget(&profile, "no-leave-filesystem", &imp.one_filesystem_switch.get(), "active"),
+                    page.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"),
+                    page.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"),
+                    page.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"),
+                    page.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"),
+                    page.bind_widget(&profile, "compress-data", &imp.compress_data_switch.get(), "active"),
+                    page.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active")
                 ];
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
 
                 // Set page title
-                pane.set_title(&profile.name());
+                page.set_title(&profile.name());
             }
         });
     }
