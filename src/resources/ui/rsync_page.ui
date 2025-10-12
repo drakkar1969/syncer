@@ -80,22 +80,6 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">rsync-sync-symbolic</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="progress_label">
-                                <property name="label">0%</property>
-                                <property name="xalign">0</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkBox">
-                            <property name="spacing">10</property>
-                            <child>
-                              <object class="GtkImage">
                                 <property name="icon-name">rsync-transferred-symbolic</property>
                               </object>
                             </child>
@@ -118,6 +102,18 @@
                             <child>
                               <object class="GtkLabel" id="speed_label">
                                 <property name="label">0</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="halign">end</property>
+                            <property name="spacing">10</property>
+                            <child>
+                              <object class="GtkLabel" id="progress_label">
+                                <property name="label">0%</property>
                                 <property name="xalign">0</property>
                               </object>
                             </child>
