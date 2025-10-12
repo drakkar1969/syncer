@@ -89,7 +89,7 @@ mod imp {
             // Content push options action
             //---------------------------------------
             klass.install_action("content.push-options", None, |window, _, _| {
-                window.imp().content_navigation_view.push_by_tag("settings");
+                window.imp().content_navigation_view.push_by_tag("advanced");
             });
 
             //---------------------------------------

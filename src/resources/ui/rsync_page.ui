@@ -2,6 +2,7 @@
 <interface>
   <!--// RsyncPage template //-->
   <template class="RsyncPage" parent="AdwNavigationPage">
+    <property name="title">Rsync</property>
     <property name="tag">rsync</property>
     <property name="can-pop">false</property>
     <property name="child">

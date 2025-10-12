@@ -2,7 +2,8 @@
 <interface>
   <!--// OptionsPage template //-->
   <template class="OptionsPage" parent="AdwNavigationPage">
-    <property name="tag">profile</property>
+    <property name="title">Options</property>
+    <property name="tag">options</property>
     <property name="child">
       <object class="AdwToolbarView">
         <child type="top">

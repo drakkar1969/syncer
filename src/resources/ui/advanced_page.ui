@@ -2,7 +2,8 @@
 <interface>
   <!--// AdvancedPage template //-->
   <template class="AdvancedPage" parent="AdwNavigationPage">
-    <property name="tag">settings</property>
+    <property name="title">Advanced Options</property>
+    <property name="tag">advanced</property>
     <property name="child">
       <object class="AdwToolbarView">
         <child type="top">
