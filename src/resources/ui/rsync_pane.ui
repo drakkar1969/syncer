@@ -7,164 +7,191 @@
         <property name="transition-type">slide-up</property>
         <property name="transition-duration">150</property>
         <property name="child">
-          <object class="GtkGrid">
+          <object class="GtkBox" id="main_box">
+            <property name="orientation">vertical</property>
             <property name="margin-start">24</property>
             <property name="margin-end">24</property>
             <property name="margin-top">24</property>
             <property name="margin-bottom">24</property>
-            <property name="column-homogeneous">true</property>
-            <property name="column-spacing">16</property>
-            <property name="row-spacing">16</property>
+            <property name="spacing">24</property>
             <child>
-              <object class="GtkBox">
-                <property name="spacing">8</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">0</property>
-                  <property name="column-span">2</property>
-                </layout>
+              <object class="GtkBox" id="status_box">
+                <style>
+                  <class name="card"/>
+                </style>
                 <child>
-                  <object class="GtkLabel" id="progress_label">
-                    <property name="label">0%</property>
-                    <property name="xalign">0</property>
-                    <property name="width-chars">5</property>
-                    <style>
-                      <class name="numeric"/>
-                      <class name="caption"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkProgressBar" id="progress_bar">
-                    <property name="hexpand">true</property>
-                    <property name="valign">center</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox">
-                <property name="spacing">8</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">1</property>
-                </layout>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label">Transferred:</property>
-                    <style>
-                      <class name="dimmed"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="transferred_label">
-                    <property name="xalign">0</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox">
-                <property name="spacing">8</property>
-                <layout>
-                  <property name="column">1</property>
-                  <property name="row">1</property>
-                </layout>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label">Transfer Speed:</property>
-                    <style>
-                      <class name="dimmed"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="speed_label">
-                    <property name="xalign">0</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="message_label">
-                <property name="xalign">0</property>
-                <property name="ellipsize">start</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">2</property>
-                  <property name="column-span">2</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="GtkStack" id="button_stack">
-                <property name="vhomogeneous">true</property>
-                <property name="margin-top">12</property>
-                <property name="margin-bottom">12</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">3</property>
-                  <property name="column-span">2</property>
-                </layout>
-                <child>
-                  <object class="GtkStackPage">
-                    <property name="name">running</property>
-                    <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="margin-start">24</property>
+                    <property name="margin-end">24</property>
+                    <property name="margin-top">16</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="spacing">20</property>
+                    <child>
                       <object class="GtkBox">
-                        <property name="halign">center</property>
-                        <property name="valign">center</property>
+                        <property name="spacing">10</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="icon-name">emblem-synchronizing-symbolic</property>
+                            <style>
+                              <class name="bubble"/>
+                              <class name="accent"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="xalign">0</property>
+                            <property name="label">Rsync</property>
+                            <style>
+                              <class name="title-3"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">10</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="icon-name">emblem-documents-symbolic</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="message_label">
+                            <property name="xalign">0</property>
+                            <property name="ellipsize">start</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="hexpand">true</property>
+                        <property name="homogeneous">true</property>
                         <property name="spacing">24</property>
                         <child>
-                          <object class="GtkButton" id="pause_button">
-                            <property name="action-name">rsync.pause</property>
-                            <property name="child">
-                              <object class="AdwButtonContent" id="pause_content">
-                                <property name="icon-name">pause-symbolic</property>
-                                <property name="label">_Pause</property>
-                                <property name="use-underline">true</property>
+                          <object class="GtkBox">
+                            <property name="spacing">10</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">emblem-synchronizing-symbolic</property>
                               </object>
-                            </property>
-                            <style>
-                              <class name="pill"/>
-                            </style>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="progress_label">
+                                <property name="label">0%</property>
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkButton" id="stop_button">
-                            <property name="action-name">rsync.terminate</property>
-                            <property name="child">
-                              <object class="AdwButtonContent">
-                                <property name="icon-name">stop-symbolic</property>
-                                <property name="label">_Stop</property>
-                                <property name="use-underline">true</property>
+                          <object class="GtkBox">
+                            <property name="spacing">10</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">preferences-system-network-symbolic</property>
                               </object>
-                            </property>
-                            <style>
-                              <class name="pill"/>
-                              <class name="destructive-action"/>
-                            </style>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="transferred_label">
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="spacing">10</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">power-profile-balanced-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="speed_label">
+                                <property name="xalign">0</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkStackPage">
-                    <property name="name">finished</property>
-                    <property name="child">
-                      <object class="GtkButton" id="close_button">
-                        <property name="halign">center</property>
+                    </child>
+                    <child>
+                      <object class="GtkProgressBar" id="progress_bar">
+                        <property name="hexpand">true</property>
                         <property name="valign">center</property>
-                        <property name="label">_Close</property>
-                        <property name="use-underline">true</property>
-                        <property name="action-name">rsync.close</property>
-                        <style>
-                          <class name="pill"/>
-                        </style>
                       </object>
-                    </property>
+                    </child>
+                    <child>
+                      <object class="GtkStack" id="button_stack">
+                        <property name="vhomogeneous">true</property>
+                        <property name="margin-top">12</property>
+                        <property name="margin-bottom">12</property>
+                        <child>
+                          <object class="GtkStackPage">
+                            <property name="name">running</property>
+                            <property name="child">
+                              <object class="GtkBox">
+                                <property name="halign">center</property>
+                                <property name="valign">center</property>
+                                <property name="spacing">24</property>
+                                <child>
+                                  <object class="GtkButton" id="pause_button">
+                                    <property name="action-name">rsync.pause</property>
+                                    <property name="child">
+                                      <object class="AdwButtonContent" id="pause_content">
+                                        <property name="icon-name">pause-symbolic</property>
+                                        <property name="label">_Pause</property>
+                                        <property name="use-underline">true</property>
+                                      </object>
+                                    </property>
+                                    <style>
+                                      <class name="pill"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="stop_button">
+                                    <property name="action-name">rsync.terminate</property>
+                                    <property name="child">
+                                      <object class="AdwButtonContent">
+                                        <property name="icon-name">stop-symbolic</property>
+                                        <property name="label">_Stop</property>
+                                        <property name="use-underline">true</property>
+                                      </object>
+                                    </property>
+                                    <style>
+                                      <class name="pill"/>
+                                      <class name="destructive-action"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkStackPage">
+                            <property name="name">finished</property>
+                            <property name="child">
+                              <object class="GtkButton" id="close_button">
+                                <property name="halign">center</property>
+                                <property name="valign">center</property>
+                                <property name="label">_Close</property>
+                                <property name="use-underline">true</property>
+                                <property name="action-name">rsync.close</property>
+                                <style>
+                                  <class name="pill"/>
+                                </style>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>

@@ -27,13 +27,13 @@ mod imp {
         #[template_child]
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
-        #[template_child]
         pub(super) transferred_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) speed_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) message_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
 
         #[template_child]
         pub(super) button_stack: TemplateChild<gtk::Stack>,
