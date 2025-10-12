@@ -29,9 +29,18 @@
                     <style>
                       <class name="property"/>
                     </style>
+                    <child type="prefix">
+                      <object class="GtkImage">
+                        <property name="valign">center</property>
+                        <property name="icon-name">folder-open-symbolic</property>
+                        <style>
+                          <class name="bubble"/>
+                        </style>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkImage">
-                        <property name="icon-name">folder-open-symbolic</property>
+                        <property name="icon-name">go-next-symbolic</property>
                       </object>
                     </child>
                   </object>
@@ -44,9 +53,18 @@
                     <style>
                       <class name="property"/>
                     </style>
+                    <child type="prefix">
+                      <object class="GtkImage">
+                        <property name="valign">center</property>
+                        <property name="icon-name">folder-open-symbolic</property>
+                        <style>
+                          <class name="bubble"/>
+                        </style>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkImage">
-                        <property name="icon-name">folder-open-symbolic</property>
+                        <property name="icon-name">go-next-symbolic</property>
                       </object>
                     </child>
                   </object>
@@ -60,6 +78,15 @@
                   <object class="AdwComboRow" id="check_mode_combo">
                     <property name="title">File Transfer _Check</property>
                     <property name="use-underline">true</property>
+                    <child type="prefix">
+                      <object class="GtkImage">
+                        <property name="valign">center</property>
+                        <property name="icon-name">media-eq-symbolic</property>
+                        <style>
+                          <class name="bubble"/>
+                        </style>
+                      </object>
+                    </child>
                     <property name="model">
                       <object class="GListStore">
                         <property name="item-type">CheckObject</property>
@@ -86,7 +113,7 @@
                         <child>
                           <object class="CheckObject">
                             <property name="title">Checksum</property>
-                            <property name="subtitle">Compare 128-bit checksum for files with matching size</property>
+                            <property name="subtitle">Compare checksum for files with matching size</property>
                             <property name="switch">--checksum</property>
                           </object>
                         </child>
@@ -104,6 +131,15 @@
                     <property name="subtitle">Configure rsync options</property>
                     <property name="use-underline">true</property>
                     <property name="action-name">content.push-options</property>
+                    <child type="prefix">
+                      <object class="GtkImage">
+                        <property name="valign">center</property>
+                        <property name="icon-name">media-eq-symbolic</property>
+                        <style>
+                          <class name="bubble"/>
+                        </style>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>

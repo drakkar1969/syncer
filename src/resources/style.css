@@ -1,12 +1,12 @@
 /* Bubble images */
 image.bubble {
 	border-radius: 50%;
-	background: color-mix(in srgb, currentColor 15%, transparent);
+	background: color-mix(in srgb, currentColor 25%, transparent);
 	min-width: 2em;
 	min-height: 2em;
 }
 
 image.bubble.accent {
 	background: var(--accent-bg-color);
-	color: currentColor;
+	color: var(--accent-fg-color);
 }
