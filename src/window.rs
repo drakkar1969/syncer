@@ -113,16 +113,6 @@ mod imp {
             });
 
             //---------------------------------------
-            // Rsync close action
-            //---------------------------------------
-            klass.install_action("rsync.close", None, |window, _, _| {
-                let imp = window.imp();
-
-                // Hide rsync page
-                imp.content_navigation_view.pop();
-            });
-
-            //---------------------------------------
             // Rsync terminate action
             //---------------------------------------
             klass.install_action("rsync.terminate", None, |window, _, _| {
@@ -550,7 +540,6 @@ impl AppWindow {
                             }
 
                             println!("{:?}", errors);
-                            println!("{:?}", stats);
                         }
 
                         _ => {}

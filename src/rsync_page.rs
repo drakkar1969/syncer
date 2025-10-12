@@ -38,14 +38,13 @@ mod imp {
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
 
         #[template_child]
-        pub(super) button_stack: TemplateChild<gtk::Stack>,
+        pub(super) stats_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub(super) stats_table: TemplateChild<StatsTable>,
         #[template_child]
         pub(super) pause_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
-
-        #[template_child]
-        pub(super) stats_table: TemplateChild<StatsTable>,
 
         #[property(get, set)]
         paused: Cell<bool>,
@@ -149,9 +148,7 @@ impl RsyncPage {
         imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
         imp.message_label.set_label("");
 
-        imp.button_stack.set_visible_child_name("running");
-
-        imp.stats_table.set_visible(false);
+        imp.stats_stack.set_visible_child_name("buttons");
     }
 
     //---------------------------------------
@@ -256,7 +253,6 @@ impl RsyncPage {
                 ));
 
                 imp.stats_table.fill(&stats);
-                imp.stats_table.set_visible(true);
             },
             (Some(0), None) => {
                 imp.message_box.set_css_classes(&["warning"]);
@@ -273,7 +269,7 @@ impl RsyncPage {
             _ => ()
         }
 
-        imp.button_stack.set_visible_child_name("finished");
+        imp.stats_stack.set_visible_child_name("stats");
 
         self.set_can_pop(true);
     }
