@@ -1,4 +1,6 @@
 use std::cell::{Cell, RefCell};
+use std::io::{self, Write};
+use std::fs;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -6,6 +8,7 @@ use adw::prelude::*;
 use glib::clone;
 
 use itertools::Itertools;
+use serde_json::{to_string_pretty, from_reader, Value as JsonValue};
 
 use crate::sidebar_row::SidebarRow;
 use crate::profile_object::ProfileObject;
@@ -275,12 +278,6 @@ impl Sidebar {
         imp.selection.bind_property("selected-item", self, "selected_item")
             .sync_create()
             .build();
-
-        let profile = ProfileObject::new("TEST");
-        profile.set_source("/home/drakkar/.cache");
-        profile.set_destination("/home/drakkar/Scratch/RSYNC");
-
-        imp.model.append(&profile);
     }
 
     //---------------------------------------
@@ -311,6 +308,48 @@ impl Sidebar {
         });
 
         dialog.present(Some(self));
+    }
+
+    //---------------------------------------
+    // Load config function
+    //---------------------------------------
+    pub fn load_config(&self) -> io::Result<()> {
+        let config_path = xdg::BaseDirectories::new()
+            .find_config_file("rsyncui/config.json")
+            .ok_or(io::Error::other("Config file not found"))?;
+
+        let file = fs::File::open(config_path)?;
+
+        let reader = io::BufReader::new(file);
+
+        let json: Vec<JsonValue> = from_reader(reader)?;
+
+        let profiles: Vec<ProfileObject> = json.iter()
+            .filter_map(ProfileObject::from_json)
+            .collect();
+
+        self.imp().model.splice(0, 0, &profiles);
+
+        Ok(())
+    }
+
+    //---------------------------------------
+    // Save config function
+    //---------------------------------------
+    pub fn save_config(&self) -> io::Result<()> {
+        let profiles: Vec<JsonValue> = self.imp().model.iter::<ProfileObject>()
+            .flatten()
+            .map(|obj| obj.to_json())
+            .collect();
+
+        let json = to_string_pretty(&profiles).unwrap();
+
+        let config_path = xdg::BaseDirectories::new()
+            .place_config_file("rsyncui/config.json")?;
+
+        let mut file = fs::File::create(config_path)?;
+
+        file.write_all(json.as_bytes())
     }
 }
 

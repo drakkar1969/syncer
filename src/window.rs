@@ -260,6 +260,8 @@ impl AppWindow {
                 dialog.present(Some(window));
 
                 return glib::Propagation::Stop;
+            } else {
+                let _ = imp.sidebar.save_config();
             }
 
             glib::Propagation::Proceed
@@ -319,6 +321,9 @@ impl AppWindow {
         imp.sidebar.bind_property("selected-item", &imp.advanced_page.get(), "profile")
             .sync_create()
             .build();
+
+        // Load profiles from config file
+        let _ = imp.sidebar.load_config();
     }
 
     //---------------------------------------

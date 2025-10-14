@@ -2,7 +2,9 @@ use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
-use gtk::prelude::ObjectExt;
+use gtk::prelude::{ObjectExt, ToValue};
+
+use serde_json::{json, Map as JsonMap, Value as JsonValue};
 
 //------------------------------------------------------------------------------
 // MODULE: ProfileObject
@@ -91,6 +93,38 @@ impl ProfileObject {
     }
 
     //---------------------------------------
+    // From json function
+    //---------------------------------------
+    pub fn from_json(json_value: &JsonValue) -> Option<Self> {
+        let obj: Self = glib::Object::builder().build();
+
+        let json_map = json_value.as_object()?;
+
+        for (key, value) in json_map {
+            if let Some(prop) = obj.find_property(key) {
+                match value {
+                    JsonValue::String(s) => {
+                        obj.set_property_from_value(key, &s.to_value())
+                    },
+                    JsonValue::Number(i) => {
+                        let value = i.as_u64()
+                            .map(|i| (i as u32).to_value())
+                            .unwrap_or(prop.default_value().to_owned());
+
+                        obj.set_property_from_value(key, &value);
+                    },
+                    JsonValue::Bool(b) => {
+                        obj.set_property_from_value(key, &b.to_value());
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Some(obj)
+    }
+
+    //---------------------------------------
     // Public duplicate function
     //---------------------------------------
     pub fn duplicate(&self, name: &str) -> Self {
@@ -120,5 +154,27 @@ impl ProfileObject {
                 self.set_property_from_value(nick, property.default_value());
             }
         }
+    }
+
+    //---------------------------------------
+    // Public to json function
+    //---------------------------------------
+    pub fn to_json(&self) -> JsonValue {
+        let mut json_map = JsonMap::new();
+
+        for prop in self.list_properties() {
+            let value = self.property_value(prop.nick());
+
+            let json_value = match prop.value_type() {
+                glib::Type::STRING => json!(value.get::<String>().unwrap()),
+                glib::Type::U32 => json!(value.get::<u32>().unwrap()),
+                glib::Type::BOOL => json!(value.get::<bool>().unwrap()),
+                _ => json!(null)
+            };
+
+            json_map.insert(prop.name().to_owned(), json_value);
+        }
+
+        JsonValue::Object(json_map)
     }
 }
