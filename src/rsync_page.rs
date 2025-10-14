@@ -101,8 +101,8 @@ impl RsyncPage {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        // Page showing signal
-        self.connect_showing(|page| {
+        // Page hidden signal
+        self.connect_hidden(|page| {
             page.reset();
         });
     }
@@ -148,14 +148,16 @@ impl RsyncPage {
         imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
         imp.message_label.set_label("");
 
-        imp.stats_stack.set_visible_child_name("buttons");
+        imp.stats_stack.set_visible_child_name("empty");
     }
 
     //---------------------------------------
     // Public set message function
     //---------------------------------------
     pub fn set_message(&self, message: &str) {
-        self.imp().message_label.set_label(message);
+        let imp = self.imp();
+
+        imp.message_label.set_label(message);
     }
 
     //---------------------------------------
@@ -169,6 +171,10 @@ impl RsyncPage {
 
         imp.transferred_label.set_label(size);
         imp.speed_label.set_label(speed);
+
+        if imp.stats_stack.visible_child_name() != Some("buttons".into()) {
+            imp.stats_stack.set_visible_child_name("buttons");
+        }
     }
 
     //---------------------------------------
@@ -253,23 +259,27 @@ impl RsyncPage {
                 ));
 
                 imp.stats_table.fill(&stats);
+
+                imp.stats_stack.set_visible_child_name("stats");
             },
             (Some(0), None) => {
                 imp.message_box.set_css_classes(&["warning"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Transfer successful: could not retrieve stats");
+
+                imp.stats_stack.set_visible_child_name("empty");
             },
             (Some(code), _) => {
                 imp.message_box.set_css_classes(&["error"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
                 imp.message_label.set_label(&format!("Transfer failed: error code {code}"));
+
+                imp.stats_stack.set_visible_child_name("empty");
             }
             _ => ()
         }
-
-        imp.stats_stack.set_visible_child_name("stats");
 
         self.set_can_pop(true);
     }

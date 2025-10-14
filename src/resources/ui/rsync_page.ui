@@ -141,6 +141,14 @@
                 <property name="margin-bottom">8</property>
                 <child>
                   <object class="GtkStackPage">
+                    <property name="name">empty</property>
+                    <property name="child">
+                      <object class="GtkBox"/>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
                     <property name="name">buttons</property>
                     <property name="child">
                       <object class="GtkBox" id="button_box">
