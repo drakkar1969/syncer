@@ -4,6 +4,7 @@
   <template class="AppWindow" parent="AdwApplicationWindow">
     <property name="default-width">800</property>
     <property name="default-height">550</property>
+    <property name="title">RsyncUI</property>
     <property name="content">
       <object class="AdwOverlaySplitView">
         <property name="sidebar">
