@@ -178,11 +178,9 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Public set exit status function
+    // Stats function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: Option<i32>, stats: &[String]) {
-        let imp = self.imp();
-
+    fn stats(&self, stats: &[String]) -> Option<Stats> {
         let stats = stats.join("\n");
 
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
@@ -200,7 +198,7 @@ impl RsyncPage {
                 .expect("Failed to compile Regex")
         });
 
-        let stats = EXPR.captures(&stats)
+        EXPR.captures(&stats)
             .map(|caps| {
                 let get_match = |caps: &Captures, m: &str| -> String {
                     let mut text = caps.name(m)
@@ -240,7 +238,16 @@ impl RsyncPage {
                     source_bytes: get_match(&caps, "bs"),
                     transfer_bytes: get_match(&caps, "bt")
                 }
-            });
+            })
+    }
+
+    //---------------------------------------
+    // Public set exit status function
+    //---------------------------------------
+    pub fn set_exit_status(&self, code: Option<i32>, stats: &[String]) {
+        let imp = self.imp();
+
+        let stats = self.stats(stats);
 
         match (code, stats) {
             (Some(0), Some(stats)) => {
