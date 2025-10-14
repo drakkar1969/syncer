@@ -1,5 +1,6 @@
 use std::cell::Cell;
 use std::sync::LazyLock;
+use std::collections::HashMap;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
@@ -178,6 +179,34 @@ impl RsyncPage {
     }
 
     //---------------------------------------
+    // Error function
+    //---------------------------------------
+    fn error(&self, code: i32, errors: &[String]) -> Option<String> {
+        let error_map = HashMap::from([
+            (1, "syntax or usage error"),
+            (20, "terminated by user")
+        ]);
+
+        error_map.get(&code)
+            .map(|s| s.to_string())
+            .or_else(|| {
+                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"^rsync error:\s*(?P<err>.*?)\(.*")
+                        .expect("Failed to compile Regex")
+                });
+
+                errors.into_iter()
+                    .filter_map(|error| {
+                        EXPR.captures(error).and_then(|caps| {
+                            caps.name("err")
+                                .map(|m| m.as_str().trim_end().to_owned())
+                        })
+                    })
+                    .next()
+            })
+    }
+
+    //---------------------------------------
     // Stats function
     //---------------------------------------
     fn stats(&self, stats: &[String]) -> Option<Stats> {
@@ -244,7 +273,7 @@ impl RsyncPage {
     //---------------------------------------
     // Public set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: Option<i32>, stats: &[String]) {
+    pub fn set_exit_status(&self, code: Option<i32>, stats: &[String], errors: &[String]) {
         let imp = self.imp();
 
         let stats = self.stats(stats);
@@ -281,7 +310,12 @@ impl RsyncPage {
                 imp.message_box.set_css_classes(&["error"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
-                imp.message_label.set_label(&format!("Transfer failed: error code {code}"));
+                if let Some(error) = self.error(code, errors) {
+                    imp.message_label.set_label(&format!("Transfer failed: {error} (code {code})"));
+
+                } else {
+                    imp.message_label.set_label(&format!("Transfer failed: unknown error (code {code})"));
+                }
 
                 imp.stats_stack.set_visible_child_name("empty");
             }

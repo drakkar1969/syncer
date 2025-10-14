@@ -541,10 +541,8 @@ impl AppWindow {
                             if imp.close_request.get() {
                                 window.close();
                             } else {
-                                imp.rsync_page.set_exit_status(code, &stats);
+                                imp.rsync_page.set_exit_status(code, &stats, &errors);
                             }
-
-                            println!("{:?}", errors);
                         }
 
                         _ => {}
