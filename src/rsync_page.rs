@@ -101,8 +101,8 @@ impl RsyncPage {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        // Page hidden signal
-        self.connect_hidden(|page| {
+        // Page showing signal
+        self.connect_showing(|page| {
             page.reset();
         });
     }
