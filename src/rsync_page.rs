@@ -280,7 +280,7 @@ impl RsyncPage {
                 imp.progress_label.set_label("100%");
                 imp.progress_bar.set_fraction(1.0);
 
-                imp.message_box.set_css_classes(&["success"]);
+                imp.message_box.set_css_classes(&["success", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label(&format!(
@@ -296,7 +296,7 @@ impl RsyncPage {
                 imp.stats_stack.set_visible_child_name("stats");
             },
             (Some(0), None) => {
-                imp.message_box.set_css_classes(&["warning"]);
+                imp.message_box.set_css_classes(&["warning", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Transfer successful: could not retrieve stats");
@@ -304,7 +304,7 @@ impl RsyncPage {
                 imp.stats_stack.set_visible_child_name("empty");
             },
             (Some(code), _) => {
-                imp.message_box.set_css_classes(&["error"]);
+                imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
                 if let Some(error) = self.error(code, errors) {
