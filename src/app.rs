@@ -84,7 +84,11 @@ impl Application {
     fn setup_actions(&self) {
         // Quit action
         let quit_action = gio::ActionEntry::builder("quit-app")
-            .activate(move |app: &Self, _, _| app.quit())
+            .activate(move |app: &Self, _, _| {
+                app.active_window()
+                    .expect("Could not get active window")
+                    .close();
+            })
             .build();
 
         // Show about dialog action
