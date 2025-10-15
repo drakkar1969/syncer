@@ -92,30 +92,29 @@ impl Application {
             .build();
 
         // Show about dialog action
-        // let about_action = gio::ActionEntry::builder("show-about")
-        //     .activate(move |app: &Self, _, _| {
-        //         let window = app.active_window()
-        //             .expect("Failed to retrieve active window");
+        let about_action = gio::ActionEntry::builder("show-about")
+            .activate(move |app: &Self, _, _| {
+                let window = app.active_window()
+                    .expect("Failed to retrieve active window");
 
-        //         let about_dialog = adw::AboutDialog::builder()
-        //             .application_name("PacView")
-        //             .application_icon("pacview")
-        //             .developer_name("draKKar1969")
-        //             .version(env!("CARGO_PKG_VERSION"))
-        //             .website("https://github.com/drakkar1969/pacview")
-        //             .developers(["draKKar1969"])
-        //             .designers(["draKKar1969"])
-        //             .copyright("© 2023 draKKar1969")
-        //             .license_type(gtk::License::Gpl30)
-        //             .build();
+                let about_dialog = adw::AboutDialog::builder()
+                    .application_name("RsyncUI")
+                    // .application_icon("pacview")
+                    .developer_name("draKKar1969")
+                    .version(env!("CARGO_PKG_VERSION"))
+                    // .website("https://github.com/drakkar1969/pacview")
+                    .developers(["draKKar1969"])
+                    .designers(["draKKar1969"])
+                    .copyright("© 2025 draKKar1969")
+                    .license_type(gtk::License::Gpl30)
+                    .build();
 
-        //         about_dialog.present(Some(&window));
-        //     })
-        //     .build();
+                about_dialog.present(Some(&window));
+            })
+            .build();
 
         // Add actions to app
-        // self.add_action_entries([quit_action, about_action]);
-        self.add_action_entries([quit_action]);
+        self.add_action_entries([quit_action, about_action]);
 
         // Add app keyboard shortcuts
         self.set_accels_for_action("app.quit-app", &["<ctrl>Q"]);

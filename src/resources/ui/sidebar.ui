@@ -15,6 +15,14 @@
                 </style>
               </object>
             </child>
+            <child type="end">
+              <object class="GtkMenuButton" id="mainmenu_button">
+                <property name="icon-name">open-menu-symbolic</property>
+                <property name="primary">true</property>
+                <property name="tooltip-text">Main Menu</property>
+                <property name="menu-model">primary_menu</property>
+              </object>
+            </child>
           </object>
         </child>
         <property name="content">
@@ -49,4 +57,14 @@
       </object>
     </property>
   </template>
+
+  <!--// Primary menu //-->
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="label">About RsyncUI</attribute>
+        <attribute name="action">app.show-about</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>
