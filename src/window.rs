@@ -170,7 +170,7 @@ mod imp {
             //---------------------------------------
             klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |window| {
                 window.imp().sidebar.activate_action("sidebar.new-profile", None)
-                    .unwrap();
+                    .expect("Could not activate action 'sidebar.new-profile'");
 
                 glib::Propagation::Stop
             });
@@ -234,7 +234,7 @@ impl AppWindow {
             if imp.rsync_running.get() {
                 if !imp.rsync_page.paused() {
                     gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
-                        .unwrap();
+                        .expect("Could not activate action 'rsync-pause'");
                 }
 
                 let dialog = adw::AlertDialog::builder()
@@ -253,7 +253,7 @@ impl AppWindow {
                         imp.close_request.set(true);
 
                         gtk::prelude::WidgetExt::activate_action(&window, "rsync.terminate", None)
-                            .unwrap();
+                            .expect("Could not activate action 'rsync.terminate'");
                     }
                 ));
 
@@ -272,7 +272,7 @@ impl AppWindow {
             #[weak] imp,
             move |_| {
                 imp.sidebar.activate_action("sidebar.new-profile", None)
-                    .unwrap();
+                    .expect("Could not activate action 'sidebar.new-profile'");
             }
         ));
 
