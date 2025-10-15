@@ -196,7 +196,49 @@ mod imp {
     }
 
     impl WidgetImpl for AppWindow {}
-    impl WindowImpl for AppWindow {}
+    impl WindowImpl for AppWindow {
+        //---------------------------------------
+        // Close request function
+        //---------------------------------------
+        fn close_request(&self) -> glib::Propagation {
+            let window = &*self.obj();
+
+            if self.rsync_running.get() {
+                if !self.rsync_page.paused() {
+                    gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
+                        .expect("Could not activate action 'rsync-pause'");
+                }
+
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Exit RsyncUI?")
+                    .body("Terminate transfer process and exit.")
+                    .default_response("exit")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("exit", "E_xit")]);
+                dialog.set_response_appearance("exit", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("exit"), clone!(
+                    #[weak] window,
+                    #[weak(rename_to = imp)] self,
+                    move |_, _| {
+                        imp.close_request.set(true);
+
+                        gtk::prelude::WidgetExt::activate_action(&window, "rsync.terminate", None)
+                            .expect("Could not activate action 'rsync.terminate'");
+                    }
+                ));
+
+                dialog.present(Some(window));
+
+                return glib::Propagation::Stop;
+            } else {
+                let _ = self.sidebar.save_config();
+            }
+
+            glib::Propagation::Proceed
+        }
+    }
     impl ApplicationWindowImpl for AppWindow {}
     impl AdwApplicationWindowImpl for AppWindow {}
 }
@@ -226,46 +268,6 @@ impl AppWindow {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
-
-        // Window close request signal
-        self.connect_close_request(|window| {
-            let imp = window.imp();
-
-            if imp.rsync_running.get() {
-                if !imp.rsync_page.paused() {
-                    gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
-                        .expect("Could not activate action 'rsync-pause'");
-                }
-
-                let dialog = adw::AlertDialog::builder()
-                    .heading("Exit RsyncUI?")
-                    .body("Terminate transfer process and exit.")
-                    .default_response("exit")
-                    .build();
-
-                dialog.add_responses(&[("cancel", "_Cancel"), ("exit", "E_xit")]);
-                dialog.set_response_appearance("exit", adw::ResponseAppearance::Destructive);
-
-                dialog.connect_response(Some("exit"), clone!(
-                    #[weak] window,
-                    #[weak] imp,
-                    move |_, _| {
-                        imp.close_request.set(true);
-
-                        gtk::prelude::WidgetExt::activate_action(&window, "rsync.terminate", None)
-                            .expect("Could not activate action 'rsync.terminate'");
-                    }
-                ));
-
-                dialog.present(Some(window));
-
-                return glib::Propagation::Stop;
-            } else {
-                let _ = imp.sidebar.save_config();
-            }
-
-            glib::Propagation::Proceed
-        });
 
         // New profile button clicked signal
         imp.new_profile_button.connect_clicked(clone!(
