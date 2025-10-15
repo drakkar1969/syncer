@@ -79,13 +79,19 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_signals();
             obj.setup_widgets();
         }
     }
 
     impl WidgetImpl for RsyncPage {}
-    impl NavigationPageImpl for RsyncPage {}
+    impl NavigationPageImpl for RsyncPage {
+        //---------------------------------------
+        // Hidden function
+        //---------------------------------------
+        fn hidden(&self) {
+            self.obj().reset();
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -98,16 +104,6 @@ glib::wrapper! {
 }
 
 impl RsyncPage {
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        // Page hidden signal
-        self.connect_hidden(|page| {
-            page.reset();
-        });
-    }
-
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
