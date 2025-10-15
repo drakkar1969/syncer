@@ -295,6 +295,8 @@ impl AppWindow {
             #[weak] imp,
             move |_| {
                 imp.sidebar.set_sensitive(false);
+
+                imp.sidebar.action_set_enabled("sidebar.new-profile", false);
             }
         ));
 
@@ -302,6 +304,8 @@ impl AppWindow {
             #[weak] imp,
             move |_| {
                 imp.sidebar.set_sensitive(true);
+
+                imp.sidebar.action_set_enabled("sidebar.new-profile", true);
             }
         ));
     }
