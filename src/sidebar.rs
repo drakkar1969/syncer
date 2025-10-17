@@ -56,20 +56,14 @@ mod imp {
             // New profile action
             //---------------------------------------
             klass.install_action("sidebar.new-profile", None, |sidebar, _, _| {
-                let imp = sidebar.imp();
-
                 sidebar.profile_name_dialog("New", clone!(
-                    #[weak] imp,
+                    #[weak] sidebar,
                     move |name| {
+                        let imp = sidebar.imp();
+
                         imp.model.append(&ProfileObject::new(name));
 
-                        let row = imp.listbox.row_at_index(imp.model.n_items() as i32 - 1);
-
-                        imp.listbox.select_row(row.as_ref());
-
-                        if let Some(row) = row {
-                            row.grab_focus();
-                        }
+                        sidebar.set_selected_index(imp.model.n_items() as i32 - 1);
                     }
                 ));
             });
@@ -102,8 +96,6 @@ mod imp {
             // Delete profile action
             //---------------------------------------
             klass.install_action("sidebar.delete-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
-                let imp = sidebar.imp();
-
                 let name = parameter
                     .and_then(|param| param.get::<String>())
                     .expect("Could not get string from variant");
@@ -118,12 +110,16 @@ mod imp {
                 dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
 
                 dialog.connect_response(Some("delete"), clone!(
-                    #[weak] imp,
+                    #[weak] sidebar,
                     move |_, _| {
+                        let imp = sidebar.imp();
+
                         if let Some(pos) = imp.model.iter::<ProfileObject>().flatten()
                             .position(|obj| obj.name() == name)
                         {
                             imp.model.remove(pos as u32);
+
+                            sidebar.set_selected_index(pos as i32 - 1);
                         }
                     }
                 ));
@@ -145,19 +141,15 @@ mod imp {
                     .find_position(|obj| obj.name() == name)
                 {
                     sidebar.profile_name_dialog("Duplicate", clone!(
-                        #[weak] imp,
+                        #[weak] sidebar,
                         move |new_name| {
+                            let imp = sidebar.imp();
+
                             let dup_obj = obj.duplicate(new_name);
 
                             imp.model.insert(pos as u32 + 1, &dup_obj);
 
-                            let row = imp.listbox.row_at_index(pos as i32 + 1);
-
-                            imp.listbox.select_row(row.as_ref());
-
-                            if let Some(row) = row {
-                                row.grab_focus();
-                            }
+                            sidebar.set_selected_index(pos as i32 + 1);
                         }
                     ));
                 }
@@ -285,6 +277,22 @@ impl Sidebar {
         });
 
         dialog.present(Some(self));
+    }
+
+    //---------------------------------------
+    // Set selected index function
+    //---------------------------------------
+    fn set_selected_index(&self, index: i32) {
+        let imp = self.imp();
+
+        let row = imp.listbox.row_at_index(index)
+            .or_else(|| imp.listbox.row_at_index(0));
+
+        imp.listbox.select_row(row.as_ref());
+
+        if let Some(row) = row {
+            row.grab_focus();
+        }
     }
 
     //---------------------------------------
