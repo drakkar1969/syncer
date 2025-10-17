@@ -31,25 +31,14 @@
             <property name="margin-top">6</property>
             <property name="margin-bottom">12</property>
             <property name="child">
-              <object class="GtkListView" id="view">
+              <object class="GtkListBox" id="listbox">
                 <style>
                   <class name="navigation-sidebar"/>
                 </style>
                 <property name="margin-start">6</property>
                 <property name="margin-end">6</property>
+                <property name="selection-mode">single</property>
                 <property name="tab-behavior">item</property>
-                <property name="model">
-                  <object class="GtkSingleSelection" id="selection">
-                    <property name="model">
-                      <object class="GListStore" id="model">
-                        <property name="item-type">ProfileObject</property>
-                      </object>
-                    </property>
-                  </object>
-                </property>
-                <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="factory"/>
-                </property>
               </object>
             </property>
           </object>
@@ -57,6 +46,10 @@
       </object>
     </property>
   </template>
+
+  <object class="GListStore" id="model">
+    <property name="item-type">ProfileObject</property>
+  </object>
 
   <!--// Primary menu //-->
   <menu id="primary_menu">

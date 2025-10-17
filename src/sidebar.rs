@@ -30,18 +30,14 @@ mod imp {
         pub(super) new_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub(super) view: TemplateChild<gtk::ListView>,
-        #[template_child]
-        pub(super) selection: TemplateChild<gtk::SingleSelection>,
+        pub(super) listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
 
         #[property(get, set)]
         n_items: Cell<u32>,
-        #[property(get, set)]
-        selected_item: RefCell<Option<ProfileObject>>,
+        #[property(get, set, nullable)]
+        selected_profile: RefCell<Option<ProfileObject>>,
     }
 
     //---------------------------------------
@@ -67,13 +63,13 @@ mod imp {
                     move |name| {
                         imp.model.append(&ProfileObject::new(name));
 
-                        imp.view.scroll_to(
-                            imp.model.n_items() - 1,
-                            gtk::ListScrollFlags::FOCUS | gtk::ListScrollFlags::SELECT,
-                            None
-                        );
+                        let row = imp.listbox.row_at_index(imp.model.n_items() as i32 - 1);
 
-                        imp.view.grab_focus();
+                        imp.listbox.select_row(row.as_ref());
+
+                        if let Some(row) = row {
+                            row.grab_focus();
+                        }
                     }
                 ));
             });
@@ -96,7 +92,7 @@ mod imp {
                         move |new_name| {
                             obj.set_name(new_name);
 
-                            sidebar.notify_selected_item();
+                            sidebar.notify_selected_profile();
                         }
                     ));
                 }
@@ -155,13 +151,13 @@ mod imp {
 
                             imp.model.insert(pos as u32 + 1, &dup_obj);
 
-                            imp.view.scroll_to(
-                                pos as u32 + 1,
-                                gtk::ListScrollFlags::FOCUS | gtk::ListScrollFlags::SELECT,
-                                None
-                            );
+                            let row = imp.listbox.row_at_index(pos as i32 + 1);
 
-                            imp.view.grab_focus();
+                            imp.listbox.select_row(row.as_ref());
+
+                            if let Some(row) = row {
+                                row.grab_focus();
+                            }
                         }
                     ));
                 }
@@ -182,7 +178,7 @@ mod imp {
                 {
                     obj.reset();
 
-                    sidebar.notify_selected_item();
+                    sidebar.notify_selected_profile();
                 }
             });
         }
@@ -227,41 +223,17 @@ impl Sidebar {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Factory setup signal
-        imp.factory.connect_setup(|_, item| {
-            item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Could not downcast to 'GtkListItem'")
-                .set_child(Some(&SidebarRow::default()));
-        });
-
-        // Factory bind signal
-        imp.factory.connect_bind(|_, item| {
-            let obj = item
-                .downcast_ref::<gtk::ListItem>()
-                .and_then(|item| item.item())
-                .and_downcast::<ProfileObject>()
-                .expect("Could not downcast to 'ProfileObject'");
-
-            let row = item
-                .downcast_ref::<gtk::ListItem>()
-                .and_then(|item| item.child())
-                .and_downcast::<SidebarRow>()
-                .expect("Could not downcast to 'SidebarRow'");
-
-            row.bind(&obj);
-        });
-
-        // Factory unbind signal
-        imp.factory.connect_unbind(|_, item| {
-            let row = item
-                .downcast_ref::<gtk::ListItem>()
-                .and_then(|item| item.child())
-                .and_downcast::<SidebarRow>()
-                .expect("Could not downcast to 'SidebarRow'");
-
-            row.unbind();
-        });
+        // Listbox row selected signal
+        imp.listbox.connect_row_selected(clone!(
+            #[weak(rename_to = sidebar)] self,
+            move |_, row| {
+                sidebar.set_selected_profile(
+                    row
+                        .and_then(|row| row.downcast_ref::<SidebarRow>())
+                        .and_then(|row| row.profile())
+                );
+            }
+        ));
     }
 
     //---------------------------------------
@@ -270,12 +242,17 @@ impl Sidebar {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind selection to properties
-        imp.selection.bind_property("n-items", self, "n-items")
-            .sync_create()
-            .build();
+        // Bind listbox to model
+        imp.listbox.bind_model(Some(&imp.model.get()), |obj| {
+            let profile = obj
+                .downcast_ref::<ProfileObject>()
+                .expect("Could not downcast to 'ProfileObject'");
 
-        imp.selection.bind_property("selected-item", self, "selected_item")
+            SidebarRow::new(profile).into()
+        });
+
+        // Bind model to properties
+        imp.model.bind_property("n-items", self, "n-items")
             .sync_create()
             .build();
     }
@@ -314,6 +291,9 @@ impl Sidebar {
     // Load config function
     //---------------------------------------
     pub fn load_config(&self) -> io::Result<()> {
+        let imp = self.imp();
+
+        // Load profiles from config file
         let config_path = xdg::BaseDirectories::new()
             .find_config_file("rsyncui/config.json")
             .ok_or(io::Error::other("Config file not found"))?;
@@ -328,7 +308,11 @@ impl Sidebar {
             .filter_map(ProfileObject::from_json)
             .collect();
 
-        self.imp().model.splice(0, 0, &profiles);
+        // Add profiles to model
+        imp.model.splice(0, 0, &profiles);
+
+        // Select first profile
+        imp.listbox.select_row(imp.listbox.row_at_index(0).as_ref());
 
         Ok(())
     }

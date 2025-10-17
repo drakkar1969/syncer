@@ -28,7 +28,7 @@ mod imp {
         #[template_child]
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
 
-        #[property(get, set)]
+        #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>

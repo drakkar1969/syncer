@@ -318,13 +318,13 @@ impl AppWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind sidebar selected item to options page
-        imp.sidebar.bind_property("selected-item", &imp.options_page.get(), "profile")
+        // Bind sidebar selected profile to options page
+        imp.sidebar.bind_property("selected-profile", &imp.options_page.get(), "profile")
             .sync_create()
             .build();
 
-        // Bind sidebar selected item to advanced page
-        imp.sidebar.bind_property("selected-item", &imp.advanced_page.get(), "profile")
+        // Bind sidebar selected profile to advanced page
+        imp.sidebar.bind_property("selected-profile", &imp.advanced_page.get(), "profile")
             .sync_create()
             .build();
 

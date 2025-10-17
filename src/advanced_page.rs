@@ -52,7 +52,7 @@ mod imp {
         #[template_child]
         pub(super) backup_switch: TemplateChild<adw::SwitchRow>,
 
-        #[property(get, set)]
+        #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>

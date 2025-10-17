@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// SidebarRow template //-->
-  <template class="SidebarRow" parent="AdwBin">
+  <template class="SidebarRow" parent="GtkListBoxRow">
     <property name="child">
       <object class="GtkBox">
         <property name="margin-start">10</property>
