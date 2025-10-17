@@ -349,20 +349,18 @@ impl AppWindow {
         let imp = self.imp();
 
         imp.options_page.args()
-            .map(|mut options| {
-                let mut args: Vec<String> = ["-s", "--human-readable", "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"]
-                    .into_iter()
-                    .map(|s| s.to_owned())
-                    .collect();
+            .map(|options| {
+                let mut args = vec!["-s", "--human-readable", "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"];
 
                 if imp.dry_run.get() {
-                    args.push(String::from("--dry-run"));
+                    args.push("--dry-run");
                 }
 
-                args.append(&mut imp.advanced_page.args());
-                args.append(&mut options);
-
-                args
+                args.into_iter()
+                    .chain(imp.advanced_page.args().into_iter())
+                    .map(ToOwned::to_owned)
+                    .chain(options.into_iter())
+                    .collect()
             })
             .unwrap_or_default()
     }
