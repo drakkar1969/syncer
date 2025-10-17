@@ -23,7 +23,8 @@ pub struct Stats {
     pub n_created: StatsRow,
     pub n_deleted: StatsRow,
     pub source_bytes: String,
-    pub transfer_bytes: String
+    pub transfer_bytes: String,
+    pub speed: String
 }
 
 //------------------------------------------------------------------------------

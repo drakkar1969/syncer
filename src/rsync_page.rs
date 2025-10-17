@@ -213,9 +213,17 @@ impl RsyncPage {
                 Number\s*of\s*files:\s*(?P<st>[\d,]+)\s*\(?(?:reg:\s*(?P<sf>[\d,]+))?,?\s*(?:dir:\s*(?P<sd>[\d,]+))?,?\s*(?:link:\s*(?P<sl>[\d,]+))?,?\s*(?:special:\s*(?P<ss>[\d,]+))?,?\s*\)?\n
                 Number\s*of\s*created\s*files:\s*(?P<ct>[\d,]+)\s*\(?(?:reg:\s*(?P<cf>[\d,]+))?,?\s*(?:dir:\s*(?P<cd>[\d,]+))?,?\s*(?:link:\s*(?P<cl>[\d,]+))?,?\s*(?:special:\s*(?P<cs>[\d,]+))?,?\s*\)?\n
                 Number\s*of\s*deleted\s*files:\s*(?P<dt>[\d,]+)\s*\(?(?:reg:\s*(?P<df>[\d,]+))?,?\s*(?:dir:\s*(?P<dd>[\d,]+))?,?\s*(?:link:\s*(?P<dl>[\d,]+))?,?\s*(?:special:\s*(?P<ds>[\d,]+))?,?\s*\)?\n
-                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<nt>[\d,]+)\n
+                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tn>[\d,]+)\n
                 Total\s*file\s*size:\s*(?P<bs>.+)\s*bytes\n
-                Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes
+                Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<ts>.*?)\s*bytes
             "#)
             .expect("Failed to compile Regex")
         });
@@ -231,11 +239,11 @@ impl RsyncPage {
                         text.pop();
                     }
 
-                    text
+                    text.trim().to_owned()
                 };
 
                 Stats {
-                    n_transfers: get_match(&caps, "nt"),
+                    n_transfers: get_match(&caps, "tn"),
                     n_source: StatsRow {
                         total: get_match(&caps, "st"),
                         files: get_match(&caps, "sf"),
@@ -258,7 +266,8 @@ impl RsyncPage {
                         specials: get_match(&caps, "ds")
                     },
                     source_bytes: get_match(&caps, "bs"),
-                    transfer_bytes: get_match(&caps, "bt")
+                    transfer_bytes: get_match(&caps, "bt"),
+                    speed: format!("{}B/s", get_match(&caps, "ts"))
                 }
             })
     }
@@ -286,6 +295,8 @@ impl RsyncPage {
                     stats.transfer_bytes,
                     stats.source_bytes
                 ));
+
+                imp.speed_label.set_label(&stats.speed);
 
                 imp.stats_table.fill(&stats);
 
