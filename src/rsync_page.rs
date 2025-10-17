@@ -191,7 +191,7 @@ impl RsyncPage {
                         .expect("Failed to compile Regex")
                 });
 
-                errors.into_iter()
+                errors.iter()
                     .filter_map(|error| {
                         EXPR.captures(error).and_then(|caps| {
                             caps.name("err")
