@@ -164,20 +164,6 @@ impl StatsTable {
         let imp = self.imp();
 
         let widgets = [
-            &imp.transfer_total_label,
-            &imp.source_total_label,
-            &imp.created_total_label,
-            &imp.deleted_total_label,
-        ];
-
-        for label in widgets {
-            label.bind_property("label", &label.get(), "visible")
-                .transform_to(|_, label: &str| Some(label == "0"))
-                .sync_create()
-                .build();
-        }
-
-        let widgets = [
             (&imp.transfer_files_box, &imp.transfer_files_label),
 
             (&imp.source_files_box, &imp.source_files_label),

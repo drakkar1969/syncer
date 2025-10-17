@@ -297,9 +297,7 @@ impl RsyncPage {
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label(&format!(
-                    "Transfer successful: {} of {} files [{} of {}]",
-                    stats.created.total,
-                    stats.source.total,
+                    "Transfer successful: {} of {}",
                     stats.bytes.transferred,
                     stats.bytes.source
                 ));
