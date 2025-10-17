@@ -18,6 +18,7 @@
   </gresource>
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">style.css</file>
+    <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
     <file compressed="true">ui/builder/profile_name_dialog.ui</file>
     <file compressed="true">ui/advanced_page.ui</file>
     <file compressed="true">ui/options_page.ui</file>

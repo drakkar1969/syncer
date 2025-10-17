@@ -62,6 +62,12 @@
   <menu id="primary_menu">
     <section>
       <item>
+        <attribute name="label">Keyboard Shortcuts</attribute>
+        <attribute name="action">app.shortcuts</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="label">About RsyncUI</attribute>
         <attribute name="action">app.show-about</attribute>
       </item>
