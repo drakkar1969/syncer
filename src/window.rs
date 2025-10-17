@@ -350,7 +350,10 @@ impl AppWindow {
 
         imp.options_page.args()
             .map(|options| {
-                let mut args = vec!["--human-readable", "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"];
+                let mut args = vec![
+                    "--human-readable",
+                    "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
+                ];
 
                 if imp.dry_run.get() {
                     args.push("--dry-run");
