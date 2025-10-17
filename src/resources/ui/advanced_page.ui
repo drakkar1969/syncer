@@ -133,6 +133,12 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <child>
+                      <object class="AdwSwitchRow" id="partial_switch">
+                        <property name="title">Partial Transfers</property>
+                        <property name="subtitle">Keep partially transferred files on destination [ --partial ]</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="AdwSwitchRow" id="compress_data_switch">
                         <property name="title">Compress File Data</property>
                         <property name="subtitle">Compress file data when transferring [ --compress | -z ]</property>
@@ -142,6 +148,16 @@
                       <object class="AdwSwitchRow" id="backup_switch">
                         <property name="title">Backup Files</property>
                         <property name="subtitle">Make backups of existing files on destination [ --backup | -b ]</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdwSwitchRow" id="secluded_args_switch">
+                        <property name="title">Secluded Args</property>
+                        <property name="subtitle">Protect remote arguments from shell expansion [ --secluded-args | -s ]</property>
                       </object>
                     </child>
                   </object>

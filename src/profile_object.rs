@@ -57,9 +57,13 @@ mod imp {
         #[property(get, set, default = false, construct)]
         skip_newer: Cell<bool>,
         #[property(get, set, default = false, construct)]
+        partial: Cell<bool>,
+        #[property(get, set, default = false, construct)]
         compress_data: Cell<bool>,
         #[property(get, set, default = false, construct)]
         backup: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        secluded_args: Cell<bool>,
     }
 
     //---------------------------------------

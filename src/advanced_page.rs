@@ -48,9 +48,13 @@ mod imp {
         #[template_child]
         pub(super) skip_newer_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) partial_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) compress_data_switch: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) backup_switch: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) secluded_args_switch: TemplateChild<adw::SwitchRow>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -145,8 +149,10 @@ impl AdvancedPage {
                     page.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"),
                     page.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"),
                     page.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"),
+                    page.bind_widget(&profile, "partial", &imp.partial_switch.get(), "active"),
                     page.bind_widget(&profile, "compress-data", &imp.compress_data_switch.get(), "active"),
-                    page.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active")
+                    page.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active"),
+                    page.bind_widget(&profile, "secluded-args", &imp.secluded_args_switch.get(), "active")
                 ];
 
                 // Store bindings
@@ -224,12 +230,20 @@ impl AdvancedPage {
             args.push("-u");
         }
 
+        if imp.partial_switch.is_active() {
+            args.push("--partial");
+        }
+
         if imp.compress_data_switch.is_active() {
             args.push("-x");
         }
 
         if imp.backup_switch.is_active() {
             args.push("-b");
+        }
+
+        if imp.secluded_args_switch.is_active() {
+            args.push("-s");
         }
 
         args
