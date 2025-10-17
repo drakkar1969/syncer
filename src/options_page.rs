@@ -22,6 +22,8 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/options_page.ui")]
     pub struct OptionsPage {
         #[template_child]
+        pub(super) swap_paths_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) source_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
@@ -153,6 +155,21 @@ impl OptionsPage {
                 page.set_title(&profile.name());
             }
         });
+
+        // Swap paths button clicked signal
+        imp.swap_paths_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let temp = imp.source_row.subtitle()
+                    .unwrap_or_default();
+
+                let destination = imp.destination_row.subtitle()
+                    .unwrap_or_default();
+
+                imp.source_row.set_subtitle(&destination);
+                imp.destination_row.set_subtitle(&temp);
+            }
+        ));
 
         // Source row activated signal
         imp.source_row.connect_activated(clone!(

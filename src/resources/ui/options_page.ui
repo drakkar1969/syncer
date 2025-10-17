@@ -20,6 +20,14 @@
             <child>
               <object class="AdwPreferencesGroup">
                 <property name="title">Paths</property>
+                <property name="header-suffix">
+                  <object class="GtkButton" id="swap_paths_button">
+                    <property name="icon-name">options-swap-symbolic</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </property>
                 <child>
                   <object class="AdwActionRow" id="source_row">
                     <property name="activatable">true</property>
