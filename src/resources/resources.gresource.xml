@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/RsyncUI/icons/scalable/actions/">
+    <file alias="options-check-symbolic.svg">icons/options-check-symbolic.svg</file>
+    <file alias="options-advanced-symbolic.svg">icons/options-advanced-symbolic.svg</file>
     <file alias="rsync-start-symbolic.svg">icons/rsync-start-symbolic.svg</file>
     <file alias="rsync-stop-symbolic.svg">icons/rsync-stop-symbolic.svg</file>
     <file alias="rsync-pause-symbolic.svg">icons/rsync-pause-symbolic.svg</file>

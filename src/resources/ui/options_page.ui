@@ -80,7 +80,7 @@
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>
-                        <property name="icon-name">media-eq-symbolic</property>
+                        <property name="icon-name">options-check-symbolic</property>
                         <style>
                           <class name="bubble"/>
                         </style>
@@ -133,7 +133,7 @@
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>
-                        <property name="icon-name">media-eq-symbolic</property>
+                        <property name="icon-name">options-advanced-symbolic</property>
                         <style>
                           <class name="bubble"/>
                         </style>
