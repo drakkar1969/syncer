@@ -518,6 +518,8 @@ impl AppWindow {
                 let mut stats: Vec<String> = vec![];
                 let mut errors: Vec<String> = vec![];
 
+                let dry_run = imp.dry_run.get();
+
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
                         RsyncMsg::Start(id) => {
@@ -530,7 +532,7 @@ impl AppWindow {
                         },
 
                         RsyncMsg::Progress(size, speed, progress) => {
-                            imp.rsync_page.set_status(&size, &speed, progress);
+                            imp.rsync_page.set_status(&size, &speed, progress, dry_run);
                         },
 
                         RsyncMsg::Stats(stat) => {
