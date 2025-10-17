@@ -117,9 +117,13 @@ mod imp {
                         if let Some(pos) = imp.model.iter::<ProfileObject>().flatten()
                             .position(|obj| obj.name() == name)
                         {
+                            let selected = sidebar.is_selected_index(pos as i32);
+
                             imp.model.remove(pos as u32);
 
-                            sidebar.set_selected_index(pos as i32 - 1);
+                            if selected {
+                                sidebar.set_selected_index(pos as i32 - 1);
+                            }
                         }
                     }
                 ));
@@ -277,6 +281,16 @@ impl Sidebar {
         });
 
         dialog.present(Some(self));
+    }
+
+    //---------------------------------------
+    // Is selected index function
+    //---------------------------------------
+    fn is_selected_index(&self, index: i32) -> bool {
+        let imp = self.imp();
+
+        imp.listbox.row_at_index(index)
+            .map_or_else(|| false, |row| row.is_selected())
     }
 
     //---------------------------------------
