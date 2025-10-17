@@ -42,6 +42,9 @@ mod imp {
         pub(super) stats_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) stats_table: TemplateChild<StatsTable>,
+
+        #[template_child]
+        pub(super) button_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) pause_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -146,6 +149,7 @@ impl RsyncPage {
         imp.message_label.set_label("");
 
         imp.stats_stack.set_visible_child_name("empty");
+        imp.button_stack.set_visible_child_name("empty");
     }
 
     //---------------------------------------
@@ -169,8 +173,8 @@ impl RsyncPage {
         imp.transferred_label.set_label(size);
         imp.speed_label.set_label(speed);
 
-        if imp.stats_stack.visible_child_name() != Some("buttons".into()) {
-            imp.stats_stack.set_visible_child_name("buttons");
+        if imp.button_stack.visible_child_name() == Some("empty".into()){
+            imp.button_stack.set_visible_child_name("buttons");
         }
     }
 
@@ -282,6 +286,8 @@ impl RsyncPage {
 
         let stats = self.stats(stats);
 
+        imp.button_stack.set_visible_child_name("empty");
+
         match (code, stats) {
             (Some(0), Some(stats)) => {
                 imp.progress_label.set_label("100%");
@@ -309,8 +315,6 @@ impl RsyncPage {
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Transfer successful: could not retrieve stats");
-
-                imp.stats_stack.set_visible_child_name("empty");
             },
             (Some(code), _) => {
                 imp.message_box.set_css_classes(&["error", "heading"]);
@@ -322,8 +326,6 @@ impl RsyncPage {
                 } else {
                     imp.message_label.set_label(&format!("Transfer failed: unknown error (code {code})"));
                 }
-
-                imp.stats_stack.set_visible_child_name("empty");
             }
             _ => ()
         }
