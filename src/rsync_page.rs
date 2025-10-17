@@ -8,7 +8,7 @@ use adw::prelude::*;
 
 use regex::{Regex, Captures};
 
-use crate::stats_table::{Stats, StatsRow, StatsTable};
+use crate::stats_table::{Stats, StatsBytes, StatsRow, StatsTable};
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage
@@ -243,31 +243,33 @@ impl RsyncPage {
                 };
 
                 Stats {
-                    n_transfers: get_match(&caps, "tn"),
-                    n_source: StatsRow {
+                    transferred: get_match(&caps, "tn"),
+                    source: StatsRow {
                         total: get_match(&caps, "st"),
                         files: get_match(&caps, "sf"),
                         dirs: get_match(&caps, "sd"),
                         links: get_match(&caps, "sl"),
                         specials: get_match(&caps, "ss")
                     },
-                    n_created: StatsRow {
+                    created: StatsRow {
                         total: get_match(&caps, "ct"),
                         files: get_match(&caps, "cf"),
                         dirs: get_match(&caps, "cd"),
                         links: get_match(&caps, "cl"),
                         specials: get_match(&caps, "cs")
                     },
-                    n_deleted: StatsRow {
+                    deleted: StatsRow {
                         total: get_match(&caps, "dt"),
                         files: get_match(&caps, "df"),
                         dirs: get_match(&caps, "dd"),
                         links: get_match(&caps, "dl"),
                         specials: get_match(&caps, "ds")
                     },
-                    source_bytes: get_match(&caps, "bs"),
-                    transfer_bytes: get_match(&caps, "bt"),
-                    speed: format!("{}B/s", get_match(&caps, "ts"))
+                    bytes: StatsBytes {
+                        source: get_match(&caps, "bs"),
+                        transferred: get_match(&caps, "bt"),
+                        speed:format!("{}B/s", get_match(&caps, "ts"))
+                    }
                 }
             })
     }
@@ -290,13 +292,13 @@ impl RsyncPage {
 
                 imp.message_label.set_label(&format!(
                     "Transfer successful: {} of {} files [{} of {}]",
-                    stats.n_created.total,
-                    stats.n_source.total,
-                    stats.transfer_bytes,
-                    stats.source_bytes
+                    stats.created.total,
+                    stats.source.total,
+                    stats.bytes.transferred,
+                    stats.bytes.source
                 ));
 
-                imp.speed_label.set_label(&stats.speed);
+                imp.speed_label.set_label(&stats.bytes.speed);
 
                 imp.stats_table.fill(&stats);
 

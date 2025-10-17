@@ -14,17 +14,25 @@ pub struct StatsRow {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: StatsBytes
+//------------------------------------------------------------------------------
+#[derive(Default, Debug)]
+pub struct StatsBytes {
+    pub source: String,
+    pub transferred: String,
+    pub speed: String
+}
+
+//------------------------------------------------------------------------------
 // STRUCT: Stats
 //------------------------------------------------------------------------------
 #[derive(Default, Debug)]
 pub struct Stats {
-    pub n_transfers: String,
-    pub n_source: StatsRow,
-    pub n_created: StatsRow,
-    pub n_deleted: StatsRow,
-    pub source_bytes: String,
-    pub transfer_bytes: String,
-    pub speed: String
+    pub transferred: String,
+    pub source: StatsRow,
+    pub created: StatsRow,
+    pub deleted: StatsRow,
+    pub bytes: StatsBytes
 }
 
 //------------------------------------------------------------------------------
@@ -202,26 +210,26 @@ impl StatsTable {
     pub fn fill(&self, stats: &Stats) {
         let imp = self.imp();
 
-        imp.transfer_total_label.set_label(&stats.n_transfers);
-        imp.transfer_files_label.set_label(&stats.n_transfers);
+        imp.transfer_total_label.set_label(&stats.transferred);
+        imp.transfer_files_label.set_label(&stats.transferred);
 
-        imp.source_total_label.set_label(&stats.n_source.total);
-        imp.source_files_label.set_label(&stats.n_source.files);
-        imp.source_dirs_label.set_label(&stats.n_source.dirs);
-        imp.source_links_label.set_label(&stats.n_source.links);
-        imp.source_specials_label.set_label(&stats.n_source.specials);
+        imp.source_total_label.set_label(&stats.source.total);
+        imp.source_files_label.set_label(&stats.source.files);
+        imp.source_dirs_label.set_label(&stats.source.dirs);
+        imp.source_links_label.set_label(&stats.source.links);
+        imp.source_specials_label.set_label(&stats.source.specials);
 
-        imp.created_total_label.set_label(&stats.n_created.total);
-        imp.created_files_label.set_label(&stats.n_created.files);
-        imp.created_dirs_label.set_label(&stats.n_created.dirs);
-        imp.created_links_label.set_label(&stats.n_created.links);
-        imp.created_specials_label.set_label(&stats.n_created.specials);
+        imp.created_total_label.set_label(&stats.created.total);
+        imp.created_files_label.set_label(&stats.created.files);
+        imp.created_dirs_label.set_label(&stats.created.dirs);
+        imp.created_links_label.set_label(&stats.created.links);
+        imp.created_specials_label.set_label(&stats.created.specials);
 
-        imp.deleted_total_label.set_label(&stats.n_deleted.total);
-        imp.deleted_files_label.set_label(&stats.n_deleted.files);
-        imp.deleted_dirs_label.set_label(&stats.n_deleted.dirs);
-        imp.deleted_links_label.set_label(&stats.n_deleted.links);
-        imp.deleted_specials_label.set_label(&stats.n_deleted.specials);
+        imp.deleted_total_label.set_label(&stats.deleted.total);
+        imp.deleted_files_label.set_label(&stats.deleted.files);
+        imp.deleted_dirs_label.set_label(&stats.deleted.dirs);
+        imp.deleted_links_label.set_label(&stats.deleted.links);
+        imp.deleted_specials_label.set_label(&stats.deleted.specials);
     }
 
 }
