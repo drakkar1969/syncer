@@ -47,6 +47,7 @@
     </property>
   </template>
 
+  <!--// Model //-->
   <object class="GListStore" id="model">
     <property name="item-type">ProfileObject</property>
   </object>
