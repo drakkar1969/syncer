@@ -84,7 +84,7 @@
                 <property name="title">Options</property>
                 <child>
                   <object class="AdwComboRow" id="check_mode_combo">
-                    <property name="title">File Transfer _Check</property>
+                    <property name="title">File _Check</property>
                     <property name="use-underline">true</property>
                     <child type="prefix">
                       <object class="GtkImage">

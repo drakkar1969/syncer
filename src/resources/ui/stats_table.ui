@@ -23,7 +23,7 @@
                   <property name="column-span">3</property>
                 </layout>
                 <property name="margin-bottom">4</property>
-                <property name="spacing">10</property>
+                <property name="spacing">16</property>
                 <child>
                   <object class="GtkImage">
                     <property name="icon-name">stats-symbolic</property>

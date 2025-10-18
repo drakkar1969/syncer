@@ -34,7 +34,7 @@
                     <child>
                       <object class="GtkBox">
                         <property name="margin-bottom">4</property>
-                        <property name="spacing">10</property>
+                        <property name="spacing">16</property>
                         <child>
                           <object class="GtkImage">
                             <property name="icon-name">rsync-sync-symbolic</property>
