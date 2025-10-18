@@ -29,8 +29,8 @@
                         <property name="title">Recursive</property>
                         <property name="subtitle">Recurse into directories [ --recursive | -r ]</property>
                         <property name="prop-name">recursive</property>
-                        <property name="param">-r</property>
-                        <property name="alt-param">-d</property>
+                        <property name="arg">-r</property>
+                        <property name="off-arg">-d</property>
                       </object>
                     </child>
                   </object>
@@ -42,7 +42,7 @@
                         <property name="title">Preserve Time</property>
                         <property name="subtitle">Preserve modification times [ --times | -t ]</property>
                         <property name="prop-name">preserve-time</property>
-                        <property name="param">-t</property>
+                        <property name="arg">-t</property>
                       </object>
                     </child>
                     <child>
@@ -50,7 +50,7 @@
                         <property name="title">Preserve Permissions</property>
                         <property name="subtitle">Preserve permissions [ --perms | -p ]</property>
                         <property name="prop-name">preserve-permissions</property>
-                        <property name="param">-p</property>
+                        <property name="arg">-p</property>
                       </object>
                     </child>
                   </object>
@@ -62,7 +62,7 @@
                         <property name="title">Preserve Owner</property>
                         <property name="subtitle">Preserve owner [ --owner | -o ]</property>
                         <property name="prop-name">preserve-owner</property>
-                        <property name="param">-o</property>
+                        <property name="arg">-o</property>
                       </object>
                     </child>
                     <child>
@@ -70,7 +70,7 @@
                         <property name="title">Preserve Group</property>
                         <property name="subtitle">Preserve group [ --group | -g ]</property>
                         <property name="prop-name">preserve-group</property>
-                        <property name="param">-g</property>
+                        <property name="arg">-g</property>
                       </object>
                     </child>
                     <child>
@@ -78,7 +78,7 @@
                         <property name="title">Keep Numeric IDs</property>
                         <property name="subtitle">Do not map numeric uid/gid to user and group names [ --numeric-ids ]</property>
                         <property name="prop-name">numeric-ids</property>
-                        <property name="param">--numeric-ids</property>
+                        <property name="arg">--numeric-ids</property>
                       </object>
                     </child>
                   </object>
@@ -90,7 +90,7 @@
                         <property name="title">Preserve Symlinks</property>
                         <property name="subtitle">Copy symlinks as symlinks [ --links | -l ]</property>
                         <property name="prop-name">preserve-symlinks</property>
-                        <property name="param">-l</property>
+                        <property name="arg">-l</property>
                       </object>
                     </child>
                     <child>
@@ -98,7 +98,7 @@
                         <property name="title">Preserve Hardlinks</property>
                         <property name="subtitle">Copy hardlinks as hardlinks [ --hard-links | -H ]</property>
                         <property name="prop-name">preserve-hardlinks</property>
-                        <property name="param">-H</property>
+                        <property name="arg">-H</property>
                       </object>
                     </child>
                     <child>
@@ -106,7 +106,7 @@
                         <property name="title">Preserve Devices</property>
                         <property name="subtitle">Preserve device and special files [ --devices --specials | -D ]</property>
                         <property name="prop-name">preserve-devices</property>
-                        <property name="param">-D</property>
+                        <property name="arg">-D</property>
                       </object>
                     </child>
                   </object>
@@ -118,7 +118,7 @@
                         <property name="title">Do Not Leave Filesystem</property>
                         <property name="subtitle">Do not cross filesystem boundaries [ --one-file-system | -x ]</property>
                         <property name="prop-name">one-filesystem</property>
-                        <property name="param">-x</property>
+                        <property name="arg">-x</property>
                       </object>
                     </child>
                   </object>
@@ -130,7 +130,7 @@
                         <property name="title">Delete on Destination</property>
                         <property name="subtitle">Delete extraneous files on destination [ --delete ]</property>
                         <property name="prop-name">delete-destination</property>
-                        <property name="param">--delete</property>
+                        <property name="arg">--delete</property>
                       </object>
                     </child>
                     <child>
@@ -138,7 +138,7 @@
                         <property name="title">Existing Only</property>
                         <property name="subtitle">Skip creating new files and directories on destination [ --existing ]</property>
                         <property name="prop-name">existing</property>
-                        <property name="param">--existing</property>
+                        <property name="arg">--existing</property>
                       </object>
                     </child>
                     <child>
@@ -146,7 +146,7 @@
                         <property name="title">Ignore Existing</property>
                         <property name="subtitle">Skip files (not directories) that exist on destination [ --ignore-existing ]</property>
                         <property name="prop-name">ignore-existing</property>
-                        <property name="param">--ignore-existing</property>
+                        <property name="arg">--ignore-existing</property>
                       </object>
                     </child>
                     <child>
@@ -154,7 +154,7 @@
                         <property name="title">Skip Newer</property>
                         <property name="subtitle">Skip files that are newer on destination [ --update | -u ]</property>
                         <property name="prop-name">skip-newer</property>
-                        <property name="param">-u</property>
+                        <property name="arg">-u</property>
                       </object>
                     </child>
                   </object>
@@ -166,7 +166,7 @@
                         <property name="title">Partial Transfers</property>
                         <property name="subtitle">Keep partially transferred files on destination [ --partial ]</property>
                         <property name="prop-name">partial</property>
-                        <property name="param">--partial</property>
+                        <property name="arg">--partial</property>
                       </object>
                     </child>
                     <child>
@@ -174,7 +174,7 @@
                         <property name="title">Compress File Data</property>
                         <property name="subtitle">Compress file data when transferring [ --compress | -z ]</property>
                         <property name="prop-name">compress-data</property>
-                        <property name="param">-z</property>
+                        <property name="arg">-z</property>
                       </object>
                     </child>
                     <child>
@@ -182,7 +182,7 @@
                         <property name="title">Backup Files</property>
                         <property name="subtitle">Make backups of existing files on destination [ --backup | -b ]</property>
                         <property name="prop-name">backup</property>
-                        <property name="param">-b</property>
+                        <property name="arg">-b</property>
                       </object>
                     </child>
                   </object>
@@ -194,7 +194,7 @@
                         <property name="title">Secluded Args</property>
                         <property name="subtitle">Protect remote arguments from shell expansion [ --secluded-args | -s ]</property>
                         <property name="prop-name">secluded-args</property>
-                        <property name="param">-s</property>
+                        <property name="arg">-s</property>
                       </object>
                     </child>
                   </object>

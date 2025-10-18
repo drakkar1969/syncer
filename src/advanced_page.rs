@@ -144,9 +144,9 @@ impl AdvancedPage {
         self.switches().iter()
             .filter_map(|switch| {
                 if switch.active() {
-                    Some(switch.param())
+                    Some(switch.arg())
                 } else {
-                    switch.alt_param()
+                    switch.off_arg()
                 }
             })
             .collect()
