@@ -62,5 +62,6 @@
     </property>
   </template>
 
-  <object class="Rsync" id="rsync_process"/>
+  <!--// Rsync process //-->
+  <object class="RsyncProcess" id="rsync_process"/>
 </interface>
