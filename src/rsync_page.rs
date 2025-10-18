@@ -281,7 +281,7 @@ impl RsyncPage {
     //---------------------------------------
     // Public set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: Option<i32>, stats: &[String], errors: &[String]) {
+    pub fn set_exit_status(&self, code: i32, stats: &[String], errors: &[String]) {
         let imp = self.imp();
 
         let stats = self.stats(stats);
@@ -289,7 +289,8 @@ impl RsyncPage {
         imp.button_stack.set_visible_child_name("empty");
 
         match (code, stats) {
-            (Some(0), Some(stats)) => {
+            (-1, _) => {},
+            (0, Some(stats)) => {
                 imp.progress_label.set_label("100%");
                 imp.progress_bar.set_fraction(1.0);
 
@@ -308,13 +309,13 @@ impl RsyncPage {
 
                 imp.stats_stack.set_visible_child_name("stats");
             },
-            (Some(0), None) => {
+            (0, None) => {
                 imp.message_box.set_css_classes(&["warning", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Transfer successful: could not retrieve stats");
             },
-            (Some(code), _) => {
+            (code, _) => {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
@@ -325,7 +326,6 @@ impl RsyncPage {
                     imp.message_label.set_label(&format!("Transfer failed: unknown error (code {code})"));
                 }
             }
-            _ => ()
         }
 
         self.set_can_pop(true);

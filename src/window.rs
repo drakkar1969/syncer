@@ -1,18 +1,9 @@
 use std::cell::Cell;
-use std::sync::OnceLock;
-use std::io;
-use std::process::Stdio;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::clone;
-
-use tokio::runtime::Runtime as TkRuntime;
-use tokio::process::Command as TkCommand;
-use tokio::io::AsyncReadExt as _;
-use nix::sys::signal as nix_signal;
-use nix::unistd::Pid as NixPid;
+use glib::{clone, closure_local};
 
 use crate::Application;
 use crate::sidebar::Sidebar;
@@ -20,22 +11,7 @@ use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
 use crate::rsync_page::RsyncPage;
-
-//------------------------------------------------------------------------------
-// ENUM: RsyncMsg
-//------------------------------------------------------------------------------
-#[derive(Debug, Default, PartialEq)]
-#[repr(u32)]
-pub enum RsyncMsg {
-    #[default]
-    None,
-    Start(Option<i32>),
-    Message(String),
-    Progress(String, String, f64),
-    Stats(String),
-    Error(String),
-    Exit(Option<i32>)
-}
+use crate::rsync::RsyncProcess;
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -65,9 +41,9 @@ mod imp {
         #[template_child]
         pub(super) rsync_page: TemplateChild<RsyncPage>,
 
-        pub(super) dry_run: Cell<bool>,
-        pub(super) rsync_id: Cell<Option<i32>>,
-        pub(super) rsync_running: Cell<bool>,
+        #[template_child]
+        pub(super) rsync_process: TemplateChild<RsyncProcess>,
+
         pub(super) close_request: Cell<bool>,
     }
 
@@ -98,71 +74,40 @@ mod imp {
             klass.install_action("rsync.start", Some(glib::VariantTy::BOOLEAN), |window, _, parameter| {
                 let imp = window.imp();
 
-                // Check if dry run
+                // Get args
+                let args = window.rsync_args();
+
+                // Get dry run
                 let dry_run = parameter
                     .and_then(|param| param.get::<bool>())
                     .expect("Could not get bool from variant");
-
-                window.imp().dry_run.set(dry_run);
 
                 // Show rsync page
                 imp.content_navigation_view.push_by_tag("rsync");
 
                 // Start rsync
-                window.start_rsync();
+                imp.rsync_process.start(args, dry_run);
             });
 
             //---------------------------------------
             // Rsync terminate action
             //---------------------------------------
             klass.install_action("rsync.terminate", None, |window, _, _| {
-                let imp = window.imp();
-
-                if let Some(id) = imp.rsync_id.get() {
-                    let pid = NixPid::from_raw(id);
-
-                    // Resume if paused
-                    if imp.rsync_page.paused() {
-                        let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
-
-                        imp.rsync_page.set_paused(false);
-                    }
-
-                    // Terminate rsync
-                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGTERM);
-                }
+                window.imp().rsync_process.terminate();
             });
 
             //---------------------------------------
             // Rsync pause action
             //---------------------------------------
             klass.install_action("rsync.pause", None, |window, _, _| {
-                let imp = window.imp();
-
-                // Pause rsync if not paused
-                if !imp.rsync_page.paused() && let Some(id) = imp.rsync_id.get() {
-                    let pid = NixPid::from_raw(id);
-
-                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
-
-                    imp.rsync_page.set_paused(true);
-                }
+                window.imp().rsync_process.pause();
             });
 
             //---------------------------------------
             // Rsync resume action
             //---------------------------------------
             klass.install_action("rsync.resume", None, |window, _, _| {
-                let imp = window.imp();
-
-                // Resume rsync if paused
-                if imp.rsync_page.paused() && let Some(id) = imp.rsync_id.get() {
-                    let pid = NixPid::from_raw(id);
-
-                    let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
-
-                    imp.rsync_page.set_paused(false);
-                }
+                window.imp().rsync_process.resume();
             });
 
             //---------------------------------------
@@ -203,10 +148,10 @@ mod imp {
         fn close_request(&self) -> glib::Propagation {
             let window = &*self.obj();
 
-            if self.rsync_running.get() {
-                if !self.rsync_page.paused() {
+            if self.rsync_process.running() {
+                if !self.rsync_process.paused() {
                     gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
-                        .expect("Could not activate action 'rsync-pause'");
+                        .expect("Could not activate action 'rsync.pause'");
                 }
 
                 let dialog = adw::AlertDialog::builder()
@@ -310,6 +255,33 @@ impl AppWindow {
                 imp.sidebar.action_set_enabled("sidebar.new-profile", true);
             }
         ));
+
+        // Rsync process status signals
+        imp.rsync_process.connect_closure("message", false, closure_local!(
+            #[weak] imp,
+            move |_: RsyncProcess, message: String| {
+                imp.rsync_page.set_message(&message);
+            }
+        ));
+
+        imp.rsync_process.connect_closure("progress", false, closure_local!(
+            #[weak] imp,
+            move |_: RsyncProcess, size: String, speed: String, progress: f64, dry_run: bool| {
+                imp.rsync_page.set_status(&size, &speed, progress, dry_run);
+            }
+        ));
+
+        imp.rsync_process.connect_closure("exit", false, closure_local!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_: RsyncProcess, code: i32, stats: Vec<String>, errors: Vec<String>| {
+                if imp.close_request.get() {
+                    window.close();
+                } else {
+                    imp.rsync_page.set_exit_status(code, &stats, &errors);
+                }
+            }
+        ));
     }
 
     //---------------------------------------
@@ -328,18 +300,13 @@ impl AppWindow {
             .sync_create()
             .build();
 
+        // Bind rsync process paused property to rsync page paused property
+        imp.rsync_process.bind_property("paused", &imp.rsync_page.get(), "paused")
+            .sync_create()
+            .build();
+
         // Load profiles from config file
         let _ = imp.sidebar.load_config();
-    }
-
-    //---------------------------------------
-    // Tokio runtime helper function
-    //---------------------------------------
-    fn runtime() -> &'static TkRuntime {
-        static RUNTIME: OnceLock<TkRuntime> = OnceLock::new();
-        RUNTIME.get_or_init(|| {
-            TkRuntime::new().expect("Setting up tokio runtime needs to succeed.")
-        })
     }
 
     //---------------------------------------
@@ -350,214 +317,15 @@ impl AppWindow {
 
         imp.options_page.args()
             .map(|options| {
-                let mut args = vec![
+                vec![
                     "--human-readable",
                     "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
-                ];
-
-                if imp.dry_run.get() {
-                    args.push("--dry-run");
-                }
-
-                args.into_iter()
+                ].into_iter()
                     .map(ToOwned::to_owned)
                     .chain(imp.advanced_page.args())
                     .chain(options)
                     .collect()
             })
             .unwrap_or_default()
-    }
-
-    //---------------------------------------
-    // Start rsync function
-    //---------------------------------------
-    fn start_rsync(&self) {
-        let args = self.rsync_args();
-
-        let (sender, receiver) = async_channel::bounded(1);
-
-        // Spawn tokio task to run rsync
-        AppWindow::runtime().spawn(
-            async move {
-                // Start rsync
-                let mut rsync_process = TkCommand::new("rsync")
-                    .args(args)
-                    .stdout(Stdio::piped())
-                    .stderr(Stdio::piped())
-                    .spawn()?;
-
-                // Send rsync process id
-                sender
-                    .send(RsyncMsg::Start(rsync_process.id().map(|id| id as i32)))
-                    .await
-                    .expect("Could not send through channel");
-
-                // Get handles to read rsync stdout and stderr
-                let mut stdout = rsync_process.stdout.take()
-                    .ok_or_else(|| io::Error::other("Could not get stdout"))?;
-
-                let mut stderr = rsync_process.stderr.take()
-                    .ok_or_else(|| io::Error::other("Could not get stderr"))?;
-
-                // Create buffers to read stdout and stderr
-                const BUFFER_SIZE: usize = 32768;
-
-                let mut buffer_stdout = [0u8; BUFFER_SIZE];
-                let mut buffer_stderr = [0u8; BUFFER_SIZE];
-
-                let mut overflow = String::with_capacity(BUFFER_SIZE);
-
-                let mut stats = false;
-
-                loop {
-                    tokio::select! {
-                        // Read stdout when available
-                        result = stdout.read(&mut buffer_stdout) => {
-                            let bytes = result?;
-
-                            if bytes >= BUFFER_SIZE {
-                                overflow = String::from_utf8(buffer_stdout[..bytes].to_vec())
-                                    .unwrap_or_default();
-                            } else if bytes != 0 {
-                                let mut text = String::from_utf8(buffer_stdout[..bytes].to_vec())
-                                    .unwrap_or_default();
-
-                                if !overflow.is_empty() {
-                                    text.insert_str(0, &overflow);
-
-                                    overflow.clear();
-                                }
-
-                                for chunk in text.split_terminator("\n") {
-                                    if chunk.is_empty() {
-                                        continue;
-                                    }
-
-                                    if chunk.starts_with("\r") {
-                                        for line in chunk.split_terminator("\r") {
-                                            let vec: Vec<&str> = line.split_whitespace().collect();
-
-                                            let values = vec.first()
-                                                .map(|s| s.to_string())
-                                                .zip(vec.get(2).map(|s| s.to_string()))
-                                                .zip(
-                                                    vec.get(1)
-                                                        .map(|s| s.to_string().replace("%", ""))
-                                                        .and_then(|s| s.parse().ok())
-                                                );
-
-                                            if let Some(((size, speed), progress)) = values {
-                                                sender
-                                                    .send(RsyncMsg::Progress(size, speed, progress))
-                                                    .await
-                                                    .expect("Could not send through channel");
-                                            }
-                                        }
-                                    } else if chunk.starts_with("Number of files:") || stats {
-                                        stats = true;
-
-                                        sender
-                                            .send(RsyncMsg::Stats(chunk.to_owned()))
-                                            .await
-                                            .expect("Could not send through channel");
-                                    } else {
-                                        sender
-                                            .send(RsyncMsg::Message(chunk.to_owned()))
-                                            .await
-                                            .expect("Could not send through channel");
-                                    }
-                                }
-                            }
-                        }
-
-                        // Read stderr when available
-                        result = stderr.read(&mut buffer_stderr) => {
-                            let bytes = result?;
-
-                            if bytes != 0 {
-                                let error = String::from_utf8(buffer_stderr[..bytes].to_vec())
-                                    .unwrap_or_default();
-
-                                for chunk in error.split_terminator("\n") {
-                                    if chunk.is_empty() {
-                                        continue;
-                                    }
-
-                                    sender
-                                        .send(RsyncMsg::Error(chunk.to_owned()))
-                                        .await
-                                        .expect("Could not send through channel");
-                                }
-                            }
-                        }
-
-                        // Process exit
-                        result = rsync_process.wait() => {
-                            let status = result?;
-
-                            sender
-                                .send(RsyncMsg::Exit(status.code()))
-                                .await
-                                .expect("Could not send through channel");
-
-                            break;
-                        }
-                    }
-                }
-
-                Ok::<(), io::Error>(())
-            }
-        );
-
-        // Attach receiver for tokio task
-        glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
-            async move {
-                let imp = window.imp();
-
-                let mut stats: Vec<String> = vec![];
-                let mut errors: Vec<String> = vec![];
-
-                let dry_run = imp.dry_run.get();
-
-                while let Ok(msg) = receiver.recv().await {
-                    match msg {
-                        RsyncMsg::Start(id) => {
-                            imp.rsync_id.set(id);
-                            imp.rsync_running.set(true);
-                        },
-
-                        RsyncMsg::Message(message) => {
-                            imp.rsync_page.set_message(&message);
-                        },
-
-                        RsyncMsg::Progress(size, speed, progress) => {
-                            imp.rsync_page.set_status(&size, &speed, progress, dry_run);
-                        },
-
-                        RsyncMsg::Stats(stat) => {
-                            stats.push(stat);
-                        },
-
-                        RsyncMsg::Error(error) => {
-                            errors.push(error);
-                        },
-
-                        RsyncMsg::Exit(code) => {
-                            imp.rsync_running.set(false);
-                            imp.rsync_id.set(None);
-
-                            if imp.close_request.get() {
-                                window.close();
-                            } else {
-                                imp.rsync_page.set_exit_status(code, &stats, &errors);
-                            }
-                        }
-
-                        _ => {}
-                    }
-                }
-            }
-        ));
     }
 }
