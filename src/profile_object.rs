@@ -47,7 +47,7 @@ mod imp {
         #[property(get, set, default = true, construct)]
         preserve_devices: Cell<bool>,
         #[property(get, set, default = false, construct)]
-        no_leave_filesystem: Cell<bool>,
+        one_filesystem: Cell<bool>,
         #[property(get, set, default = false, construct)]
         delete_destination: Cell<bool>,
         #[property(get, set, default = false, construct)]

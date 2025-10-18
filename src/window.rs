@@ -360,8 +360,8 @@ impl AppWindow {
                 }
 
                 args.into_iter()
-                    .chain(imp.advanced_page.args())
                     .map(ToOwned::to_owned)
+                    .chain(imp.advanced_page.args())
                     .chain(options)
                     .collect()
             })

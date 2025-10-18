@@ -5,6 +5,7 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 
 use crate::profile_object::ProfileObject;
+use crate::adv_switchrow::AdvSwitchRow;
 
 //------------------------------------------------------------------------------
 // MODULE: AdvancedPage
@@ -20,41 +21,7 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/advanced_page.ui")]
     pub struct AdvancedPage {
         #[template_child]
-        pub(super) recursive_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) preserve_time_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) preserve_permissions_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) preserve_owner_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) preserve_group_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) numeric_ids_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) preserve_symlinks_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) preserve_hardlinks_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) preserve_devices_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) one_filesystem_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) delete_destination_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) existing_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) ignore_existing_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) skip_newer_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) partial_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) compress_data_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) backup_switch: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) secluded_args_switch: TemplateChild<adw::SwitchRow>,
+        pub(super) switches_box: TemplateChild<gtk::Box>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -72,6 +39,8 @@ mod imp {
         type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
+            AdvSwitchRow::ensure_type();
+
             klass.bind_template();
         }
 
@@ -109,13 +78,28 @@ glib::wrapper! {
 
 impl AdvancedPage {
     //---------------------------------------
-    // Bind widget helper function
+    // Switches helper function
     //---------------------------------------
-    fn bind_widget(&self, profile: &ProfileObject, source: &str, widget: &impl IsA<gtk::Widget>, target: &str) -> glib::Binding{
-        profile.bind_property(source, widget, target)
-            .bidirectional()
-            .sync_create()
-            .build()
+    fn switches(&self) -> Vec<AdvSwitchRow> {
+        let imp = self.imp();
+
+        let mut switches = vec![];
+
+        let mut child = imp.switches_box.first_child();
+
+        while let Some(group) = child.and_downcast_ref::<adw::PreferencesGroup>() {
+            let mut i = 0;
+
+            while let Some(switch) = group.row(i).and_downcast_ref::<AdvSwitchRow>() {
+                switches.push(switch.clone());
+
+                i = i + 1;
+            }
+
+            child = group.next_sibling();
+        }
+
+        switches
     }
 
     //---------------------------------------
@@ -126,6 +110,7 @@ impl AdvancedPage {
         self.connect_profile_notify(|page| {
             let imp = page.imp();
 
+            // Unbind stored bindings
             if let Some(bindings) = imp.bindings.take() {
                 for binding in bindings {
                     binding.unbind();
@@ -133,27 +118,15 @@ impl AdvancedPage {
             }
 
             if let Some(profile) = page.profile() {
-                let bindings: Vec<glib::Binding> = vec![
-                    // Bind profile property to widgets
-                    page.bind_widget(&profile, "recursive", &imp.recursive_switch.get(), "active"),
-                    page.bind_widget(&profile, "preserve-time", &imp.preserve_time_switch.get(), "active"),
-                    page.bind_widget(&profile, "preserve-permissions", &imp.preserve_permissions_switch.get(), "active"),
-                    page.bind_widget(&profile, "preserve-owner", &imp.preserve_owner_switch.get(), "active"),
-                    page.bind_widget(&profile, "preserve-group", &imp.preserve_group_switch.get(), "active"),
-                    page.bind_widget(&profile, "numeric-ids", &imp.numeric_ids_switch.get(), "active"),
-                    page.bind_widget(&profile, "preserve-symlinks", &imp.preserve_symlinks_switch.get(), "active"),
-                    page.bind_widget(&profile, "preserve-hardlinks", &imp.preserve_hardlinks_switch.get(), "active"),
-                    page.bind_widget(&profile, "preserve-devices", &imp.preserve_devices_switch.get(), "active"),
-                    page.bind_widget(&profile, "no-leave-filesystem", &imp.one_filesystem_switch.get(), "active"),
-                    page.bind_widget(&profile, "delete-destination", &imp.delete_destination_switch.get(), "active"),
-                    page.bind_widget(&profile, "existing", &imp.existing_switch.get(), "active"),
-                    page.bind_widget(&profile, "ignore-existing", &imp.ignore_existing_switch.get(), "active"),
-                    page.bind_widget(&profile, "skip-newer", &imp.skip_newer_switch.get(), "active"),
-                    page.bind_widget(&profile, "partial", &imp.partial_switch.get(), "active"),
-                    page.bind_widget(&profile, "compress-data", &imp.compress_data_switch.get(), "active"),
-                    page.bind_widget(&profile, "backup", &imp.backup_switch.get(), "active"),
-                    page.bind_widget(&profile, "secluded-args", &imp.secluded_args_switch.get(), "active")
-                ];
+                // Bind profile property to widgets
+                let bindings: Vec<glib::Binding> = page.switches().iter()
+                    .map(|switch| {
+                        profile.bind_property(&switch.prop_name(), switch, "active")
+                            .bidirectional()
+                            .sync_create()
+                            .build()
+                    })
+                    .collect();
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
@@ -167,85 +140,15 @@ impl AdvancedPage {
     //---------------------------------------
     // Public args function
     //---------------------------------------
-    pub fn args(&self) -> Vec<&str> {
-        let imp = self.imp();
-
-        let mut args: Vec<&str> = vec![];
-
-        if imp.recursive_switch.is_active() {
-            args.push("-r");
-        } else {
-            args.push("-d");
-        }
-
-        if imp.preserve_time_switch.is_active() {
-            args.push("-t");
-        }
-
-        if imp.preserve_permissions_switch.is_active() {
-            args.push("-p");
-        }
-
-        if imp.preserve_owner_switch.is_active() {
-            args.push("-o");
-        }
-
-        if imp.preserve_group_switch.is_active() {
-            args.push("-g");
-        }
-
-        if imp.numeric_ids_switch.is_active() {
-            args.push("--numeric-ids");
-        }
-
-        if imp.preserve_symlinks_switch.is_active() {
-            args.push("-l");
-        }
-
-        if imp.preserve_hardlinks_switch.is_active() {
-            args.push("-H");
-        }
-
-        if imp.preserve_devices_switch.is_active() {
-            args.push("-D");
-        }
-
-        if imp.one_filesystem_switch.is_active() {
-            args.push("-x");
-        }
-
-        if imp.delete_destination_switch.is_active() {
-            args.push("--delete");
-        }
-
-        if imp.existing_switch.is_active() {
-            args.push("--existing");
-        }
-
-        if imp.ignore_existing_switch.is_active() {
-            args.push("---ignore-existing");
-        }
-
-        if imp.skip_newer_switch.is_active() {
-            args.push("-u");
-        }
-
-        if imp.partial_switch.is_active() {
-            args.push("--partial");
-        }
-
-        if imp.compress_data_switch.is_active() {
-            args.push("-x");
-        }
-
-        if imp.backup_switch.is_active() {
-            args.push("-b");
-        }
-
-        if imp.secluded_args_switch.is_active() {
-            args.push("-s");
-        }
-
-        args
+    pub fn args(&self) -> Vec<String> {
+        self.switches().iter()
+            .filter_map(|switch| {
+                if switch.active() {
+                    Some(switch.param())
+                } else {
+                    switch.alt_param()
+                }
+            })
+            .collect()
     }
 }

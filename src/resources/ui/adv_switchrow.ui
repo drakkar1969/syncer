@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// AdvSwitchRow template //-->
+  <template class="AdvSwitchRow" parent="AdwActionRow">
+    <property name="activatable-widget">switch</property>
+    <child>
+      <object class="GtkSwitch" id="switch">
+        <property name="valign">center</property>
+      </object>
+    </child>
+  </template>
+</interface>
