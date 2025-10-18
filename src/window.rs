@@ -80,33 +80,26 @@ mod imp {
                     .and_then(|param| param.get::<bool>())
                     .expect("Could not get bool from variant");
 
-                // Start rsync when rsync page is shown
-                imp.rsync_page.connect_shown(clone!(
-                    #[weak] window,
-                    #[weak] imp,
-                    move |_| {
-                        // Get args
-                        let args = imp.options_page.args()
-                            .map(|options| {
-                                vec![
-                                    "--human-readable",
-                                    "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
-                                ]
-                                .into_iter()
-                                .map(ToOwned::to_owned)
-                                .chain(imp.advanced_page.args())
-                                .chain(options)
-                                .collect()
-                            })
-                            .unwrap_or_default();
-
-                        // Start rsync
-                        window.rsync_process().start(args, dry_run);
-                    }
-                ));
-
                 // Show rsync page
                 imp.content_navigation_view.push_by_tag("rsync");
+
+                // Get args
+                let args = imp.options_page.args()
+                    .map(|options| {
+                        vec![
+                            "--human-readable",
+                            "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
+                        ]
+                        .into_iter()
+                        .map(ToOwned::to_owned)
+                        .chain(imp.advanced_page.args())
+                        .chain(options)
+                        .collect()
+                    })
+                    .unwrap_or_default();
+
+                // Start rsync
+                window.rsync_process().start(args, dry_run);
             });
 
             //---------------------------------------
