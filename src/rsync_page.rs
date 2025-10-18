@@ -289,7 +289,8 @@ impl RsyncPage {
         imp.button_stack.set_visible_child_name("empty");
 
         match (code, stats) {
-            (-1, _) => {},
+            (-1, _) => {}
+
             (0, Some(stats)) => {
                 imp.progress_label.set_label("100%");
                 imp.progress_bar.set_fraction(1.0);
@@ -308,13 +309,15 @@ impl RsyncPage {
                 imp.stats_table.fill(&stats);
 
                 imp.stats_stack.set_visible_child_name("stats");
-            },
+            }
+
             (0, None) => {
                 imp.message_box.set_css_classes(&["warning", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Transfer successful: could not retrieve stats");
-            },
+            }
+
             (code, _) => {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));

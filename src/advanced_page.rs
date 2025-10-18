@@ -93,7 +93,7 @@ impl AdvancedPage {
             while let Some(switch) = group.row(i).and_downcast_ref::<AdvSwitchRow>() {
                 switches.push(switch.clone());
 
-                i = i + 1;
+                i += 1;
             }
 
             child = group.next_sibling();

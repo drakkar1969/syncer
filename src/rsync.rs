@@ -276,23 +276,23 @@ impl RsyncProcess {
                         Msg::Start(id) => {
                             imp.id.set(id);
                             process.set_running(true);
-                        },
+                        }
 
                         Msg::Message(message) => {
                             process.emit_by_name::<()>("message", &[&message]);
-                        },
+                        }
 
                         Msg::Progress(size, speed, progress) => {
                             process.emit_by_name::<()>("progress", &[&size, &speed, &progress, &dry_run]);
-                        },
+                        }
 
                         Msg::Stats(stat) => {
                             stats.push(stat);
-                        },
+                        }
 
                         Msg::Error(error) => {
                             errors.push(error);
-                        },
+                        }
 
                         Msg::Exit(code) => {
                             process.set_running(false);
@@ -300,7 +300,7 @@ impl RsyncProcess {
                             imp.id.set(None);
 
                             process.emit_by_name::<()>("exit", &[&code.unwrap_or(-1), &stats, &errors]);
-                        },
+                        }
 
                         Msg::None => {}
                     }
