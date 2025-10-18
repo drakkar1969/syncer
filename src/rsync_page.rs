@@ -1,4 +1,3 @@
-use std::cell::Cell;
 use std::sync::LazyLock;
 use std::collections::HashMap;
 
@@ -19,8 +18,7 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::RsyncPage)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/RsyncUI/ui/rsync_page.ui")]
     pub struct RsyncPage {
         #[template_child]
@@ -49,9 +47,6 @@ mod imp {
         pub(super) pause_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
-
-        #[property(get, set)]
-        paused: Cell<bool>,
     }
 
     //---------------------------------------
@@ -72,19 +67,7 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
-    impl ObjectImpl for RsyncPage {
-        //---------------------------------------
-        // Constructor
-        //---------------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            let obj = self.obj();
-
-            obj.setup_widgets();
-        }
-    }
+    impl ObjectImpl for RsyncPage {}
 
     impl WidgetImpl for RsyncPage {}
     impl NavigationPageImpl for RsyncPage {
@@ -107,29 +90,6 @@ glib::wrapper! {
 }
 
 impl RsyncPage {
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind paused property to pause button
-        self.bind_property("paused", &imp.pause_content.get(), "icon-name")
-            .transform_to(|_, paused: bool| Some(if paused { "rsync-start-symbolic" } else { "rsync-pause-symbolic" }))
-            .sync_create()
-            .build();
-
-        self.bind_property("paused", &imp.pause_content.get(), "label")
-            .transform_to(|_, paused: bool| Some(if paused { "_Resume" } else { "_Pause" }))
-            .sync_create()
-            .build();
-
-        self.bind_property("paused", &imp.pause_button.get(), "action-name")
-            .transform_to(|_, paused: bool| Some(if paused { "rsync.resume" } else { "rsync.pause" }))
-            .sync_create()
-            .build();
-    }
-
     //---------------------------------------
     // Reset function
     //---------------------------------------
@@ -159,6 +119,23 @@ impl RsyncPage {
         let imp = self.imp();
 
         imp.message_label.set_label(message);
+    }
+
+    //---------------------------------------
+    // Public set pause button state function
+    //---------------------------------------
+    pub fn set_pause_button_state(&self, paused: bool) {
+        let imp = self.imp();
+
+        if paused {
+            imp.pause_content.set_icon_name("rsync-start-symbolic");
+            imp.pause_content.set_label("_Resume");
+            imp.pause_button.set_action_name(Some("rsync.resume"));
+        } else {
+            imp.pause_content.set_icon_name("rsync-pause-symbolic");
+            imp.pause_content.set_label("_Pause");
+            imp.pause_button.set_action_name(Some("rsync.pause"));
+        }
     }
 
     //---------------------------------------

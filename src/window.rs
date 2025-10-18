@@ -256,6 +256,14 @@ impl AppWindow {
             }
         ));
 
+        // Rsync process paused property notify signal
+        imp.rsync_process.connect_paused_notify(clone!(
+            #[weak] imp,
+            move |process| {
+                imp.rsync_page.set_pause_button_state(process.paused());
+            }
+        ));
+
         // Rsync process status signals
         imp.rsync_process.connect_closure("message", false, closure_local!(
             #[weak] imp,
@@ -297,11 +305,6 @@ impl AppWindow {
 
         // Bind sidebar selected profile to advanced page
         imp.sidebar.bind_property("selected-profile", &imp.advanced_page.get(), "profile")
-            .sync_create()
-            .build();
-
-        // Bind rsync process paused property to rsync page paused property
-        imp.rsync_process.bind_property("paused", &imp.rsync_page.get(), "paused")
             .sync_create()
             .build();
 
