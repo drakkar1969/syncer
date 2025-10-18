@@ -165,7 +165,7 @@ impl RsyncPage {
         ]);
 
         error_map.get(&code)
-            .map(|s| s.to_string())
+            .map(|&s| s.to_owned())
             .or_else(|| {
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                     Regex::new(r"^rsync error:\s*(?P<err>.*?)\(.*")

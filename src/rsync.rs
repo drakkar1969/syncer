@@ -189,12 +189,12 @@ impl RsyncProcess {
                                             let vec: Vec<&str> = line.split_whitespace().collect();
 
                                             let values = vec.first()
-                                                .map(|s| s.to_string())
-                                                .zip(vec.get(2).map(|s| s.to_string()))
+                                                .map(|&s| s.to_owned())
+                                                .zip(vec.get(2).map(|&s| s.to_owned()))
                                                 .zip(
                                                     vec.get(1)
-                                                        .map(|s| s.to_string().replace("%", ""))
-                                                        .and_then(|s| s.parse().ok())
+                                                        .map(|&s| s.to_owned().replace("%", ""))
+                                                        .and_then(|s| s.parse::<f64>().ok())
                                                 );
 
                                             if let Some(((size, speed), progress)) = values {
