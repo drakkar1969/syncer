@@ -253,8 +253,8 @@ impl AppWindow {
             }
         ));
 
-        // Rsync page shown/hidden signals
-        imp.rsync_page.connect_shown(clone!(
+        // Rsync page showing/hidden signals
+        imp.rsync_page.connect_showing(clone!(
             #[weak] imp,
             move |_| {
                 imp.sidebar.set_sensitive(false);
