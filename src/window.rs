@@ -76,7 +76,19 @@ mod imp {
                 let imp = window.imp();
 
                 // Get args
-                let args = window.rsync_args();
+                let args = imp.options_page.args()
+                    .map(|options| {
+                        vec![
+                            "--human-readable",
+                            "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
+                        ]
+                        .into_iter()
+                        .map(ToOwned::to_owned)
+                        .chain(imp.advanced_page.args())
+                        .chain(options)
+                        .collect()
+                    })
+                    .unwrap_or_default();
 
                 // Get dry run
                 let dry_run = parameter
@@ -316,25 +328,5 @@ impl AppWindow {
 
         // Load profiles from config file
         let _ = imp.sidebar.load_config();
-    }
-
-    //---------------------------------------
-    // Rsync args function
-    //---------------------------------------
-    fn rsync_args(&self) -> Vec<String> {
-        let imp = self.imp();
-
-        imp.options_page.args()
-            .map(|options| {
-                vec![
-                    "--human-readable",
-                    "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
-                ].into_iter()
-                    .map(ToOwned::to_owned)
-                    .chain(imp.advanced_page.args())
-                    .chain(options)
-                    .collect()
-            })
-            .unwrap_or_default()
     }
 }
