@@ -40,7 +40,6 @@
                 <property name="name">profile</property>
                 <property name="child">
                   <object class="AdwNavigationView" id="content_navigation_view">
-                    <property name="animate-transitions">false</property>
                     <property name="hhomogeneous">true</property>
                     <property name="vhomogeneous">true</property>
                     <child>
