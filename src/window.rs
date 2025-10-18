@@ -84,19 +84,15 @@ mod imp {
                 imp.content_navigation_view.push_by_tag("rsync");
 
                 // Get args
-                let args = imp.options_page.args()
-                    .map(|options| {
-                        vec![
-                            "--human-readable",
-                            "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
-                        ]
-                        .into_iter()
-                        .map(ToOwned::to_owned)
-                        .chain(imp.advanced_page.args())
-                        .chain(options)
-                        .collect()
-                    })
-                    .unwrap_or_default();
+                let args = vec![
+                        "--human-readable",
+                        "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
+                    ]
+                    .into_iter()
+                    .map(ToOwned::to_owned)
+                    .chain(imp.advanced_page.args())
+                    .chain(imp.options_page.args())
+                    .collect();
 
                 // Start rsync
                 window.rsync_process().start(args, dry_run);

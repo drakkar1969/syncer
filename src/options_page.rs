@@ -208,27 +208,21 @@ impl OptionsPage {
     //---------------------------------------
     // Public args function
     //---------------------------------------
-    pub fn args(&self) -> Option<Vec<String>> {
+    pub fn args(&self) -> Vec<String> {
         let imp = self.imp();
 
-        let source = imp.source_row.subtitle().filter(|s| !s.is_empty());
-        let destination = imp.destination_row.subtitle().filter(|s| !s.is_empty());
+        let mut args = Vec::with_capacity(3);
 
-        source.zip(destination)
-            .map(|(source, destination)| {
-                let mut args: Vec<String> = [source, destination]
-                    .into_iter()
-                    .map(|s| s.to_string())
-                    .collect();
+        if let Some(check_mode) = imp.check_mode_combo.selected_item()
+            .and_downcast::<CheckObject>()
+            .and_then(|obj| obj.switch())
+        {
+            args.push(check_mode);
+        }
 
-                if let Some(check_mode) = imp.check_mode_combo.selected_item()
-                    .and_downcast::<CheckObject>()
-                    .and_then(|obj| obj.switch())
-                {
-                    args.insert(0, check_mode);
-                }
+        args.push(imp.source_row.subtitle().unwrap_or_default().to_string());
+        args.push(imp.destination_row.subtitle().unwrap_or_default().to_string());
 
-                args
-            })
+        args
     }
 }
