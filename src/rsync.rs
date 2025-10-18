@@ -28,7 +28,7 @@ enum Msg {
     Progress(String, String, f64),
     Stats(String),
     Error(String),
-    Exit(Option<i32>)
+    Exit(i32)
 }
 
 //------------------------------------------------------------------------------
@@ -247,7 +247,7 @@ impl RsyncProcess {
                             let status = result?;
 
                             sender
-                                .send(Msg::Exit(status.code()))
+                                .send(Msg::Exit(status.code().unwrap_or(1)))
                                 .await
                                 .expect("Could not send through channel");
 
@@ -299,7 +299,7 @@ impl RsyncProcess {
                             process.set_paused(false);
                             imp.id.set(None);
 
-                            process.emit_by_name::<()>("exit", &[&code.unwrap_or(-1), &stats, &errors]);
+                            process.emit_by_name::<()>("exit", &[&code, &stats, &errors]);
                         }
 
                         Msg::None => {}
