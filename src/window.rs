@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -22,7 +22,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::AppWindow)]
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
@@ -41,8 +42,8 @@ mod imp {
         #[template_child]
         pub(super) rsync_page: TemplateChild<RsyncPage>,
 
-        #[template_child]
-        pub(super) rsync_process: TemplateChild<RsyncProcess>,
+        #[property(get)]
+        rsync_process: RefCell<RsyncProcess>,
 
         pub(super) close_request: Cell<bool>,
     }
@@ -86,28 +87,28 @@ mod imp {
                 imp.content_navigation_view.push_by_tag("rsync");
 
                 // Start rsync
-                imp.rsync_process.start(args, dry_run);
+                window.rsync_process().start(args, dry_run);
             });
 
             //---------------------------------------
             // Rsync terminate action
             //---------------------------------------
             klass.install_action("rsync.terminate", None, |window, _, _| {
-                window.imp().rsync_process.terminate();
+                window.rsync_process().terminate();
             });
 
             //---------------------------------------
             // Rsync pause action
             //---------------------------------------
             klass.install_action("rsync.pause", None, |window, _, _| {
-                window.imp().rsync_process.pause();
+                window.rsync_process().pause();
             });
 
             //---------------------------------------
             // Rsync resume action
             //---------------------------------------
             klass.install_action("rsync.resume", None, |window, _, _| {
-                window.imp().rsync_process.resume();
+                window.rsync_process().resume();
             });
 
             //---------------------------------------
@@ -126,6 +127,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         //---------------------------------------
         // Constructor
@@ -148,8 +150,10 @@ mod imp {
         fn close_request(&self) -> glib::Propagation {
             let window = &*self.obj();
 
-            if self.rsync_process.running() {
-                if !self.rsync_process.paused() {
+            let rsync_process = window.rsync_process();
+
+            if rsync_process.running() {
+                if !rsync_process.paused() {
                     gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
                         .expect("Could not activate action 'rsync.pause'");
                 }
@@ -257,7 +261,9 @@ impl AppWindow {
         ));
 
         // Rsync process paused property notify signal
-        imp.rsync_process.connect_paused_notify(clone!(
+        let rsync_process = self.rsync_process();
+
+        rsync_process.connect_paused_notify(clone!(
             #[weak] imp,
             move |process| {
                 imp.rsync_page.set_pause_button_state(process.paused());
@@ -265,21 +271,21 @@ impl AppWindow {
         ));
 
         // Rsync process status signals
-        imp.rsync_process.connect_closure("message", false, closure_local!(
+        rsync_process.connect_closure("message", false, closure_local!(
             #[weak] imp,
             move |_: RsyncProcess, message: String| {
                 imp.rsync_page.set_message(&message);
             }
         ));
 
-        imp.rsync_process.connect_closure("progress", false, closure_local!(
+        rsync_process.connect_closure("progress", false, closure_local!(
             #[weak] imp,
             move |_: RsyncProcess, size: String, speed: String, progress: f64, dry_run: bool| {
                 imp.rsync_page.set_status(&size, &speed, progress, dry_run);
             }
         ));
 
-        imp.rsync_process.connect_closure("exit", false, closure_local!(
+        rsync_process.connect_closure("exit", false, closure_local!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_: RsyncProcess, code: i32, stats: Vec<String>, errors: Vec<String>| {
