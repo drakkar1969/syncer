@@ -14,7 +14,7 @@
             <property name="margin-top">16</property>
             <property name="margin-bottom">16</property>
             <property name="row-spacing">12</property>
-            <property name="column-spacing">16</property>
+            <property name="column-spacing">20</property>
             <child>
               <object class="GtkBox">
                 <layout>
@@ -72,7 +72,7 @@
                   <property name="column">1</property>
                 </layout>
                 <property name="margin-bottom">12</property>
-                <property name="spacing">16</property>
+                <property name="spacing">20</property>
                 <child>
                   <object class="GtkSeparator" id="source_separator"/>
                 </child>
@@ -180,7 +180,7 @@
                   <property name="row">2</property>
                   <property name="column">1</property>
                 </layout>
-                <property name="spacing">16</property>
+                <property name="spacing">20</property>
                 <child>
                   <object class="GtkSeparator" id="transfer_separator"/>
                 </child>
@@ -231,7 +231,7 @@
                   <property name="row">3</property>
                   <property name="column">1</property>
                 </layout>
-                <property name="spacing">16</property>
+                <property name="spacing">20</property>
                 <child>
                   <object class="GtkSeparator" id="created_separator"/>
                 </child>
@@ -339,7 +339,7 @@
                   <property name="row">4</property>
                   <property name="column">1</property>
                 </layout>
-                <property name="spacing">16</property>
+                <property name="spacing">20</property>
                 <child>
                   <object class="GtkSeparator" id="deleted_separator"/>
                 </child>
