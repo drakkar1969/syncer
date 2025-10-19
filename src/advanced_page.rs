@@ -138,7 +138,7 @@ impl AdvancedPage {
     }
 
     //---------------------------------------
-    // Public args function
+    // Args function
     //---------------------------------------
     pub fn args(&self) -> Vec<String> {
         self.switches().iter()

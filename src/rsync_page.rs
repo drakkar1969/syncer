@@ -109,16 +109,7 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Public set message function
-    //---------------------------------------
-    pub fn set_message(&self, message: &str) {
-        let imp = self.imp();
-
-        imp.message_label.set_label(message);
-    }
-
-    //---------------------------------------
-    // Public set pause button state function
+    // Set pause button state function
     //---------------------------------------
     pub fn set_pause_button_state(&self, paused: bool) {
         let imp = self.imp();
@@ -135,7 +126,16 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Public set status function
+    // Set message function
+    //---------------------------------------
+    pub fn set_message(&self, message: &str) {
+        let imp = self.imp();
+
+        imp.message_label.set_label(message);
+    }
+
+    //---------------------------------------
+    // Set status function
     //---------------------------------------
     pub fn set_status(&self, size: &str, speed: &str, progress: f64, dry_run: bool) {
         let imp = self.imp();
@@ -152,7 +152,7 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Public set exit status function
+    // Set exit status function
     //---------------------------------------
     pub fn set_exit_status(&self, code: i32, stats: &Option<Stats>, error: &Option<String>) {
         let imp = self.imp();

@@ -159,7 +159,7 @@ impl StatsTable {
     }
 
     //---------------------------------------
-    // Public fill function
+    // Fill function
     //---------------------------------------
     pub fn fill(&self, stats: &Stats) {
         let imp = self.imp();

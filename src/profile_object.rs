@@ -129,7 +129,7 @@ impl ProfileObject {
     }
 
     //---------------------------------------
-    // Public duplicate function
+    // Duplicate function
     //---------------------------------------
     pub fn duplicate(&self, name: &str) -> Self {
         let dup_obj: Self = glib::Object::builder()
@@ -148,7 +148,7 @@ impl ProfileObject {
     }
 
     //---------------------------------------
-    // Public reset function
+    // Reset function
     //---------------------------------------
     pub fn reset(&self) {
         for property in self.list_properties() {
@@ -161,7 +161,7 @@ impl ProfileObject {
     }
 
     //---------------------------------------
-    // Public to json function
+    // To json function
     //---------------------------------------
     pub fn to_json(&self) -> JsonValue {
         let mut json_map = JsonMap::new();
