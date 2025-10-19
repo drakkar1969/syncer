@@ -1,5 +1,5 @@
 use std::cell::Cell;
-use std::sync::OnceLock;
+use std::sync::{OnceLock, LazyLock};
 use std::io;
 use std::process::Stdio;
 
@@ -14,6 +14,8 @@ use tokio::process::Command as TkCommand;
 use tokio::io::AsyncReadExt as _;
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
+use regex::Regex;
+use itertools::Itertools;
 
 //------------------------------------------------------------------------------
 // ENUM: Msg
@@ -85,7 +87,7 @@ mod imp {
                         .param_types([
                             i32::static_type(),
                             Vec::<String>::static_type(),
-                            Vec::<String>::static_type()
+                            Option::<String>::static_type()
                         ])
                         .build()
                 ]
@@ -110,6 +112,47 @@ impl RsyncProcess {
         RUNTIME.get_or_init(|| {
             TkRuntime::new().expect("Setting up tokio runtime needs to succeed.")
         })
+    }
+
+    //---------------------------------------
+    // Error function
+    //---------------------------------------
+    fn error(&self, code: i32, errors: &[String]) -> Option<String> {
+        // Return none if more that two error strings
+        let (err_detail, err_main) = errors.iter().collect_tuple()?;
+
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"^(?P<err>[^(]*).*")
+                .expect("Failed to compile Regex")
+        });
+
+        // Get error string
+        match code {
+            // Terminated by user
+            20 => { Some(String::from("Terminated by user")) }
+
+            // Usage error
+            1 => {
+                EXPR.captures(err_detail).and_then(|caps| {
+                    caps.name("err")
+                        .map(|m| m.as_str().trim().replace(".", ""))
+                })
+                .or_else(|| {
+                    EXPR.captures(err_main).and_then(|caps| {
+                        caps.name("err")
+                            .map(|m| m.as_str().trim().replace("rsync error: ", ""))
+                    })
+                })
+            }
+
+            // Other error
+            _ => {
+                EXPR.captures(err_main).and_then(|caps| {
+                    caps.name("err")
+                        .map(|m| m.as_str().trim().replace("rsync error: ", ""))
+                })
+            }
+        }
     }
 
     //---------------------------------------
@@ -283,7 +326,12 @@ impl RsyncProcess {
                         }
 
                         Msg::Progress(size, speed, progress) => {
-                            process.emit_by_name::<()>("progress", &[&size, &speed, &progress, &dry_run]);
+                            process.emit_by_name::<()>("progress", &[
+                                &size,
+                                &speed,
+                                &progress,
+                                &dry_run
+                            ]);
                         }
 
                         Msg::Stats(stat) => {
@@ -299,7 +347,11 @@ impl RsyncProcess {
                             process.set_paused(false);
                             imp.id.set(None);
 
-                            process.emit_by_name::<()>("exit", &[&code, &stats, &errors]);
+                            process.emit_by_name::<()>("exit", &[
+                                &code,
+                                &stats,
+                                &process.error(code, &errors)
+                            ]);
                         }
 
                         Msg::None => {}
