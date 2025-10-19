@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/RsyncUI/icons/scalable/actions/">
+    <file alias="options-copy-byname-symbolic.svg">icons/options-copy-byname-symbolic.svg</file>
     <file alias="options-swap-symbolic.svg">icons/options-swap-symbolic.svg</file>
     <file alias="options-check-symbolic.svg">icons/options-check-symbolic.svg</file>
     <file alias="options-advanced-symbolic.svg">icons/options-advanced-symbolic.svg</file>

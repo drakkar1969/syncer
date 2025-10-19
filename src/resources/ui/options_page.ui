@@ -28,12 +28,26 @@
               <object class="AdwPreferencesGroup">
                 <property name="title">Paths</property>
                 <property name="header-suffix">
-                  <object class="GtkButton" id="swap_paths_button">
-                    <property name="icon-name">options-swap-symbolic</property>
-                    <property name="tooltip-text">Swap Source With Destination</property>
-                    <style>
-                      <class name="flat"/>
-                    </style>
+                  <object class="GtkBox">
+                    <property name="spacing">8</property>
+                    <child>
+                      <object class="GtkToggleButton" id="copy_by_name_button">
+                        <property name="icon-name">options-copy-byname-symbolic</property>
+                        <property name="tooltip-text">Copy Source Directory by Name</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="swap_paths_button">
+                        <property name="icon-name">options-swap-symbolic</property>
+                        <property name="tooltip-text">Swap Source With Destination</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </property>
                 <child>

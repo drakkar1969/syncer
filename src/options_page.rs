@@ -22,6 +22,8 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/options_page.ui")]
     pub struct OptionsPage {
         #[template_child]
+        pub(super) copy_by_name_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
         pub(super) swap_paths_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) source_row: TemplateChild<adw::ActionRow>,
@@ -96,7 +98,7 @@ impl OptionsPage {
     //---------------------------------------
     // Select folder helper function
     //---------------------------------------
-    fn select_folder(&self, row: &adw::ActionRow) {
+    fn select_folder(&self, row: &adw::ActionRow, add_trailing: bool) {
         let dialog = gtk::FileDialog::builder()
             .title(format!("Select {}", row.title().replace('_', "")))
             .modal(true)
@@ -116,7 +118,13 @@ impl OptionsPage {
             #[weak] row,
             move |result| {
                 if let Some(path) = result.ok().and_then(|file| file.path()) {
-                    row.set_subtitle(&path.display().to_string());
+                    let mut subtitle = path.display().to_string();
+
+                    if add_trailing {
+                        subtitle.push('/');
+                    }
+
+                    row.set_subtitle(&subtitle);
                 }
             }
         ));
@@ -179,11 +187,33 @@ impl OptionsPage {
             }
         ));
 
+        // Copy by name button toggled signal
+        imp.copy_by_name_button.connect_toggled(clone!(
+            #[weak] imp,
+            move |button| {
+                let mut subtitle = imp.source_row.subtitle().unwrap_or_default().to_string();
+
+                if !subtitle.is_empty() {
+                    if button.is_active() && subtitle.ends_with("/") {
+                        subtitle.pop();
+
+                        imp.source_row.set_subtitle(&subtitle);
+                    } else if !button.is_active() && !subtitle.ends_with("/") {
+                        subtitle.push('/');
+
+                        imp.source_row.set_subtitle(&subtitle);
+                    }
+                }
+            }
+        ));
+
         // Source row activated signal
         imp.source_row.connect_activated(clone!(
             #[weak(rename_to = page)] self,
             move |row| {
-                page.select_folder(row);
+                let add_trailing = !page.imp().copy_by_name_button.is_active();
+
+                page.select_folder(row, add_trailing);
             }
         ));
 
@@ -191,7 +221,7 @@ impl OptionsPage {
         imp.destination_row.connect_activated(clone!(
             #[weak(rename_to = page)] self,
             move |row| {
-                page.select_folder(row);
+                page.select_folder(row, false);
             }
         ));
     }
