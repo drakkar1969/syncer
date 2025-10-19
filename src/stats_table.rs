@@ -18,12 +18,16 @@ mod imp {
         #[template_child]
         pub(super) transfer_total_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) transfer_separator: TemplateChild<gtk::Separator>,
+        #[template_child]
         pub(super) transfer_files_box: TemplateChild<gtk::Box>,
         #[template_child]
         pub(super) transfer_files_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) source_total_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) source_separator: TemplateChild<gtk::Separator>,
         #[template_child]
         pub(super) source_files_box: TemplateChild<gtk::Box>,
         #[template_child]
@@ -44,6 +48,8 @@ mod imp {
         #[template_child]
         pub(super) created_total_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) created_separator: TemplateChild<gtk::Separator>,
+        #[template_child]
         pub(super) created_files_box: TemplateChild<gtk::Box>,
         #[template_child]
         pub(super) created_dirs_box: TemplateChild<gtk::Box>,
@@ -62,6 +68,8 @@ mod imp {
 
         #[template_child]
         pub(super) deleted_total_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) deleted_separator: TemplateChild<gtk::Separator>,
         #[template_child]
         pub(super) deleted_files_box: TemplateChild<gtk::Box>,
         #[template_child]
@@ -130,6 +138,20 @@ impl StatsTable {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        let widgets = [
+            (&imp.transfer_separator, &imp.transfer_total_label),
+            (&imp.source_separator, &imp.source_total_label),
+            (&imp.created_separator, &imp.created_total_label),
+            (&imp.deleted_separator, &imp.deleted_total_label),
+        ];
+
+        for (sep, label) in widgets {
+            label.bind_property("label", &sep.get(), "visible")
+                .transform_to(|_, label: &str| Some(!label.is_empty() && label != "0"))
+                .sync_create()
+                .build();
+        }
 
         let widgets = [
             (&imp.transfer_files_box, &imp.transfer_files_label),
