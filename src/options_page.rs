@@ -32,6 +32,10 @@ mod imp {
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
+        #[property(get, set)]
+        source: RefCell<String>,
+        #[property(get, set)]
+        destination: RefCell<String>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>
     }
@@ -193,6 +197,15 @@ impl OptionsPage {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Bind source/destination row subtitles to properties
+        imp.source_row.bind_property("subtitle", self, "source")
+            .sync_create()
+            .build();
+
+        imp.destination_row.bind_property("subtitle", self, "destination")
+            .sync_create()
+            .build();
 
         // Bind check mode combo selected item to subtitle
         imp.check_mode_combo.bind_property("selected-item", &imp.check_mode_combo.get(), "subtitle")

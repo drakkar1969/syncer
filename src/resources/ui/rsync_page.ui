@@ -30,7 +30,7 @@
                     <property name="margin-end">24</property>
                     <property name="margin-top">16</property>
                     <property name="margin-bottom">16</property>
-                    <property name="spacing">12</property>
+                    <property name="spacing">14</property>
                     <child>
                       <object class="GtkBox">
                         <property name="margin-bottom">4</property>
@@ -120,6 +120,38 @@
                       <object class="GtkProgressBar" id="progress_bar">
                         <property name="hexpand">true</property>
                         <property name="valign">center</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="source_box">
+                        <property name="spacing">10</property>
+                        <child>
+                          <object class="GtkImage" id="source_image">
+                            <property name="icon-name">rsync-source-symbolic</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="source_label">
+                            <property name="xalign">0</property>
+                            <property name="ellipsize">start</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="destination_box">
+                        <property name="spacing">10</property>
+                        <child>
+                          <object class="GtkImage" id="destination_image">
+                            <property name="icon-name">rsync-destination-symbolic</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="destination_label">
+                            <property name="xalign">0</property>
+                            <property name="ellipsize">start</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
