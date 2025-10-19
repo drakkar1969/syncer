@@ -30,6 +30,10 @@ mod imp {
         #[template_child]
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
 
+        #[property(get)]
+        #[template_child]
+        pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
+
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
         #[property(get, set)]

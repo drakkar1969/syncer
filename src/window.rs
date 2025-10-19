@@ -27,6 +27,9 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
+        pub(super) split_view: TemplateChild<adw::OverlaySplitView>,
+
+        #[template_child]
         pub(super) sidebar: TemplateChild<Sidebar>,
 
         #[template_child]
@@ -312,6 +315,12 @@ impl AppWindow {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Bind sidebar visibility to options page sidebar button
+        imp.split_view.bind_property("show-sidebar", &imp.options_page.sidebar_button(), "active")
+            .bidirectional()
+            .sync_create()
+            .build();
 
         // Bind sidebar selected profile to options page
         imp.sidebar.bind_property("selected-profile", &imp.options_page.get(), "profile")

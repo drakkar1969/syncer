@@ -7,7 +7,14 @@
     <property name="child">
       <object class="AdwToolbarView">
         <child type="top">
-          <object class="AdwHeaderBar"/>
+          <object class="AdwHeaderBar">
+            <child>
+              <object class="GtkToggleButton" id="sidebar_button">
+                <property name="icon-name">sidebar-show-symbolic</property>
+                <property name="tooltip-text">Toggle Sidebar</property>
+              </object>
+            </child>
+          </object>
         </child>
         <property name="content">
           <object class="GtkBox" id="content_box">

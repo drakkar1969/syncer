@@ -2,11 +2,20 @@
 <interface>
   <!--// AppWindow template //-->
   <template class="AppWindow" parent="AdwApplicationWindow">
-    <property name="default-width">800</property>
-    <property name="default-height">550</property>
+    <property name="default-width">820</property>
+    <property name="default-height">630</property>
+    <property name="width-request">520</property>
+    <property name="height-request">630</property>
     <property name="title">RsyncUI</property>
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>max-width: 650px</condition>
+        <setter object="split_view" property="collapsed">true</setter>
+      </object>
+    </child>
     <property name="content">
-      <object class="AdwOverlaySplitView">
+      <object class="AdwOverlaySplitView" id="split_view">
+        <property name="max-sidebar-width">240</property>
         <property name="sidebar">
           <object class="Sidebar" id="sidebar"/>
         </property>
