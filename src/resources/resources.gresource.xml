@@ -15,6 +15,8 @@
     <file alias="rsync-error-symbolic.svg">icons/rsync-error-symbolic.svg</file>
     <file alias="rsync-source-symbolic.svg">icons/rsync-source-symbolic.svg</file>
     <file alias="rsync-destination-symbolic.svg">icons/rsync-destination-symbolic.svg</file>
+    <file alias="rsync-created-symbolic.svg">icons/rsync-created-symbolic.svg</file>
+    <file alias="rsync-deleted-symbolic.svg">icons/rsync-deleted-symbolic.svg</file>
     <file alias="stats-symbolic.svg">icons/stats-symbolic.svg</file>
     <file alias="stats-file-symbolic.svg">icons/stats-file-symbolic.svg</file>
     <file alias="stats-dir-symbolic.svg">icons/stats-dir-symbolic.svg</file>

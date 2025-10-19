@@ -20,7 +20,7 @@
                 <layout>
                   <property name="row">0</property>
                   <property name="column">0</property>
-                  <property name="column-span">3</property>
+                  <property name="column-span">2</property>
                 </layout>
                 <property name="margin-bottom">4</property>
                 <property name="spacing">16</property>
@@ -45,30 +45,33 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkBox">
                 <layout>
                   <property name="row">1</property>
                   <property name="column">0</property>
                 </layout>
-                <property name="xalign">0</property>
-                <property name="label">Source:</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="source_total_label">
-                <layout>
-                  <property name="row">1</property>
-                  <property name="column">1</property>
-                </layout>
-                <property name="xalign">0</property>
+                <property name="margin-bottom">12</property>
+                <property name="spacing">10</property>
+                <property name="tooltip-text">Source</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">rsync-source-symbolic</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="source_total_label">
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
               <object class="GtkBox">
                 <layout>
                   <property name="row">1</property>
-                  <property name="column">2</property>
+                  <property name="column">1</property>
                 </layout>
+                <property name="margin-bottom">12</property>
                 <property name="spacing">16</property>
                 <child>
                   <object class="GtkSeparator" id="source_separator"/>
@@ -76,6 +79,7 @@
                 <child>
                   <object class="GtkBox" id="source_files_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Files</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-file-symbolic</property>
@@ -94,6 +98,7 @@
                 <child>
                   <object class="GtkBox" id="source_dirs_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Directories</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-dir-symbolic</property>
@@ -112,6 +117,7 @@
                 <child>
                   <object class="GtkBox" id="source_links_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Links</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-link-symbolic</property>
@@ -130,6 +136,7 @@
                 <child>
                   <object class="GtkBox" id="source_specials_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Devices and Special Files</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-special-symbolic</property>
@@ -148,29 +155,30 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkBox">
                 <layout>
                   <property name="row">2</property>
                   <property name="column">0</property>
                 </layout>
-                <property name="xalign">0</property>
-                <property name="label">Transferred:</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="transfer_total_label">
-                <layout>
-                  <property name="row">2</property>
-                  <property name="column">1</property>
-                </layout>
-                <property name="xalign">0</property>
+                <property name="spacing">10</property>
+                <property name="tooltip-text">Transferred to Destination</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">rsync-transferred-symbolic</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="transfer_total_label">
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
               <object class="GtkBox">
                 <layout>
                   <property name="row">2</property>
-                  <property name="column">2</property>
+                  <property name="column">1</property>
                 </layout>
                 <property name="spacing">16</property>
                 <child>
@@ -179,6 +187,7 @@
                 <child>
                   <object class="GtkBox" id="transfer_files_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Files</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-file-symbolic</property>
@@ -197,29 +206,30 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkBox">
                 <layout>
                   <property name="row">3</property>
                   <property name="column">0</property>
                 </layout>
-                <property name="xalign">0</property>
-                <property name="label">Created:</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="created_total_label">
-                <layout>
-                  <property name="row">3</property>
-                  <property name="column">1</property>
-                </layout>
-                <property name="xalign">0</property>
+                <property name="spacing">10</property>
+                <property name="tooltip-text">Created on Destination</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">rsync-created-symbolic</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="created_total_label">
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
               <object class="GtkBox">
                 <layout>
                   <property name="row">3</property>
-                  <property name="column">2</property>
+                  <property name="column">1</property>
                 </layout>
                 <property name="spacing">16</property>
                 <child>
@@ -228,6 +238,7 @@
                 <child>
                   <object class="GtkBox" id="created_files_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Files</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-file-symbolic</property>
@@ -246,6 +257,7 @@
                 <child>
                   <object class="GtkBox" id="created_dirs_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Directories</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-dir-symbolic</property>
@@ -264,6 +276,7 @@
                 <child>
                   <object class="GtkBox" id="created_links_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Links</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-link-symbolic</property>
@@ -282,6 +295,7 @@
                 <child>
                   <object class="GtkBox" id="created_specials_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Devices and Special Files</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-special-symbolic</property>
@@ -300,29 +314,30 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkBox">
                 <layout>
                   <property name="row">4</property>
                   <property name="column">0</property>
                 </layout>
-                <property name="xalign">0</property>
-                <property name="label">Deleted:</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="deleted_total_label">
-                <layout>
-                  <property name="row">4</property>
-                  <property name="column">1</property>
-                </layout>
-                <property name="xalign">0</property>
+                <property name="spacing">10</property>
+                <property name="tooltip-text">Deleted on Destination</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">rsync-deleted-symbolic</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="deleted_total_label">
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
               <object class="GtkBox">
                 <layout>
                   <property name="row">4</property>
-                  <property name="column">2</property>
+                  <property name="column">1</property>
                 </layout>
                 <property name="spacing">16</property>
                 <child>
@@ -331,6 +346,7 @@
                 <child>
                   <object class="GtkBox" id="deleted_files_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Files</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-file-symbolic</property>
@@ -349,6 +365,7 @@
                 <child>
                   <object class="GtkBox" id="deleted_dirs_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Directories</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-dir-symbolic</property>
@@ -367,6 +384,7 @@
                 <child>
                   <object class="GtkBox" id="deleted_links_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Links</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-link-symbolic</property>
@@ -385,6 +403,7 @@
                 <child>
                   <object class="GtkBox" id="deleted_specials_box">
                     <property name="spacing">6</property>
+                    <property name="tooltip-text">Devices and Special Files</property>
                     <child>
                       <object class="GtkImage">
                         <property name="icon-name">stats-special-symbolic</property>
