@@ -265,14 +265,10 @@ impl RsyncProcess {
     //---------------------------------------
     // Start function
     //---------------------------------------
-    pub fn start(&self, mut args: Vec<String>, dry_run: bool) {
+    pub fn start(&self, args: Vec<String>, dry_run: bool) {
         let imp = self.imp();
 
-        // Get args
-        if dry_run {
-            args.insert(0, String::from("--dry-run"));
-        }
-
+        // Store dry run setting
         imp.dry_run.set(dry_run);
 
         // Spawn tokio task to run rsync
