@@ -1,39 +1,7 @@
 use gtk::glib::{self, object::ObjectExt};
 use adw::subclass::prelude::*;
 
-//------------------------------------------------------------------------------
-// STRUCT: StatsRow
-//------------------------------------------------------------------------------
-#[derive(Default, Debug)]
-pub struct StatsRow {
-    pub total: String,
-    pub files: String,
-    pub dirs: String,
-    pub links: String,
-    pub specials: String
-}
-
-//------------------------------------------------------------------------------
-// STRUCT: StatsBytes
-//------------------------------------------------------------------------------
-#[derive(Default, Debug)]
-pub struct StatsBytes {
-    pub source: String,
-    pub transferred: String,
-    pub speed: String
-}
-
-//------------------------------------------------------------------------------
-// STRUCT: Stats
-//------------------------------------------------------------------------------
-#[derive(Default, Debug)]
-pub struct Stats {
-    pub transferred: String,
-    pub source: StatsRow,
-    pub created: StatsRow,
-    pub deleted: StatsRow,
-    pub bytes: StatsBytes
-}
+use crate::rsync::Stats;
 
 //------------------------------------------------------------------------------
 // MODULE: StatsTable

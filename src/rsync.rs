@@ -14,7 +14,7 @@ use tokio::process::Command as TkCommand;
 use tokio::io::AsyncReadExt as _;
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
-use regex::Regex;
+use regex::{Regex, Captures};
 use itertools::Itertools;
 
 //------------------------------------------------------------------------------
@@ -31,6 +31,41 @@ enum Msg {
     Stats(String),
     Error(String),
     Exit(i32)
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: StatsRow
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone)]
+pub struct StatsRow {
+    pub total: String,
+    pub files: String,
+    pub dirs: String,
+    pub links: String,
+    pub specials: String
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: StatsBytes
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone)]
+pub struct StatsBytes {
+    pub source: String,
+    pub transferred: String,
+    pub speed: String
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: Stats
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone, glib::Boxed)]
+#[boxed_type(name = "Stats", nullable)]
+pub struct Stats {
+    pub transferred: String,
+    pub source: StatsRow,
+    pub created: StatsRow,
+    pub deleted: StatsRow,
+    pub bytes: StatsBytes
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +121,7 @@ mod imp {
                     Signal::builder("exit")
                         .param_types([
                             i32::static_type(),
-                            Vec::<String>::static_type(),
+                            Option::<Stats>::static_type(),
                             Option::<String>::static_type()
                         ])
                         .build()
@@ -112,6 +147,78 @@ impl RsyncProcess {
         RUNTIME.get_or_init(|| {
             TkRuntime::new().expect("Setting up tokio runtime needs to succeed.")
         })
+    }
+
+    //---------------------------------------
+    // Stats function
+    //---------------------------------------
+    fn stats(&self, stats: &[String]) -> Option<Stats> {
+        let stats_str = stats.join("\n");
+
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r#"(?x)
+                Number\s*of\s*files:\s*(?P<st>[\d,]+)\s*\(?(?:reg:\s*(?P<sf>[\d,]+))?,?\s*(?:dir:\s*(?P<sd>[\d,]+))?,?\s*(?:link:\s*(?P<sl>[\d,]+))?,?\s*(?:special:\s*(?P<ss>[\d,]+))?,?\s*\)?\n
+                Number\s*of\s*created\s*files:\s*(?P<ct>[\d,]+)\s*\(?(?:reg:\s*(?P<cf>[\d,]+))?,?\s*(?:dir:\s*(?P<cd>[\d,]+))?,?\s*(?:link:\s*(?P<cl>[\d,]+))?,?\s*(?:special:\s*(?P<cs>[\d,]+))?,?\s*\)?\n
+                Number\s*of\s*deleted\s*files:\s*(?P<dt>[\d,]+)\s*\(?(?:reg:\s*(?P<df>[\d,]+))?,?\s*(?:dir:\s*(?P<dd>[\d,]+))?,?\s*(?:link:\s*(?P<dl>[\d,]+))?,?\s*(?:special:\s*(?P<ds>[\d,]+))?,?\s*\)?\n
+                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tn>[\d,]+)\n
+                Total\s*file\s*size:\s*(?P<bs>.+)\s*bytes\n
+                Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<ts>.*?)\s*bytes
+            "#)
+            .expect("Failed to compile Regex")
+        });
+
+        EXPR.captures(&stats_str)
+            .map(|caps| {
+                let get_match = |caps: &Captures, m: &str| -> String {
+                    let mut text = caps.name(m)
+                        .map(|m| m.as_str().to_owned())
+                        .unwrap_or_default();
+
+                    if text.ends_with(",") {
+                        text.pop();
+                    }
+
+                    text.trim().to_owned()
+                };
+
+                Stats {
+                    transferred: get_match(&caps, "tn"),
+                    source: StatsRow {
+                        total: get_match(&caps, "st"),
+                        files: get_match(&caps, "sf"),
+                        dirs: get_match(&caps, "sd"),
+                        links: get_match(&caps, "sl"),
+                        specials: get_match(&caps, "ss")
+                    },
+                    created: StatsRow {
+                        total: get_match(&caps, "ct"),
+                        files: get_match(&caps, "cf"),
+                        dirs: get_match(&caps, "cd"),
+                        links: get_match(&caps, "cl"),
+                        specials: get_match(&caps, "cs")
+                    },
+                    deleted: StatsRow {
+                        total: get_match(&caps, "dt"),
+                        files: get_match(&caps, "df"),
+                        dirs: get_match(&caps, "dd"),
+                        links: get_match(&caps, "dl"),
+                        specials: get_match(&caps, "ds")
+                    },
+                    bytes: StatsBytes {
+                        source: get_match(&caps, "bs"),
+                        transferred: get_match(&caps, "bt"),
+                        speed:format!("{}B/s", get_match(&caps, "ts"))
+                    }
+                }
+            })
     }
 
     //---------------------------------------
@@ -349,7 +456,7 @@ impl RsyncProcess {
 
                             process.emit_by_name::<()>("exit", &[
                                 &code,
-                                &stats,
+                                &process.stats(&stats),
                                 &process.error(code, &errors)
                             ]);
                         }

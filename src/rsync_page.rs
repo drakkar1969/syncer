@@ -1,12 +1,9 @@
-use std::sync::LazyLock;
-
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 
-use regex::{Regex, Captures};
-
-use crate::stats_table::{Stats, StatsBytes, StatsRow, StatsTable};
+use crate::stats_table::StatsTable;
+use crate::rsync::Stats;
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage
@@ -155,84 +152,10 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Stats function
-    //---------------------------------------
-    fn stats(&self, stats: &[String]) -> Option<Stats> {
-        let stats = stats.join("\n");
-
-        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r#"(?x)
-                Number\s*of\s*files:\s*(?P<st>[\d,]+)\s*\(?(?:reg:\s*(?P<sf>[\d,]+))?,?\s*(?:dir:\s*(?P<sd>[\d,]+))?,?\s*(?:link:\s*(?P<sl>[\d,]+))?,?\s*(?:special:\s*(?P<ss>[\d,]+))?,?\s*\)?\n
-                Number\s*of\s*created\s*files:\s*(?P<ct>[\d,]+)\s*\(?(?:reg:\s*(?P<cf>[\d,]+))?,?\s*(?:dir:\s*(?P<cd>[\d,]+))?,?\s*(?:link:\s*(?P<cl>[\d,]+))?,?\s*(?:special:\s*(?P<cs>[\d,]+))?,?\s*\)?\n
-                Number\s*of\s*deleted\s*files:\s*(?P<dt>[\d,]+)\s*\(?(?:reg:\s*(?P<df>[\d,]+))?,?\s*(?:dir:\s*(?P<dd>[\d,]+))?,?\s*(?:link:\s*(?P<dl>[\d,]+))?,?\s*(?:special:\s*(?P<ds>[\d,]+))?,?\s*\)?\n
-                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tn>[\d,]+)\n
-                Total\s*file\s*size:\s*(?P<bs>.+)\s*bytes\n
-                Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<ts>.*?)\s*bytes
-            "#)
-            .expect("Failed to compile Regex")
-        });
-
-        EXPR.captures(&stats)
-            .map(|caps| {
-                let get_match = |caps: &Captures, m: &str| -> String {
-                    let mut text = caps.name(m)
-                        .map(|m| m.as_str().to_owned())
-                        .unwrap_or_default();
-
-                    if text.ends_with(",") {
-                        text.pop();
-                    }
-
-                    text.trim().to_owned()
-                };
-
-                Stats {
-                    transferred: get_match(&caps, "tn"),
-                    source: StatsRow {
-                        total: get_match(&caps, "st"),
-                        files: get_match(&caps, "sf"),
-                        dirs: get_match(&caps, "sd"),
-                        links: get_match(&caps, "sl"),
-                        specials: get_match(&caps, "ss")
-                    },
-                    created: StatsRow {
-                        total: get_match(&caps, "ct"),
-                        files: get_match(&caps, "cf"),
-                        dirs: get_match(&caps, "cd"),
-                        links: get_match(&caps, "cl"),
-                        specials: get_match(&caps, "cs")
-                    },
-                    deleted: StatsRow {
-                        total: get_match(&caps, "dt"),
-                        files: get_match(&caps, "df"),
-                        dirs: get_match(&caps, "dd"),
-                        links: get_match(&caps, "dl"),
-                        specials: get_match(&caps, "ds")
-                    },
-                    bytes: StatsBytes {
-                        source: get_match(&caps, "bs"),
-                        transferred: get_match(&caps, "bt"),
-                        speed:format!("{}B/s", get_match(&caps, "ts"))
-                    }
-                }
-            })
-    }
-
-    //---------------------------------------
     // Public set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: &[String], error: Option<&str>) {
+    pub fn set_exit_status(&self, code: i32, stats: &Option<Stats>, error: &Option<String>) {
         let imp = self.imp();
-
-        let stats = self.stats(stats);
 
         imp.button_stack.set_visible_child_name("empty");
 

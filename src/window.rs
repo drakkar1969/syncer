@@ -11,7 +11,7 @@ use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
 use crate::rsync_page::RsyncPage;
-use crate::rsync::RsyncProcess;
+use crate::rsync::{RsyncProcess, Stats};
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -296,11 +296,11 @@ impl AppWindow {
         rsync_process.connect_closure("exit", false, closure_local!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
-            move |_: RsyncProcess, code: i32, stats: Vec<String>, error: Option<String>| {
+            move |_: RsyncProcess, code: i32, stats: Option<Stats>, error: Option<String>| {
                 if imp.close_request.get() {
                     window.close();
                 } else {
-                    imp.rsync_page.set_exit_status(code, &stats, error.as_deref());
+                    imp.rsync_page.set_exit_status(code, &stats, &error);
                 }
             }
         ));
