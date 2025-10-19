@@ -85,6 +85,7 @@
                             <child>
                               <object class="GtkLabel" id="transferred_label">
                                 <property name="label">0</property>
+                                <property name="tooltip-text">Transfer Size</property>
                               </object>
                             </child>
                           </object>
@@ -100,6 +101,7 @@
                             <child>
                               <object class="GtkLabel" id="speed_label">
                                 <property name="label">0</property>
+                                <property name="tooltip-text">Transfer Speed</property>
                               </object>
                             </child>
                           </object>
@@ -110,6 +112,7 @@
                             <child>
                               <object class="GtkLabel" id="progress_label">
                                 <property name="label">0%</property>
+                                <property name="tooltip-text">Progress</property>
                               </object>
                             </child>
                           </object>
@@ -134,6 +137,7 @@
                           <object class="GtkLabel" id="source_label">
                             <property name="xalign">0</property>
                             <property name="ellipsize">start</property>
+                            <property name="tooltip-text">Source</property>
                           </object>
                         </child>
                       </object>
@@ -150,6 +154,7 @@
                           <object class="GtkLabel" id="destination_label">
                             <property name="xalign">0</property>
                             <property name="ellipsize">start</property>
+                            <property name="tooltip-text">Destination</property>
                           </object>
                         </child>
                       </object>
