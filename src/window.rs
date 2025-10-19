@@ -92,7 +92,7 @@ mod imp {
                         "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
                     ]
                     .into_iter()
-                    .chain(["--dry-run"].into_iter().filter_map(|s| dry_run.then_some(s)))
+                    .chain(["--dry-run"].into_iter().filter(|_| dry_run))
                     .map(ToOwned::to_owned)
                     .chain(imp.advanced_page.args())
                     .chain(imp.options_page.args())

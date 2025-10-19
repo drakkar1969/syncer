@@ -210,7 +210,7 @@ impl RsyncPage {
 
                 imp.speed_label.set_label(&stats.bytes.speed);
 
-                imp.stats_table.fill(&stats);
+                imp.stats_table.fill(stats);
 
                 imp.stats_stack.set_visible_child_name("stats");
             }
