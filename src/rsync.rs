@@ -176,15 +176,9 @@ impl RsyncProcess {
         EXPR.captures(&stats.join("\n"))
             .map(|caps| {
                 let get_match = |caps: &Captures, m: &str| -> String {
-                    let mut text = caps.name(m)
-                        .map(|m| m.as_str().to_owned())
-                        .unwrap_or_default();
-
-                    if text.ends_with(',') {
-                        text.pop();
-                    }
-
-                    text.trim().to_owned()
+                    caps.name(m)
+                        .map(|m| m.as_str().trim_end_matches(',').trim().to_owned())
+                        .unwrap_or_default()
                 };
 
                 Stats {
