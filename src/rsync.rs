@@ -313,11 +313,11 @@ impl RsyncProcess {
                             let bytes = result?;
 
                             if bytes >= BUFFER_SIZE {
-                                overflow = String::from_utf8(buffer_stdout[..bytes].to_vec())
-                                    .unwrap_or_default();
+                                overflow = String::from_utf8_lossy(&buffer_stdout[..bytes])
+                                    .to_string();
                             } else if bytes != 0 {
-                                let mut text = String::from_utf8(buffer_stdout[..bytes].to_vec())
-                                    .unwrap_or_default();
+                                let mut text = String::from_utf8_lossy(&buffer_stdout[..bytes])
+                                    .to_string();
 
                                 if !overflow.is_empty() {
                                     text.insert_str(0, &overflow);
@@ -372,8 +372,7 @@ impl RsyncProcess {
                             let bytes = result?;
 
                             if bytes != 0 {
-                                let error = String::from_utf8(buffer_stderr[..bytes].to_vec())
-                                    .unwrap_or_default();
+                                let error = String::from_utf8_lossy(&buffer_stderr[..bytes]);
 
                                 for chunk in error.split_terminator("\n") {
                                     if chunk.is_empty() {
