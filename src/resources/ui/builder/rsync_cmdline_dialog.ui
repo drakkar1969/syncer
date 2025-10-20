@@ -1,0 +1,33 @@
+<interface>
+  <object class="AdwAlertDialog" id="dialog">
+    <property name="heading">Rsync Command Line</property>
+    <property name="default-response">close</property>
+    <property name="close-response">close</property>
+    <property name="extra-child">
+      <object class="GtkBox">
+        <property name="spacing">24</property>
+        <child>
+          <object class="GtkLabel" id="label">
+            <property name="width-request">400</property>
+            <property name="wrap">true</property>
+            <property name="wrap-mode">word</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="copy_button">
+            <property name="valign">center</property>
+            <property name="icon-name">edit-copy-symbolic</property>
+            <property name="tooltip-text">Copy Command Line</property>
+            <style>
+              <class name="flat"/>
+              <class name="circular"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+    <responses>
+      <response id="close">_Close</response>
+    </responses>
+  </object>
+</interface>

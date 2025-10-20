@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::iter;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -92,7 +93,7 @@ mod imp {
                         "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
                     ]
                     .into_iter()
-                    .chain(["--dry-run"].into_iter().filter(|_| dry_run))
+                    .chain(iter::once("--dry-run").filter(|_| dry_run))
                     .map(ToOwned::to_owned)
                     .chain(imp.advanced_page.args())
                     .chain(imp.options_page.args())
@@ -121,6 +122,49 @@ mod imp {
             //---------------------------------------
             klass.install_action("rsync.resume", None, |window, _, _| {
                 window.rsync_process().resume();
+            });
+
+            //---------------------------------------
+            // Rsync show cmdline action
+            //---------------------------------------
+            klass.install_action("rsync.show-cmdline", None, |window, _, _| {
+                let imp = window.imp();
+
+                let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/rsync_cmdline_dialog.ui");
+
+                let dialog: adw::AlertDialog = builder.object("dialog")
+                    .expect("Could not get object from resource");
+
+                let label: gtk::Label = builder.object("label")
+                    .expect("Could not get object from resource");
+
+                let args: Vec<String> = iter::once(String::from("rsync"))
+                    .chain(imp.advanced_page.args())
+                    .chain(
+                        imp.options_page.args().into_iter()
+                            .map(|arg| {
+                                if arg.starts_with("-") {
+                                    arg
+                                } else {
+                                    format!("\"{}\"", arg)
+                                }
+                            })
+                    )
+                    .collect();
+
+                label.set_label(&args.join(" "));
+
+                let copy_button: gtk::Button = builder.object("copy_button")
+                    .expect("Could not get object from resource");
+
+                copy_button.connect_clicked(clone!(
+                    #[weak] window,
+                    move |_| {
+                        window.clipboard().set_text(&label.label());
+                    }
+                ));
+
+                dialog.present(Some(window));
             });
 
             //---------------------------------------
