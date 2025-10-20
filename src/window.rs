@@ -4,7 +4,7 @@ use std::iter;
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::{clone, closure_local};
+use glib::{clone, closure_local, Variant, VariantTy};
 
 use crate::Application;
 use crate::sidebar::Sidebar;
@@ -76,12 +76,12 @@ mod imp {
             //---------------------------------------
             // Rsync start action
             //---------------------------------------
-            klass.install_action("rsync.start", Some(glib::VariantTy::BOOLEAN), |window, _, parameter| {
+            klass.install_action("rsync.start", Some(VariantTy::BOOLEAN), |window, _, parameter| {
                 let imp = window.imp();
 
                 // Get dry run
                 let dry_run = parameter
-                    .and_then(|param| param.get::<bool>())
+                    .and_then(Variant::get::<bool>)
                     .expect("Could not get bool from variant");
 
                 // Show rsync page
@@ -143,10 +143,10 @@ mod imp {
                     .chain(
                         imp.options_page.args().into_iter()
                             .map(|arg| {
-                                if arg.starts_with("-") {
+                                if arg.starts_with('-') {
                                     arg
                                 } else {
-                                    format!("\"{}\"", arg)
+                                    format!("\"{arg}\"")
                                 }
                             })
                     )
@@ -348,7 +348,7 @@ impl AppWindow {
                 if imp.close_request.get() {
                     window.close();
                 } else {
-                    imp.rsync_page.set_exit_status(code, &stats, &error);
+                    imp.rsync_page.set_exit_status(code, stats.as_ref(), error.as_deref());
                 }
             }
         ));

@@ -153,10 +153,8 @@ impl RsyncProcess {
     // Stats function
     //---------------------------------------
     fn stats(&self, stats: &[String]) -> Option<Stats> {
-        let stats_str = stats.join("\n");
-
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r#"(?x)
+            Regex::new(r"(?x)
                 Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
                 Number\s*of\s*created\s*files:\s*(?P<ct>[\d,.]+)\s*\(?(?:reg:\s*(?P<cf>[\d,.]+))?,?\s*(?:dir:\s*(?P<cd>[\d,.]+))?,?\s*(?:link:\s*(?P<cl>[\d,.]+))?,?\s*(?:special:\s*(?P<cs>[\d,.]+))?,?\s*\)?\n
                 Number\s*of\s*deleted\s*files:\s*(?P<dt>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
@@ -171,18 +169,18 @@ impl RsyncProcess {
                 .*\n
                 .*\n
                 sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<ts>.*?)\s*bytes
-            "#)
+            ")
             .expect("Failed to compile Regex")
         });
 
-        EXPR.captures(&stats_str)
+        EXPR.captures(&stats.join("\n"))
             .map(|caps| {
                 let get_match = |caps: &Captures, m: &str| -> String {
                     let mut text = caps.name(m)
                         .map(|m| m.as_str().to_owned())
                         .unwrap_or_default();
 
-                    if text.ends_with(",") {
+                    if text.ends_with(',') {
                         text.pop();
                     }
 
@@ -225,13 +223,13 @@ impl RsyncProcess {
     // Error function
     //---------------------------------------
     fn error(&self, code: i32, errors: &[String]) -> Option<String> {
-        // Return none if more that two error strings
-        let (err_detail, err_main) = errors.iter().collect_tuple()?;
-
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"^(?P<err>[^(]*).*")
                 .expect("Failed to compile Regex")
         });
+
+        // Return none if more that two error strings
+        let (err_detail, err_main) = errors.iter().collect_tuple()?;
 
         // Get error string
         match code {
@@ -240,24 +238,21 @@ impl RsyncProcess {
 
             // Usage error
             1 => {
-                EXPR.captures(err_detail).and_then(|caps| {
-                    caps.name("err")
-                        .map(|m| m.as_str().trim().replace(".", ""))
-                })
-                .or_else(|| {
-                    EXPR.captures(err_main).and_then(|caps| {
-                        caps.name("err")
+                EXPR.captures(err_detail)?
+                    .name("err")
+                    .map(|m| m.as_str().trim().replace('.', ""))
+                    .or_else(|| {
+                        EXPR.captures(err_main)?
+                            .name("err")
                             .map(|m| m.as_str().trim().replace("rsync error: ", ""))
                     })
-                })
             }
 
             // Other error
             _ => {
-                EXPR.captures(err_main).and_then(|caps| {
-                    caps.name("err")
-                        .map(|m| m.as_str().trim().replace("rsync error: ", ""))
-                })
+                EXPR.captures(err_main)?
+                    .name("err")
+                    .map(|m| m.as_str().trim().replace("rsync error: ", ""))
             }
         }
     }
@@ -266,6 +261,8 @@ impl RsyncProcess {
     // Start function
     //---------------------------------------
     pub fn start(&self, args: Vec<String>, dry_run: bool) {
+        const BUFFER_SIZE: usize = 16384;
+
         let imp = self.imp();
 
         // Store dry run setting
@@ -297,8 +294,6 @@ impl RsyncProcess {
                     .ok_or_else(|| io::Error::other("Could not get stderr"))?;
 
                 // Create buffers to read stdout and stderr
-                const BUFFER_SIZE: usize = 32768;
-
                 let mut buffer_stdout = [0u8; BUFFER_SIZE];
                 let mut buffer_stderr = [0u8; BUFFER_SIZE];
 
@@ -325,13 +320,13 @@ impl RsyncProcess {
                                     overflow.clear();
                                 }
 
-                                for chunk in text.split_terminator("\n") {
+                                for chunk in text.split_terminator('\n') {
                                     if chunk.is_empty() {
                                         continue;
                                     }
 
-                                    if chunk.starts_with("\r") {
-                                        for line in chunk.split_terminator("\r") {
+                                    if chunk.starts_with('\r') {
+                                        for line in chunk.split_terminator('\r') {
                                             let vec: Vec<&str> = line.split_whitespace().collect();
 
                                             let values = vec.first()
@@ -339,7 +334,7 @@ impl RsyncProcess {
                                                 .zip(vec.get(2).map(|&s| s.to_owned()))
                                                 .zip(
                                                     vec.get(1)
-                                                        .map(|&s| s.to_owned().replace("%", ""))
+                                                        .map(|&s| s.to_owned().replace('%', ""))
                                                         .and_then(|s| s.parse::<f64>().ok())
                                                 );
 
@@ -374,7 +369,7 @@ impl RsyncProcess {
                             if bytes != 0 {
                                 let error = String::from_utf8_lossy(&buffer_stderr[..bytes]);
 
-                                for chunk in error.split_terminator("\n") {
+                                for chunk in error.split_terminator('\n') {
                                     if chunk.is_empty() {
                                         continue;
                                     }

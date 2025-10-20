@@ -194,11 +194,11 @@ impl OptionsPage {
                 let mut subtitle = imp.source_row.subtitle().unwrap_or_default().to_string();
 
                 if !subtitle.is_empty() {
-                    if button.is_active() && subtitle.ends_with("/") {
+                    if button.is_active() && subtitle.ends_with('/') {
                         subtitle.pop();
 
                         imp.source_row.set_subtitle(&subtitle);
-                    } else if !button.is_active() && !subtitle.ends_with("/") {
+                    } else if !button.is_active() && !subtitle.ends_with('/') {
                         subtitle.push('/');
 
                         imp.source_row.set_subtitle(&subtitle);

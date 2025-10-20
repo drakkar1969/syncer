@@ -187,7 +187,7 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: &Option<Stats>, error: &Option<String>) {
+    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>) {
         let imp = self.imp();
 
         imp.button_stack.set_visible_child_name("empty");

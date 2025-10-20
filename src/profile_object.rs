@@ -108,12 +108,14 @@ impl ProfileObject {
             if let Some(prop) = obj.find_property(key) {
                 match value {
                     JsonValue::String(s) => {
-                        obj.set_property_from_value(key, &s.to_value())
+                        obj.set_property_from_value(key, &s.to_value());
                     },
                     JsonValue::Number(i) => {
                         let value = i.as_u64()
-                            .map(|i| (i as u32).to_value())
-                            .unwrap_or(prop.default_value().to_owned());
+                            .map_or_else(
+                                || prop.default_value().to_owned(),
+                                |i| (i as u32).to_value()
+                            );
 
                         obj.set_property_from_value(key, &value);
                     },

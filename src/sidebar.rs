@@ -5,7 +5,7 @@ use std::fs;
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::clone;
+use glib::{clone, Variant, VariantTy};
 
 use itertools::Itertools;
 use serde_json::{to_string_pretty, from_reader, Value as JsonValue};
@@ -71,11 +71,11 @@ mod imp {
             //---------------------------------------
             // Rename profile action
             //---------------------------------------
-            klass.install_action("sidebar.rename-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+            klass.install_action("sidebar.rename-profile", Some(VariantTy::STRING), |sidebar, _, parameter| {
                 let imp = sidebar.imp();
 
                 let name = parameter
-                    .and_then(|param| param.get::<String>())
+                    .and_then(Variant::get::<String>)
                     .expect("Could not get string from variant");
 
                 if let Some(obj) = imp.model.iter::<ProfileObject>().flatten()
@@ -95,14 +95,14 @@ mod imp {
             //---------------------------------------
             // Delete profile action
             //---------------------------------------
-            klass.install_action("sidebar.delete-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+            klass.install_action("sidebar.delete-profile", Some(VariantTy::STRING), |sidebar, _, parameter| {
                 let name = parameter
-                    .and_then(|param| param.get::<String>())
+                    .and_then(Variant::get::<String>)
                     .expect("Could not get string from variant");
 
                 let dialog = adw::AlertDialog::builder()
                     .heading("Delete Profile?")
-                    .body(format!("Permamenently delete the \"{}\" profile.", name))
+                    .body(format!("Permamenently delete the \"{name}\" profile."))
                     .default_response("delete")
                     .build();
 
@@ -134,11 +134,11 @@ mod imp {
             //---------------------------------------
             // Duplicate profile action
             //---------------------------------------
-            klass.install_action("sidebar.duplicate-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+            klass.install_action("sidebar.duplicate-profile", Some(VariantTy::STRING), |sidebar, _, parameter| {
                 let imp = sidebar.imp();
 
                 let name = parameter
-                    .and_then(|param| param.get::<String>())
+                    .and_then(Variant::get::<String>)
                     .expect("Could not get string from variant");
 
                 if let Some((pos, obj)) = imp.model.iter::<ProfileObject>().flatten()
@@ -162,11 +162,11 @@ mod imp {
             //---------------------------------------
             // Reset profile action
             //---------------------------------------
-            klass.install_action("sidebar.reset-profile", Some(glib::VariantTy::STRING), |sidebar, _, parameter| {
+            klass.install_action("sidebar.reset-profile", Some(VariantTy::STRING), |sidebar, _, parameter| {
                 let imp = sidebar.imp();
 
                 let name = parameter
-                    .and_then(|param| param.get::<String>())
+                    .and_then(Variant::get::<String>)
                     .expect("Could not get string from variant");
 
                 if let Some(obj) = imp.model.iter::<ProfileObject>().flatten()
@@ -226,7 +226,7 @@ impl Sidebar {
                 sidebar.set_selected_profile(
                     row
                         .and_then(|row| row.downcast_ref::<SidebarRow>())
-                        .and_then(|row| row.profile())
+                        .and_then(SidebarRow::profile)
                 );
             }
         ));
@@ -318,7 +318,7 @@ impl Sidebar {
         // Load profiles from config file
         let config_path = xdg::BaseDirectories::new()
             .find_config_file("rsyncui/config.json")
-            .ok_or(io::Error::other("Config file not found"))?;
+            .ok_or_else(|| io::Error::other("Config file not found"))?;
 
         let file = fs::File::open(config_path)?;
 
