@@ -230,11 +230,18 @@ impl RsyncProcess {
             // Terminated by user
             20 => { Some(String::from("Terminated by user")) }
 
-            // Usage error
-            1 => {
+            // Usage error | partial transfer due to error
+            1 | 23 => {
                 EXPR.captures(err_detail)?
                     .name("err")
-                    .map(|m| m.as_str().trim().replace('.', ""))
+                    .map(|m| {
+                        let mut chars = m.as_str().trim().trim_end_matches('.').chars();
+
+                        match chars.next() {
+                            None => String::new(),
+                            Some(first) => first.to_uppercase().collect::<String>() + chars.as_str()
+                        }
+                    })
                     .or_else(|| {
                         EXPR.captures(err_main)?
                             .name("err")

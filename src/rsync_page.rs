@@ -227,10 +227,10 @@ impl RsyncPage {
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
                 if let Some(error) = error {
-                    imp.message_label.set_label(&format!("Error: {error} (code {code})"));
+                    imp.message_label.set_label(&format!("{error} (code {code})"));
 
                 } else {
-                    imp.message_label.set_label(&format!("Error: unknown error (code {code})"));
+                    imp.message_label.set_label(&format!("Unknown error (code {code})"));
                 }
             }
         }
