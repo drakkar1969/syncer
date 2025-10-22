@@ -5,6 +5,7 @@
     <file alias="options-swap-symbolic.svg">icons/options-swap-symbolic.svg</file>
     <file alias="options-check-symbolic.svg">icons/options-check-symbolic.svg</file>
     <file alias="options-advanced-symbolic.svg">icons/options-advanced-symbolic.svg</file>
+    <file alias="options-extra-symbolic.svg">icons/options-extra-symbolic.svg</file>
     <file alias="rsync-start-symbolic.svg">icons/rsync-start-symbolic.svg</file>
     <file alias="rsync-stop-symbolic.svg">icons/rsync-stop-symbolic.svg</file>
     <file alias="rsync-pause-symbolic.svg">icons/rsync-pause-symbolic.svg</file>

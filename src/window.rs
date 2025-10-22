@@ -96,7 +96,7 @@ mod imp {
                     .chain(iter::once("--dry-run").filter(|_| dry_run))
                     .map(ToOwned::to_owned)
                     .chain(imp.advanced_page.args())
-                    .chain(imp.options_page.args())
+                    .chain(imp.options_page.args(false))
                     .collect();
 
                 // Start rsync
@@ -140,16 +140,7 @@ mod imp {
 
                 let args: Vec<String> = iter::once(String::from("rsync"))
                     .chain(imp.advanced_page.args())
-                    .chain(
-                        imp.options_page.args().into_iter()
-                            .map(|arg| {
-                                if arg.starts_with('-') {
-                                    arg
-                                } else {
-                                    format!("\"{arg}\"")
-                                }
-                            })
-                    )
+                    .chain(imp.options_page.args(true))
                     .collect();
 
                 label.set_label(&args.join(" "));

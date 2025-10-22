@@ -176,6 +176,21 @@
                     </child>
                   </object>
                 </child>
+                <child>
+                  <object class="AdwEntryRow" id="extra_options_row">
+                    <property name="title">_Extra Options</property>
+                    <property name="use-underline">true</property>
+                    <child type="prefix">
+                      <object class="GtkImage">
+                        <property name="valign">center</property>
+                        <property name="icon-name">options-extra-symbolic</property>
+                        <style>
+                          <class name="bubble"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

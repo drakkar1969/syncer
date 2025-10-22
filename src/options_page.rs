@@ -31,6 +31,8 @@ mod imp {
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
+        #[template_child]
+        pub(super) extra_options_row: TemplateChild<adw::EntryRow>,
 
         #[property(get)]
         #[template_child]
@@ -162,6 +164,7 @@ impl OptionsPage {
                     page.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"),
                     page.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"),
                     page.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"),
+                    page.bind_widget(&profile, "extra-options", &imp.extra_options_row.get(), "text"),
                 ];
 
                 // Store bindings
@@ -269,7 +272,7 @@ impl OptionsPage {
     //---------------------------------------
     // Args function
     //---------------------------------------
-    pub fn args(&self) -> Vec<String> {
+    pub fn args(&self, quoted: bool) -> Vec<String> {
         let imp = self.imp();
 
         let mut args = Vec::with_capacity(3);
@@ -281,8 +284,25 @@ impl OptionsPage {
             args.push(check_mode);
         }
 
-        args.push(imp.source_row.subtitle().unwrap_or_default().to_string());
-        args.push(imp.destination_row.subtitle().unwrap_or_default().to_string());
+        if imp.extra_options_row.text_length() > 0 {
+            let mut extra_options = imp.extra_options_row.text()
+                .replace('\'', "")
+                .replace('"', "")
+                .split(" ")
+                .map(ToOwned::to_owned)
+                .collect::<Vec<String>>();
+
+            args.append(&mut extra_options);
+        }
+
+        if quoted {
+            args.push(format!("\"{}\"", imp.source_row.subtitle().unwrap_or_default()));
+            args.push(format!("\"{}\"", imp.destination_row.subtitle().unwrap_or_default()));
+
+        } else {
+            args.push(imp.source_row.subtitle().unwrap_or_default().to_string());
+            args.push(imp.destination_row.subtitle().unwrap_or_default().to_string());
+        }
 
         args
     }
