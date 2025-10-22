@@ -203,7 +203,7 @@ impl RsyncPage {
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label(&format!(
-                    "Transfer successful: {} of {}",
+                    "Success: {} of {} transferred",
                     stats.bytes.transferred,
                     stats.bytes.source
                 ));
@@ -219,7 +219,7 @@ impl RsyncPage {
                 imp.message_box.set_css_classes(&["warning", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
-                imp.message_label.set_label("Transfer successful: could not retrieve stats");
+                imp.message_label.set_label("Success: could not retrieve stats");
             }
 
             (code, _) => {
