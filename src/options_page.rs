@@ -184,6 +184,22 @@ impl OptionsPage {
 
                 imp.source_row.set_subtitle(&destination);
                 imp.destination_row.set_subtitle(&temp);
+
+                let mut subtitle = imp.source_row.subtitle().unwrap_or_default().to_string();
+
+                if !subtitle.is_empty() {
+                    if imp.copy_by_name_button.is_active() {
+                        imp.source_row.set_subtitle(subtitle.trim_end_matches('/'));
+                    } else if !imp.copy_by_name_button.is_active() && !subtitle.ends_with('/') {
+                        subtitle.push('/');
+
+                        imp.source_row.set_subtitle(&subtitle);
+                    }
+                }
+
+                let subtitle = imp.destination_row.subtitle().unwrap_or_default().to_string();
+
+                imp.destination_row.set_subtitle(subtitle.trim_end_matches('/'));
             }
         ));
 
