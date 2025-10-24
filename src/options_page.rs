@@ -161,6 +161,7 @@ impl OptionsPage {
             if let Some(profile) = page.profile() {
                 let bindings: Vec<glib::Binding> = vec![
                     // Bind profile property to widgets
+                    page.bind_widget(&profile, "source-copy-by-name", &imp.copy_by_name_button.get(), "active"),
                     page.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"),
                     page.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"),
                     page.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"),
