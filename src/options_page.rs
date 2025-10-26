@@ -287,8 +287,7 @@ impl OptionsPage {
 
         if imp.extra_options_row.text_length() > 0 {
             let mut extra_options = imp.extra_options_row.text()
-                .replace('\'', "")
-                .replace('"', "")
+                .replace(['\'', '"'], "")
                 .split(" ")
                 .map(ToOwned::to_owned)
                 .collect::<Vec<String>>();
