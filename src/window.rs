@@ -316,6 +316,13 @@ impl AppWindow {
         ));
 
         // Rsync process status signals
+        rsync_process.connect_closure("start", false, closure_local!(
+            #[weak] imp,
+            move |_: RsyncProcess| {
+                imp.rsync_page.set_start();
+            }
+        ));
+
         rsync_process.connect_closure("message", false, closure_local!(
             #[weak] imp,
             move |_: RsyncProcess, message: String| {

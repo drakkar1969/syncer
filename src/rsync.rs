@@ -106,6 +106,8 @@ mod imp {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
                 vec![
+                    Signal::builder("start")
+                        .build(),
                     Signal::builder("message")
                         .param_types([String::static_type()])
                         .build(),
@@ -408,6 +410,8 @@ impl RsyncProcess {
                         Msg::Start(id) => {
                             imp.id.set(id);
                             process.set_running(true);
+
+                            process.emit_by_name::<()>("start", &[]);
                         }
 
                         Msg::Message(message) => {

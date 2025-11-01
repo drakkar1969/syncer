@@ -158,6 +158,17 @@ impl RsyncPage {
     }
 
     //---------------------------------------
+    // Set start function
+    //---------------------------------------
+    pub fn set_start(&self) {
+        let imp = self.imp();
+
+        if imp.button_stack.visible_child_name() == Some("empty".into()) {
+            imp.button_stack.set_visible_child_name("buttons");
+        }
+    }
+
+    //---------------------------------------
     // Set message function
     //---------------------------------------
     pub fn set_message(&self, message: &str) {
@@ -177,10 +188,6 @@ impl RsyncPage {
 
         imp.transferred_label.set_label(size);
         imp.speed_label.set_label(speed);
-
-        if imp.button_stack.visible_child_name() == Some("empty".into()) {
-            imp.button_stack.set_visible_child_name("buttons");
-        }
     }
 
     //---------------------------------------
