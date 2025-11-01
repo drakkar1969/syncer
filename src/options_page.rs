@@ -204,15 +204,13 @@ impl OptionsPage {
         imp.copy_by_name_button.connect_toggled(clone!(
             #[weak] imp,
             move |button| {
-                let mut subtitle = imp.source_row.subtitle().unwrap_or_default().to_string();
+                let subtitle = imp.source_row.subtitle().unwrap_or_default();
 
                 if !subtitle.is_empty() {
                     if button.is_active() {
                         imp.source_row.set_subtitle(subtitle.trim_end_matches('/'));
                     } else if !button.is_active() && !subtitle.ends_with('/') {
-                        subtitle.push('/');
-
-                        imp.source_row.set_subtitle(&subtitle);
+                        imp.source_row.set_subtitle(&format!("{subtitle}/"));
                     }
                 }
             }
