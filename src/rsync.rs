@@ -303,10 +303,10 @@ impl RsyncProcess {
 
                             if bytes >= BUFFER_SIZE {
                                 overflow = String::from_utf8_lossy(&buffer_stdout[..bytes])
-                                    .to_string();
+                                    .into_owned();
                             } else if bytes != 0 {
                                 let mut text = String::from_utf8_lossy(&buffer_stdout[..bytes])
-                                    .to_string();
+                                    .into_owned();
 
                                 if !overflow.is_empty() {
                                     text.insert_str(0, &overflow);
