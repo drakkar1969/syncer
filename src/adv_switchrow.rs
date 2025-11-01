@@ -25,10 +25,6 @@ mod imp {
 
         #[property(get, set)]
         prop_name: RefCell<String>,
-        #[property(get, set)]
-        arg: RefCell<String>,
-        #[property(get, set, nullable)]
-        off_arg: RefCell<Option<String>>,
     }
 
     //---------------------------------------
