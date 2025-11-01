@@ -136,19 +136,4 @@ impl AdvancedPage {
             }
         });
     }
-
-    //---------------------------------------
-    // Args function
-    //---------------------------------------
-    pub fn args(&self) -> Vec<String> {
-        self.switches().iter()
-            .filter_map(|switch| {
-                if switch.active() {
-                    Some(switch.arg())
-                } else {
-                    switch.off_arg()
-                }
-            })
-            .collect()
-    }
 }

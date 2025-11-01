@@ -4,9 +4,9 @@ use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
+use strum::EnumProperty;
 
-use crate::profile_object::ProfileObject;
-use crate::check_object::CheckObject;
+use crate::profile_object::{CheckMode, ProfileObject};
 
 //------------------------------------------------------------------------------
 // MODULE: OptionsPage
@@ -58,8 +58,6 @@ mod imp {
         type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
-            CheckObject::ensure_type();
-
             klass.bind_template();
         }
 
@@ -133,16 +131,6 @@ impl OptionsPage {
     }
 
     //---------------------------------------
-    // Bind widget helper function
-    //---------------------------------------
-    fn bind_widget(&self, profile: &ProfileObject, source: &str, widget: &impl IsA<gtk::Widget>, target: &str) -> glib::Binding{
-        profile.bind_property(source, widget, target)
-            .bidirectional()
-            .sync_create()
-            .build()
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -161,11 +149,32 @@ impl OptionsPage {
             if let Some(profile) = page.profile() {
                 let bindings: Vec<glib::Binding> = vec![
                     // Bind profile property to widgets
-                    page.bind_widget(&profile, "source-copy-by-name", &imp.copy_by_name_button.get(), "active"),
-                    page.bind_widget(&profile, "source", &imp.source_row.get(), "subtitle"),
-                    page.bind_widget(&profile, "destination", &imp.destination_row.get(), "subtitle"),
-                    page.bind_widget(&profile, "check-mode", &imp.check_mode_combo.get(), "selected"),
-                    page.bind_widget(&profile, "extra-options", &imp.extra_options_row.get(), "text"),
+                    profile.bind_property("source-copy-by-name", &imp.copy_by_name_button.get(), "active")
+                        .bidirectional()
+                        .sync_create()
+                        .build(),
+
+                    profile.bind_property("source", &imp.source_row.get(), "subtitle")
+                        .bidirectional()
+                        .sync_create()
+                        .build(),
+
+                    profile.bind_property("destination", &imp.destination_row.get(), "subtitle")
+                        .bidirectional()
+                        .sync_create()
+                        .build(),
+
+                    profile.bind_property("check-mode", &imp.check_mode_combo.get(), "selected")
+                        .transform_to(|_, mode: CheckMode| Some(mode.value()))
+                        .transform_from(|_, index: u32| CheckMode::from_repr(index))
+                        .bidirectional()
+                        .sync_create()
+                        .build(),
+
+                    profile.bind_property("extra-options", &imp.extra_options_row.get(), "text")
+                        .bidirectional()
+                        .sync_create()
+                        .build(),
                 ];
 
                 // Store bindings
@@ -263,47 +272,11 @@ impl OptionsPage {
         imp.check_mode_combo.bind_property("selected-item", &imp.check_mode_combo.get(), "subtitle")
             .transform_to(|_, obj: Option<glib::Object>| {
                 obj
-                    .and_downcast::<CheckObject>()
-                    .map(|obj| obj.subtitle())
+                    .and_downcast::<adw::EnumListItem>()
+                    .and_then(|item| CheckMode::from_repr(item.value() as u32))
+                    .and_then(|mode| mode.get_str("Desc"))
             })
             .sync_create()
             .build();
-    }
-
-    //---------------------------------------
-    // Args function
-    //---------------------------------------
-    pub fn args(&self, quoted: bool) -> Vec<String> {
-        let imp = self.imp();
-
-        let mut args = Vec::with_capacity(3);
-
-        if let Some(check_mode) = imp.check_mode_combo.selected_item()
-            .and_downcast::<CheckObject>()
-            .and_then(|obj| obj.switch())
-        {
-            args.push(check_mode);
-        }
-
-        if imp.extra_options_row.text_length() > 0 {
-            let mut extra_options = imp.extra_options_row.text()
-                .replace(['\'', '"'], "")
-                .split(" ")
-                .map(ToOwned::to_owned)
-                .collect::<Vec<String>>();
-
-            args.append(&mut extra_options);
-        }
-
-        if quoted {
-            args.push(format!("\"{}\"", imp.source_row.subtitle().unwrap_or_default()));
-            args.push(format!("\"{}\"", imp.destination_row.subtitle().unwrap_or_default()));
-
-        } else {
-            args.push(imp.source_row.subtitle().unwrap_or_default().to_string());
-            args.push(imp.destination_row.subtitle().unwrap_or_default().to_string());
-        }
-
-        args
     }
 }

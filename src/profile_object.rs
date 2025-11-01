@@ -3,8 +3,62 @@ use std::cell::{Cell, RefCell};
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::{ObjectExt, ToValue};
+use glib::EnumValue;
 
+use strum::{EnumProperty, FromRepr};
+use indexmap::IndexMap;
 use serde_json::{json, Map as JsonMap, Value as JsonValue};
+
+//------------------------------------------------------------------------------
+// ENUM: CheckMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumProperty, FromRepr)]
+#[repr(u32)]
+#[enum_type(name = "CheckMode")]
+pub enum CheckMode {
+    #[strum(props(Desc="No check performed (all files updated)", Switch="--ignore-times"))]
+    Ignore,
+    #[default]
+    #[strum(props(Desc="Check file size and modification time"))]
+    Default,
+    #[enum_value(name = "Size Only")]
+    #[strum(props(Desc="Check file size only", Switch="--size-only"))]
+    SizeOnly,
+    #[strum(props(Desc="Compare checksum for files with matching size", Switch="--checksum"))]
+    Checksum,
+}
+
+impl CheckMode {
+    pub fn value(&self) -> u32 {
+        EnumValue::from_value(&self.to_value())
+            .map(|(_, enum_value)| enum_value.value() as u32)
+            .expect("Failed to get 'EnumValue'")
+    }
+}
+
+//------------------------------------------------------------------------------
+// DATA: Advanced Switches
+//------------------------------------------------------------------------------
+const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 18] = [
+    ("recursive", ("-r", Some("-d"))),
+    ("preserve-time", ("-t", None)),
+    ("preserve-permissions", ("-p", None)),
+    ("preserve-owner", ("-o", None)),
+    ("preserve-group", ("-g", None)),
+    ("numeric-ids", ("--numeric-ids", None)),
+    ("preserve-symlinks", ("-l", None)),
+    ("preserve-hardlinks", ("-H", None)),
+    ("preserve-devices", ("-D", None)),
+    ("one-filesystem", ("-x", None)),
+    ("delete-destination", ("--delete", None)),
+    ("existing", ("--existing", None)),
+    ("ignore-existing", ("--ignore-existing", None)),
+    ("skip-newer", ("-u", None)),
+    ("partial", ("--partial", None)),
+    ("compress-data", ("-z", None)),
+    ("backup", ("-b", None)),
+    ("secluded-args", ("-s", None)),
+];
 
 //------------------------------------------------------------------------------
 // MODULE: ProfileObject
@@ -28,8 +82,8 @@ mod imp {
         #[property(get, set, default = "")]
         destination: RefCell<String>,
 
-        #[property(get, set, default = 1, construct)]
-        check_mode: Cell<u32>,
+        #[property(get, set, default = CheckMode::default(), construct, builder(CheckMode::default()))]
+        check_mode: Cell<CheckMode>,
         #[property(get, set, default = "", construct)]
         extra_options: RefCell<String>,
 
@@ -110,17 +164,16 @@ impl ProfileObject {
         let json_map = json_value.as_object()?;
 
         for (key, value) in json_map {
-            if let Some(prop) = obj.find_property(key) {
+            if obj.has_property(key) {
                 match value {
                     JsonValue::String(s) => {
                         obj.set_property_from_value(key, &s.to_value());
                     },
                     JsonValue::Number(i) => {
                         let value = i.as_u64()
-                            .map_or_else(
-                                || prop.default_value().to_owned(),
-                                |i| (i as u32).to_value()
-                            );
+                            .and_then(|i| CheckMode::from_repr(i as u32))
+                            .unwrap_or_default()
+                            .to_value();
 
                         obj.set_property_from_value(key, &value);
                     },
@@ -176,16 +229,69 @@ impl ProfileObject {
         for prop in self.list_properties() {
             let value = self.property_value(prop.nick());
 
-            let json_value = match prop.value_type() {
-                glib::Type::STRING => json!(value.get::<String>().unwrap()),
-                glib::Type::U32 => json!(value.get::<u32>().unwrap()),
-                glib::Type::BOOL => json!(value.get::<bool>().unwrap()),
-                _ => json!(null)
+            let json_value = if let Ok(s) = value.get::<String>() {
+                json!(s)
+            } else if let Ok(b) = value.get::<bool>() {
+                json!(b)
+            } else if let Ok(mode) = value.get::<CheckMode>() {
+                json!(mode.value())
+            } else {
+                json!(null)
             };
 
             json_map.insert(prop.name().to_owned(), json_value);
         }
 
         JsonValue::Object(json_map)
+    }
+
+    //---------------------------------------
+    // Args function
+    //---------------------------------------
+    pub fn args(&self, quoted: bool) -> Vec<String> {
+        let adv_args_map = IndexMap::from(ADVANCED_ARGS);
+
+        // Advanced options
+        let mut args: Vec<String> = adv_args_map.iter()
+            .filter_map(|(&nick, &(arg, off_arg))| {
+                self.property_value(nick)
+                    .get::<bool>()
+                    .ok()
+                    .and_then(|value| {
+                        value.then_some(arg)
+                            .or(off_arg)
+                            .map(ToOwned::to_owned)
+                    })
+            })
+            .collect();
+
+        // Check mode
+        if let Some(mode) = self.check_mode().get_str("Switch") {
+            args.push(mode.to_owned());
+        }
+
+        // Extra options
+        let replace = if quoted { "\"" } else { "" };
+
+        if !self.extra_options().is_empty() {
+            let mut extra_options = self.extra_options()
+                .replace(['\'', '"'], replace)
+                .split(" ")
+                .map(ToOwned::to_owned)
+                .collect::<Vec<String>>();
+
+            args.append(&mut extra_options);
+        }
+
+        // Source and destination
+        if quoted {
+            args.push(format!("\"{}\"", self.source()));
+            args.push(format!("\"{}\"", self.destination()));
+        } else {
+            args.push(self.source());
+            args.push(self.destination());
+        }
+
+        args
     }
 }

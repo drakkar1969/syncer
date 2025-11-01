@@ -4,7 +4,6 @@ mod sidebar;
 mod sidebar_row;
 mod profile_object;
 mod options_page;
-mod check_object;
 mod advanced_page;
 mod adv_switchrow;
 mod rsync_page;

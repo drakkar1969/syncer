@@ -95,8 +95,7 @@ mod imp {
                     .into_iter()
                     .chain(iter::once("--dry-run").filter(|_| dry_run))
                     .map(ToOwned::to_owned)
-                    .chain(imp.advanced_page.args())
-                    .chain(imp.options_page.args(false))
+                    .chain(imp.options_page.profile().unwrap().args(false))
                     .collect();
 
                 // Start rsync
@@ -139,8 +138,7 @@ mod imp {
                     .expect("Could not get object from resource");
 
                 let args: Vec<String> = iter::once(String::from("rsync"))
-                    .chain(imp.advanced_page.args())
-                    .chain(imp.options_page.args(true))
+                    .chain(imp.options_page.profile().unwrap().args(true))
                     .collect();
 
                 label.set_label(&args.join(" "));

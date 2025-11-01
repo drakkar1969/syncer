@@ -117,39 +117,12 @@
                       </object>
                     </child>
                     <property name="model">
-                      <object class="GListStore">
-                        <property name="item-type">CheckObject</property>
-                        <child>
-                          <object class="CheckObject">
-                            <property name="title">Ignore</property>
-                            <property name="subtitle">No check performed (all files updated)</property>
-                            <property name="switch">--ignore-times</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="CheckObject">
-                            <property name="title">Default</property>
-                            <property name="subtitle">Check file size and modification time</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="CheckObject">
-                            <property name="title">Size Only</property>
-                            <property name="subtitle">Check file size only</property>
-                            <property name="switch">--size-only</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="CheckObject">
-                            <property name="title">Checksum</property>
-                            <property name="subtitle">Compare checksum for files with matching size</property>
-                            <property name="switch">--checksum</property>
-                          </object>
-                        </child>
+                      <object class="AdwEnumListModel">
+                        <property name="enum-type">CheckMode</property>
                       </object>
                     </property>
                     <property name="expression">
-                      <lookup type="CheckObject" name="title"/>
+                      <lookup type="AdwEnumListItem" name="name"/>
                     </property>
                   </object>
                 </child>
