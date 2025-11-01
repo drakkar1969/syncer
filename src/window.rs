@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::iter;
+use std::time::Duration;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -314,8 +315,17 @@ impl AppWindow {
         // Rsync process status signals
         rsync_process.connect_closure("start", false, closure_local!(
             #[weak] imp,
+            #[weak] rsync_process,
             move |_: RsyncProcess| {
-                imp.rsync_page.set_start();
+                glib::timeout_add_local_once(Duration::from_millis(150), clone!(
+                    #[weak] imp,
+                    #[weak] rsync_process,
+                    move || {
+                        if rsync_process.running() {
+                            imp.rsync_page.set_start();
+                        }
+                    }
+                ));
             }
         ));
 
