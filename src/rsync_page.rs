@@ -222,21 +222,29 @@ impl RsyncPage {
             }
 
             (0, None) => {
+                imp.progress_label.set_label("100%");
+                imp.progress_bar.set_fraction(1.0);
+
                 imp.message_box.set_css_classes(&["warning", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Success: could not retrieve stats");
             }
 
-            (code, _) => {
+            (code, stats) => {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
-                if let Some(error) = error {
-                    imp.message_label.set_label(&format!("{error} (code {code})"));
+                let error = error.unwrap_or("Unknown error");
 
-                } else {
-                    imp.message_label.set_label(&format!("Unknown error (code {code})"));
+                imp.message_label.set_label(&format!("{error} (code {code})"));
+
+                if let Some(stats) = stats {
+                    imp.speed_label.set_label(&stats.bytes.speed);
+
+                    imp.stats_table.fill(stats);
+
+                    imp.stats_stack.set_visible_child_name("stats");
                 }
             }
         }
