@@ -365,15 +365,12 @@ impl AppWindow {
             .sync_create()
             .build();
 
-        // Bind options page source/destination properties to rsync page
-        imp.options_page.bind_property("source", &imp.rsync_page.get(), "source")
+        // Bind sidebar selected profile to rsyn page
+        imp.sidebar.bind_property("selected-profile", &imp.rsync_page.get(), "profile")
             .sync_create()
             .build();
 
-        imp.options_page.bind_property("destination", &imp.rsync_page.get(), "destination")
-            .sync_create()
-            .build();
-            // Load profiles from config file
+        // Load profiles from config file
         let _ = imp.sidebar.load_config();
     }
 }

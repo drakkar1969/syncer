@@ -4,6 +4,7 @@ use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 
+use crate::profile_object::ProfileObject;
 use crate::stats_table::StatsTable;
 use crate::rsync::Stats;
 
@@ -55,10 +56,8 @@ mod imp {
         #[template_child]
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
 
-        #[property(get, set)]
-        source: RefCell<String>,
-        #[property(get, set)]
-        destination: RefCell<String>,
+        #[property(get, set, nullable)]
+        profile: RefCell<Option<ProfileObject>>,
     }
 
     //---------------------------------------
@@ -97,8 +96,8 @@ mod imp {
         fn showing(&self) {
             let obj = self.obj();
 
-            let source = obj.source();
-            let destination = obj.destination();
+            let source = obj.profile().map(|profile| profile.source()).unwrap_or_default();
+            let destination = obj.profile().map(|profile| profile.destination()).unwrap_or_default();
 
             self.source_box.set_visible(!source.is_empty());
             self.source_label.set_label(&source);
