@@ -244,10 +244,11 @@ impl OptionsPage {
         // Bind check mode combo selected item to subtitle
         imp.check_mode_combo.bind_property("selected-item", &imp.check_mode_combo.get(), "subtitle")
             .transform_to(|_, obj: Option<glib::Object>| {
-                obj
+                let mode = obj
                     .and_downcast::<adw::EnumListItem>()
-                    .and_then(|item| CheckMode::from_repr(item.value() as u32))
-                    .and_then(|mode| mode.get_str("Desc"))
+                    .and_then(|item| CheckMode::from_repr(item.value() as u32))?;
+
+                mode.get_str("Desc")
             })
             .sync_create()
             .build();

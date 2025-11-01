@@ -237,10 +237,11 @@ impl RsyncProcess {
                     .map(|m| {
                         let mut chars = m.as_str().trim().trim_end_matches('.').chars();
 
-                        match chars.next() {
-                            None => String::new(),
-                            Some(first) => first.to_uppercase().collect::<String>() + chars.as_str()
-                        }
+                        chars.next()
+                            .map_or_else(
+                                String::new,
+                                |first| first.to_uppercase().collect::<String>() + chars.as_str()
+                            )
                     })
                     .or_else(|| {
                         EXPR.captures(err_main)?

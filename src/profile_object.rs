@@ -29,7 +29,7 @@ pub enum CheckMode {
 }
 
 impl CheckMode {
-    pub fn value(&self) -> u32 {
+    pub fn value(self) -> u32 {
         EnumValue::from_value(&self.to_value())
             .map(|(_, enum_value)| enum_value.value() as u32)
             .expect("Failed to get 'EnumValue'")
@@ -254,14 +254,13 @@ impl ProfileObject {
         // Advanced options
         let mut args: Vec<String> = adv_args_map.iter()
             .filter_map(|(&nick, &(arg, off_arg))| {
-                self.property_value(nick)
+                let value = self.property_value(nick)
                     .get::<bool>()
-                    .ok()
-                    .and_then(|value| {
-                        value.then_some(arg)
-                            .or(off_arg)
-                            .map(ToOwned::to_owned)
-                    })
+                    .ok()?;
+
+                value.then_some(arg)
+                    .or(off_arg)
+                    .map(ToOwned::to_owned)
             })
             .collect();
 
@@ -276,7 +275,7 @@ impl ProfileObject {
         if !self.extra_options().is_empty() {
             let mut extra_options = self.extra_options()
                 .replace(['\'', '"'], replace)
-                .split(" ")
+                .split(' ')
                 .map(ToOwned::to_owned)
                 .collect::<Vec<String>>();
 

@@ -223,9 +223,9 @@ mod imp {
                 dialog.present(Some(window));
 
                 return glib::Propagation::Stop;
-            } else {
-                let _ = self.sidebar.save_config();
             }
+
+            let _ = self.sidebar.save_config();
 
             glib::Propagation::Proceed
         }
