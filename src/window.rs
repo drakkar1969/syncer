@@ -99,7 +99,7 @@ mod imp {
                     .collect();
 
                 // Start rsync
-                window.rsync_process().start(args, dry_run);
+                window.rsync_process().start(args);
             });
 
             //---------------------------------------
@@ -325,8 +325,8 @@ impl AppWindow {
 
         rsync_process.connect_closure("progress", false, closure_local!(
             #[weak] imp,
-            move |_: RsyncProcess, size: String, speed: String, progress: f64, dry_run: bool| {
-                imp.rsync_page.set_status(&size, &speed, progress, dry_run);
+            move |_: RsyncProcess, size: String, speed: String, progress: f64| {
+                imp.rsync_page.set_status(&size, &speed, progress);
             }
         ));
 

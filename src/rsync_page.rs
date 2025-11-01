@@ -170,7 +170,7 @@ impl RsyncPage {
     //---------------------------------------
     // Set status function
     //---------------------------------------
-    pub fn set_status(&self, size: &str, speed: &str, progress: f64, dry_run: bool) {
+    pub fn set_status(&self, size: &str, speed: &str, progress: f64) {
         let imp = self.imp();
 
         imp.progress_label.set_label(&format!("{progress}%"));
@@ -179,7 +179,7 @@ impl RsyncPage {
         imp.transferred_label.set_label(size);
         imp.speed_label.set_label(speed);
 
-        if imp.button_stack.visible_child_name() == Some("empty".into()) && !dry_run {
+        if imp.button_stack.visible_child_name() == Some("empty".into()) {
             imp.button_stack.set_visible_child_name("buttons");
         }
     }

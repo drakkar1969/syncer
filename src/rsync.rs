@@ -85,7 +85,6 @@ mod imp {
         #[property(get, set)]
         paused: Cell<bool>,
 
-        pub(super) dry_run: Cell<bool>,
         pub(super) id: Cell<Option<i32>>,
     }
 
@@ -114,8 +113,7 @@ mod imp {
                         .param_types([
                             String::static_type(),
                             String::static_type(),
-                            f64::static_type(),
-                            bool::static_type()
+                            f64::static_type()
                         ])
                         .build(),
                     Signal::builder("exit")
@@ -261,13 +259,8 @@ impl RsyncProcess {
     //---------------------------------------
     // Start function
     //---------------------------------------
-    pub fn start(&self, args: Vec<String>, dry_run: bool) {
+    pub fn start(&self, args: Vec<String>) {
         const BUFFER_SIZE: usize = 16384;
-
-        let imp = self.imp();
-
-        // Store dry run setting
-        imp.dry_run.set(dry_run);
 
         // Spawn tokio task to run rsync
         let (sender, receiver) = async_channel::bounded(1);
@@ -410,8 +403,6 @@ impl RsyncProcess {
                 let mut stats: Vec<String> = vec![];
                 let mut errors: Vec<String> = vec![];
 
-                let dry_run = imp.dry_run.get();
-
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
                         Msg::Start(id) => {
@@ -427,8 +418,7 @@ impl RsyncProcess {
                             process.emit_by_name::<()>("progress", &[
                                 &size,
                                 &speed,
-                                &progress,
-                                &dry_run
+                                &progress
                             ]);
                         }
 
