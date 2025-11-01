@@ -195,13 +195,9 @@ mod imp {
         fn close_request(&self) -> glib::Propagation {
             let window = &*self.obj();
 
-            let rsync_process = window.rsync_process();
-
-            if rsync_process.running() {
-                if !rsync_process.paused() {
-                    gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
-                        .expect("Could not activate action 'rsync.pause'");
-                }
+            if window.rsync_process().running() {
+                gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
+                    .expect("Could not activate action 'rsync.pause'");
 
                 let dialog = adw::AlertDialog::builder()
                     .heading("Exit RsyncUI?")
