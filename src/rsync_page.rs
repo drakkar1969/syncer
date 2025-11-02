@@ -198,7 +198,11 @@ impl RsyncPage {
     pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String]) {
         let imp = self.imp();
 
-        imp.messages.replace(Some(messages.to_vec()));
+        let has_messages = !messages.is_empty();
+
+        imp.messages.replace(has_messages.then(|| messages.to_vec()));
+
+        imp.details_button.set_sensitive(has_messages);
 
         match (code, stats) {
             (-1, _) => {}
