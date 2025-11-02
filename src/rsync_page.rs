@@ -198,19 +198,24 @@ impl RsyncPage {
     pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String]) {
         let imp = self.imp();
 
+        // Store messages
         let has_messages = !messages.is_empty();
 
         imp.messages.replace(has_messages.then(|| messages.to_vec()));
 
         imp.details_button.set_sensitive(has_messages);
 
+        // Ensure progress bar at 100% if success
+        if code == 0 {
+            imp.progress_label.set_label("100%");
+            imp.progress_bar.set_fraction(1.0);
+        }
+
+        // Show exit status in message label
         match (code, stats) {
             (-1, _) => {}
 
             (0, Some(stats)) => {
-                imp.progress_label.set_label("100%");
-                imp.progress_bar.set_fraction(1.0);
-
                 imp.message_box.set_css_classes(&["success", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
@@ -219,40 +224,32 @@ impl RsyncPage {
                     stats.bytes.transferred,
                     stats.bytes.source
                 ));
-
-                imp.speed_label.set_label(&stats.bytes.speed);
-
-                imp.stats_table.fill(stats);
-
-                imp.stack.set_visible_child_name("stats");
             }
 
             (0, None) => {
-                imp.progress_label.set_label("100%");
-                imp.progress_bar.set_fraction(1.0);
-
                 imp.message_box.set_css_classes(&["warning", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label("Success: could not retrieve stats");
             }
 
-            (code, stats) => {
+            (code, _) => {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
                 let error = error.unwrap_or("Unknown error");
 
                 imp.message_label.set_label(&format!("{error} (code {code})"));
-
-                if let Some(stats) = stats {
-                    imp.speed_label.set_label(&stats.bytes.speed);
-
-                    imp.stats_table.fill(stats);
-
-                    imp.stack.set_visible_child_name("stats");
-                }
             }
+        }
+
+        // Show stats
+        if let Some(stats) = stats {
+            imp.speed_label.set_label(&stats.bytes.speed);
+
+            imp.stats_table.fill(stats);
+
+            imp.stack.set_visible_child_name("stats");
         }
 
         self.set_can_pop(true);
