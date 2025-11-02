@@ -13,7 +13,7 @@ use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
 use crate::rsync_page::RsyncPage;
-use crate::rsync::{RsyncProcess, Stats};
+use crate::rsync_process::{RsyncProcess, Stats};
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow

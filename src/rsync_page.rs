@@ -6,7 +6,7 @@ use adw::prelude::*;
 
 use crate::profile_object::ProfileObject;
 use crate::stats_table::StatsTable;
-use crate::rsync::Stats;
+use crate::rsync_process::Stats;
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage

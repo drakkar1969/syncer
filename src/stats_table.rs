@@ -1,7 +1,7 @@
 use gtk::glib::{self, object::ObjectExt};
 use adw::subclass::prelude::*;
 
-use crate::rsync::Stats;
+use crate::rsync_process::Stats;
 
 //------------------------------------------------------------------------------
 // MODULE: StatsTable

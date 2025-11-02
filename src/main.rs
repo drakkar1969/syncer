@@ -8,7 +8,7 @@ mod advanced_page;
 mod adv_switchrow;
 mod rsync_page;
 mod stats_table;
-mod rsync;
+mod rsync_process;
 
 use gtk::{glib, gio};
 use gtk::prelude::*;
