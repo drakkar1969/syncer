@@ -80,7 +80,18 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for RsyncPage {}
+    impl ObjectImpl for RsyncPage {
+        //---------------------------------------
+        // Constructor
+        //---------------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_signals();
+        }
+    }
 
     impl WidgetImpl for RsyncPage {}
     impl NavigationPageImpl for RsyncPage {
@@ -119,6 +130,19 @@ glib::wrapper! {
 }
 
 impl RsyncPage {
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        // Profile property notify signal
+        self.connect_profile_notify(|page| {
+            if let Some(profile) = page.profile() {
+                // Set page title
+                page.set_title(&profile.name());
+            }
+        });
+    }
+
     //---------------------------------------
     // Reset function
     //---------------------------------------
