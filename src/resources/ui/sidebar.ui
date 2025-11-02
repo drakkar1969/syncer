@@ -29,17 +29,34 @@
         <property name="content">
           <object class="GtkScrolledWindow">
             <property name="hexpand">true</property>
-            <property name="margin-top">6</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">12</property>
             <property name="margin-bottom">12</property>
             <property name="child">
-              <object class="GtkListBox" id="listbox">
-                <style>
-                  <class name="navigation-sidebar"/>
-                </style>
-                <property name="margin-start">6</property>
-                <property name="margin-end">6</property>
-                <property name="selection-mode">single</property>
-                <property name="tab-behavior">item</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Profiles</property>
+                    <property name="xalign">0</property>
+                    <property name="margin-start">6</property>
+                    <property name="margin-end">6</property>
+                    <style>
+                      <class name="heading"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBox" id="listbox">
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
+                    <property name="selection-mode">single</property>
+                    <property name="tab-behavior">item</property>
+                  </object>
+                </child>
               </object>
             </property>
           </object>
