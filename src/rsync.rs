@@ -122,7 +122,8 @@ mod imp {
                         .param_types([
                             i32::static_type(),
                             Option::<Stats>::static_type(),
-                            Option::<String>::static_type()
+                            Option::<String>::static_type(),
+                            Vec::<String>::static_type()
                         ])
                         .build()
                 ]
@@ -408,6 +409,7 @@ impl RsyncProcess {
             async move {
                 let imp = process.imp();
 
+                let mut messages: Vec<String> = vec![];
                 let mut stats: Vec<String> = vec![];
                 let mut errors: Vec<String> = vec![];
 
@@ -422,6 +424,8 @@ impl RsyncProcess {
 
                         Msg::Message(message) => {
                             process.emit_by_name::<()>("message", &[&message]);
+
+                            messages.push(message);
                         }
 
                         Msg::Progress(size, speed, progress) => {
@@ -448,7 +452,8 @@ impl RsyncProcess {
                             process.emit_by_name::<()>("exit", &[
                                 &code,
                                 &process.stats(&stats),
-                                &process.error(code, &errors)
+                                &process.error(code, &errors),
+                                &messages
                             ]);
                         }
 

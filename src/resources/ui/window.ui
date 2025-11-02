@@ -5,7 +5,7 @@
     <property name="default-width">820</property>
     <property name="default-height">630</property>
     <property name="width-request">520</property>
-    <property name="height-request">630</property>
+    <property name="height-request">640</property>
     <property name="title">RsyncUI</property>
     <child>
       <object class="AdwBreakpoint">

@@ -45,19 +45,20 @@ mod imp {
         pub(super) destination_label: TemplateChild<gtk::Label>,
 
         #[template_child]
-        pub(super) stats_stack: TemplateChild<gtk::Stack>,
+        pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) stats_table: TemplateChild<StatsTable>,
-
-        #[template_child]
-        pub(super) button_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) pause_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
+        #[template_child]
+        pub(super) details_button: TemplateChild<gtk::Button>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
+
+        pub(super) messages: RefCell<Option<Vec<String>>>,
     }
 
     //---------------------------------------
@@ -126,6 +127,8 @@ impl RsyncPage {
 
         self.set_can_pop(false);
 
+        imp.messages.replace(None);
+
         imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
 
@@ -136,8 +139,7 @@ impl RsyncPage {
         imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
         imp.message_label.set_label("");
 
-        imp.stats_stack.set_visible_child_name("empty");
-        imp.button_stack.set_visible_child_name("empty");
+        imp.stack.set_visible_child_name("empty");
     }
 
     //---------------------------------------
@@ -163,8 +165,8 @@ impl RsyncPage {
     pub fn set_start(&self) {
         let imp = self.imp();
 
-        if imp.button_stack.visible_child_name() == Some("empty".into()) {
-            imp.button_stack.set_visible_child_name("buttons");
+        if imp.stack.visible_child_name() == Some("empty".into()) {
+            imp.stack.set_visible_child_name("buttons");
         }
     }
 
@@ -193,10 +195,10 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>) {
+    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String]) {
         let imp = self.imp();
 
-        imp.button_stack.set_visible_child_name("empty");
+        imp.messages.replace(Some(messages.to_vec()));
 
         match (code, stats) {
             (-1, _) => {}
@@ -218,7 +220,7 @@ impl RsyncPage {
 
                 imp.stats_table.fill(stats);
 
-                imp.stats_stack.set_visible_child_name("stats");
+                imp.stack.set_visible_child_name("stats");
             }
 
             (0, None) => {
@@ -244,7 +246,7 @@ impl RsyncPage {
 
                     imp.stats_table.fill(stats);
 
-                    imp.stats_stack.set_visible_child_name("stats");
+                    imp.stack.set_visible_child_name("stats");
                 }
             }
         }
