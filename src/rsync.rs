@@ -15,7 +15,7 @@ use tokio::io::AsyncReadExt as _;
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
 use regex::{Regex, Captures};
-use itertools::Itertools;
+use itertools::{Itertools, izip};
 
 //------------------------------------------------------------------------------
 // ENUM: Msg
@@ -298,63 +298,70 @@ impl RsyncProcess {
 
                 let mut stats = false;
 
-                loop {
+                'read: loop {
                     tokio::select! {
                         // Read stdout when available
                         result = stdout.read(&mut buffer_stdout) => {
                             let bytes = result?;
 
+                            if bytes == 0 {
+                                continue 'read;
+                            }
+
                             if bytes >= BUFFER_SIZE {
                                 overflow = String::from_utf8_lossy(&buffer_stdout[..bytes])
                                     .into_owned();
-                            } else if bytes != 0 {
-                                let mut text = String::from_utf8_lossy(&buffer_stdout[..bytes])
-                                    .into_owned();
 
-                                if !overflow.is_empty() {
-                                    text.insert_str(0, &overflow);
+                                continue 'read;
+                            }
 
-                                    overflow.clear();
+                            let mut text = String::from_utf8_lossy(&buffer_stdout[..bytes])
+                                .into_owned();
+
+                            if !overflow.is_empty() {
+                                text.insert_str(0, &overflow);
+
+                                overflow.clear();
+                            }
+
+                            for line in text.split_terminator('\n') {
+                                if line.is_empty() {
+                                    continue;
                                 }
 
-                                for chunk in text.split_terminator('\n') {
-                                    if chunk.is_empty() {
-                                        continue;
-                                    }
+                                if line.starts_with('\r') {
+                                    for chunk in line.split_terminator('\r') {
+                                        let vec: Vec<&str> = chunk
+                                            .split_whitespace()
+                                            .collect();
 
-                                    if chunk.starts_with('\r') {
-                                        for line in chunk.split_terminator('\r') {
-                                            let vec: Vec<&str> = line.split_whitespace().collect();
+                                        let values = izip!(
+                                            vec.first().map(|&s| s.to_owned()),
+                                            vec.get(2).map(|&s| s.to_owned()),
+                                            vec.get(1).and_then(|s| {
+                                                s.trim_end_matches('%').parse::<f64>().ok()
+                                            })
+                                        ).next();
 
-                                            let values = vec.first()
-                                                .map(|&s| s.to_owned())
-                                                .zip(vec.get(2).map(|&s| s.to_owned()))
-                                                .zip(
-                                                    vec.get(1)
-                                                        .map(|&s| s.to_owned().replace('%', ""))
-                                                        .and_then(|s| s.parse::<f64>().ok())
-                                                );
-
-                                            if let Some(((size, speed), progress)) = values {
-                                                sender
-                                                    .send(Msg::Progress(size, speed, progress))
-                                                    .await
-                                                    .expect("Could not send through channel");
-                                            }
+                                        if let Some((size, speed, progress)) = values {
+                                            sender
+                                                .send(Msg::Progress(size, speed, progress))
+                                                .await
+                                                .expect("Could not send through channel");
                                         }
-                                    } else if chunk.starts_with("Number of files:") || stats {
-                                        stats = true;
-
-                                        sender
-                                            .send(Msg::Stats(chunk.to_owned()))
-                                            .await
-                                            .expect("Could not send through channel");
-                                    } else {
-                                        sender
-                                            .send(Msg::Message(chunk.to_owned()))
-                                            .await
-                                            .expect("Could not send through channel");
                                     }
+                                } else if line.starts_with("Number of files:") || stats {
+                                    stats = true;
+
+                                    sender
+                                        .send(Msg::Stats(line.to_owned()))
+                                        .await
+                                        .expect("Could not send through channel");
+                                } else {
+                                    sender
+                                        .send(Msg::Message(line.to_owned()))
+                                        .await
+                                        .expect("Could not send through channel");
                                 }
                             }
                         }
@@ -367,14 +374,12 @@ impl RsyncProcess {
                                 let error = String::from_utf8_lossy(&buffer_stderr[..bytes]);
 
                                 for chunk in error.split_terminator('\n') {
-                                    if chunk.is_empty() {
-                                        continue;
+                                    if !chunk.is_empty() {
+                                        sender
+                                            .send(Msg::Error(chunk.to_owned()))
+                                            .await
+                                            .expect("Could not send through channel");
                                     }
-
-                                    sender
-                                        .send(Msg::Error(chunk.to_owned()))
-                                        .await
-                                        .expect("Could not send through channel");
                                 }
                             }
                         }
@@ -388,7 +393,7 @@ impl RsyncProcess {
                                 .await
                                 .expect("Could not send through channel");
 
-                            break;
+                            break 'read;
                         }
                     }
                 }
