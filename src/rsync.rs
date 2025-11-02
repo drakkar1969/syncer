@@ -295,7 +295,7 @@ impl RsyncProcess {
                 let mut buffer_stdout = [0u8; BUFFER_SIZE];
                 let mut buffer_stderr = [0u8; BUFFER_SIZE];
 
-                let mut overflow = String::with_capacity(BUFFER_SIZE);
+                let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
 
                 let mut stats = false;
 
@@ -310,8 +310,7 @@ impl RsyncProcess {
                             }
 
                             if bytes >= BUFFER_SIZE {
-                                overflow = String::from_utf8_lossy(&buffer_stdout[..bytes])
-                                    .into_owned();
+                                overflow.push_str(&String::from_utf8_lossy(&buffer_stdout[..bytes]));
 
                                 continue 'read;
                             }
