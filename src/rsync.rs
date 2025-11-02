@@ -123,7 +123,7 @@ mod imp {
                             i32::static_type(),
                             Option::<Stats>::static_type(),
                             Option::<String>::static_type(),
-                            Vec::<String>::static_type()
+                            String::static_type()
                         ])
                         .build()
                 ]
@@ -258,6 +258,17 @@ impl RsyncProcess {
                     .map(|m| m.as_str().trim().replace("rsync error: ", ""))
             }
         }
+    }
+
+    //---------------------------------------
+    // Details function
+    //---------------------------------------
+    fn details(&self, messages: &[String], stats: &[String]) -> String {
+        let mut details = messages.join("\n");
+
+        details.push_str(&stats.join("\n"));
+
+        details
     }
 
     //---------------------------------------
@@ -452,7 +463,7 @@ impl RsyncProcess {
                                 &code,
                                 &process.stats(&stats),
                                 &process.error(code, &errors),
-                                &messages
+                                &process.details(&messages, &stats)
                             ]);
                         }
 

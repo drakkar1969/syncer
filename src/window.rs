@@ -346,11 +346,11 @@ impl AppWindow {
         rsync_process.connect_closure("exit", false, closure_local!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
-            move |_: RsyncProcess, code: i32, stats: Option<Stats>, error: Option<String>, messages: Vec<String>| {
+            move |_: RsyncProcess, code: i32, stats: Option<Stats>, error: Option<String>, details: String| {
                 if imp.close_request.get() {
                     window.close();
                 } else {
-                    imp.rsync_page.set_exit_status(code, stats.as_ref(), error.as_deref(), &messages);
+                    imp.rsync_page.set_exit_status(code, stats.as_ref(), error.as_deref(), &details);
                 }
             }
         ));

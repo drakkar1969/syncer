@@ -58,7 +58,7 @@ mod imp {
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
 
-        pub(super) messages: RefCell<Option<Vec<String>>>,
+        pub(super) details: RefCell<Option<String>>,
     }
 
     //---------------------------------------
@@ -151,7 +151,7 @@ impl RsyncPage {
 
         self.set_can_pop(false);
 
-        imp.messages.replace(None);
+        imp.details.replace(None);
 
         imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
@@ -219,15 +219,15 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String]) {
+    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, details: &str) {
         let imp = self.imp();
 
         // Store messages
-        let has_messages = !messages.is_empty();
+        let has_details = !details.is_empty();
 
-        imp.messages.replace(has_messages.then(|| messages.to_vec()));
+        imp.details.replace(has_details.then(|| details.to_owned()));
 
-        imp.details_button.set_sensitive(has_messages);
+        imp.details_button.set_sensitive(has_details);
 
         // Ensure progress bar at 100% if success
         if code == 0 {
