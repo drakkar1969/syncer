@@ -113,10 +113,10 @@ mod imp {
             let source = obj.profile().map(|profile| profile.source()).unwrap_or_default();
             let destination = obj.profile().map(|profile| profile.destination()).unwrap_or_default();
 
-            self.source_box.set_visible(!source.is_empty());
+            self.source_box.set_visible(!source.is_empty() && !destination.is_empty());
             self.source_label.set_label(&source);
 
-            self.destination_box.set_visible(!destination.is_empty());
+            self.destination_box.set_visible(!source.is_empty() && !destination.is_empty());
             self.destination_label.set_label(&destination);
         }
     }
