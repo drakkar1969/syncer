@@ -188,12 +188,12 @@ impl OptionsPage {
                 let source = imp.source_row.subtitle().unwrap_or_default();
                 let destination = imp.destination_row.subtitle().unwrap_or_default();
 
-                if !destination.is_empty() {
-                    if imp.copy_by_name_button.is_active() {
-                        imp.source_row.set_subtitle(destination.trim_end_matches('/'));
-                    } else if !imp.copy_by_name_button.is_active() && !destination.ends_with('/') {
-                        imp.source_row.set_subtitle(&format!("{destination}/"));
-                    }
+                if imp.copy_by_name_button.is_active() {
+                    imp.source_row.set_subtitle(destination.trim_end_matches('/'));
+                } else if !destination.is_empty() && !destination.ends_with('/') {
+                    imp.source_row.set_subtitle(&format!("{destination}/"));
+                } else {
+                    imp.source_row.set_subtitle(&destination);
                 }
 
                 imp.destination_row.set_subtitle(source.trim_end_matches('/'));
@@ -204,13 +204,13 @@ impl OptionsPage {
         imp.copy_by_name_button.connect_toggled(clone!(
             #[weak] imp,
             move |button| {
-                let subtitle = imp.source_row.subtitle().unwrap_or_default();
+                let source = imp.source_row.subtitle().unwrap_or_default();
 
-                if !subtitle.is_empty() {
+                if !source.is_empty() {
                     if button.is_active() {
-                        imp.source_row.set_subtitle(subtitle.trim_end_matches('/'));
-                    } else if !button.is_active() && !subtitle.ends_with('/') {
-                        imp.source_row.set_subtitle(&format!("{subtitle}/"));
+                        imp.source_row.set_subtitle(source.trim_end_matches('/'));
+                    } else if !source.ends_with('/') {
+                        imp.source_row.set_subtitle(&format!("{source}/"));
                     }
                 }
             }
