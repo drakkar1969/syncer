@@ -346,7 +346,7 @@ impl AppWindow {
         rsync_process.connect_closure("exit", false, closure_local!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
-            move |_: RsyncProcess, code: i32, stats: Option<Stats>, error: Option<String>, details: String| {
+            move |_: RsyncProcess, code: i32, stats: Option<Stats>, error: Option<String>, details: Vec<String>| {
                 if imp.close_request.get() {
                     window.close();
                 } else {

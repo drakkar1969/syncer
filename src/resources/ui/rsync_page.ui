@@ -238,7 +238,7 @@
                             <property name="child">
                               <object class="AdwButtonContent">
                                 <property name="icon-name">rsync-messages-symbolic</property>
-                                <property name="label">_View Details</property>
+                                <property name="label">_View Rsync Log</property>
                                 <property name="use-underline">true</property>
                               </object>
                             </property>

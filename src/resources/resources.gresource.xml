@@ -31,8 +31,10 @@
     <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
     <file compressed="true">ui/builder/profile_name_dialog.ui</file>
     <file compressed="true">ui/builder/rsync_cmdline_dialog.ui</file>
+    <file compressed="true">ui/details_window/item.ui</file>
     <file compressed="true">ui/advanced_page.ui</file>
     <file compressed="true">ui/adv_switchrow.ui</file>
+    <file compressed="true">ui/details_window.ui</file>
     <file compressed="true">ui/options_page.ui</file>
     <file compressed="true">ui/rsync_page.ui</file>
     <file compressed="true">ui/sidebar.ui</file>

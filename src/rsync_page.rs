@@ -3,9 +3,11 @@ use std::cell::RefCell;
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
+use glib::clone;
 
 use crate::profile_object::ProfileObject;
 use crate::stats_table::StatsTable;
+use crate::details_window::DetailsWindow;
 use crate::rsync_process::Stats;
 
 //------------------------------------------------------------------------------
@@ -58,7 +60,7 @@ mod imp {
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
 
-        pub(super) details: RefCell<Option<String>>,
+        pub(super) details: RefCell<Option<Vec<String>>>,
     }
 
     //---------------------------------------
@@ -134,6 +136,8 @@ impl RsyncPage {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
+        let imp = self.imp();
+
         // Profile property notify signal
         self.connect_profile_notify(|page| {
             if let Some(profile) = page.profile() {
@@ -141,6 +145,22 @@ impl RsyncPage {
                 page.set_title(&profile.name());
             }
         });
+
+        // Details button clicked signal
+        imp.details_button.connect_clicked(clone!(
+            #[weak(rename_to = page)] self,
+            move|_| {
+                if let Some(details) = page.imp().details.borrow().as_deref() {
+                    let parent = page.root()
+                        .and_downcast::<gtk::Window>()
+                        .expect("Could not downcast to 'GtkWindow'");
+
+                    let window = DetailsWindow::new(&parent);
+
+                    window.display(details);
+                }
+            }
+        ));
     }
 
     //---------------------------------------
@@ -219,13 +239,13 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, details: &str) {
+    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, details: &[String]) {
         let imp = self.imp();
 
         // Store messages
         let has_details = !details.is_empty();
 
-        imp.details.replace(has_details.then(|| details.to_owned()));
+        imp.details.replace(has_details.then(|| details.to_vec()));
 
         imp.details_button.set_sensitive(has_details);
 
