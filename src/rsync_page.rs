@@ -258,8 +258,6 @@ impl RsyncPage {
 
         // Show exit status in message label
         match (code, stats) {
-            (-1, _) => {}
-
             (0, Some(stats)) => {
                 imp.message_box.set_css_classes(&["success", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
