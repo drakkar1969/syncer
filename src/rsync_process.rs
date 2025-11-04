@@ -61,10 +61,10 @@ pub struct StatsBytes {
 #[derive(Default, Debug, Clone, glib::Boxed)]
 #[boxed_type(name = "Stats", nullable)]
 pub struct Stats {
-    pub transferred: String,
     pub source: StatsRow,
     pub created: StatsRow,
     pub deleted: StatsRow,
+    pub transferred: String,
     pub bytes: StatsBytes
 }
 
@@ -183,7 +183,6 @@ impl RsyncProcess {
                 };
 
                 Stats {
-                    transferred: get_match(&caps, "tn"),
                     source: StatsRow {
                         total: get_match(&caps, "st"),
                         files: get_match(&caps, "sf"),
@@ -205,6 +204,7 @@ impl RsyncProcess {
                         links: get_match(&caps, "dl"),
                         specials: get_match(&caps, "ds")
                     },
+                    transferred: get_match(&caps, "tn"),
                     bytes: StatsBytes {
                         source: get_match(&caps, "bs"),
                         transferred: get_match(&caps, "bt"),
