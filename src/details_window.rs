@@ -16,11 +16,19 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/details_window.ui")]
     pub struct DetailsWindow {
         #[template_child]
+        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
+        pub(super) search_bar: TemplateChild<gtk::SearchBar>,
+        #[template_child]
+        pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+        #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) filter: TemplateChild<gtk::CustomFilter>,
     }
 
     //---------------------------------------
@@ -36,6 +44,17 @@ mod imp {
             klass.bind_template();
 
             //---------------------------------------
+            // Search key binding
+            //---------------------------------------
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                imp.search_bar.set_search_mode(!imp.search_bar.is_search_mode());
+
+                glib::Propagation::Stop
+            });
+
+            //---------------------------------------
             // Close window key binding
             //---------------------------------------
             klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
@@ -46,7 +65,20 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for DetailsWindow {}
+    impl ObjectImpl for DetailsWindow {
+        //---------------------------------------
+        // Constructor
+        //---------------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_signals();
+            obj.setup_widgets();
+        }
+    }
+
     impl WidgetImpl for DetailsWindow {}
     impl WindowImpl for DetailsWindow {}
     impl AdwWindowImpl for DetailsWindow {}
@@ -69,6 +101,47 @@ impl DetailsWindow {
         glib::Object::builder()
             .property("transient-for", parent)
             .build()
+    }
+
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        imp.search_entry.connect_search_changed(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.filter.changed(gtk::FilterChange::Different);
+            }
+        ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
+            .bidirectional()
+            .sync_create()
+            .build();
+
+        imp.search_bar.set_key_capture_widget(Some(&imp.view.get()));
+
+        imp.filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |obj| {
+                let text = obj
+                    .downcast_ref::<gtk::StringObject>()
+                    .expect("Could not downcast to 'GtkStringObject'")
+                    .string();
+
+                text.to_lowercase().contains(&imp.search_entry.text().to_lowercase())
+            }
+        ));
     }
 
     //---------------------------------------

@@ -10,7 +10,27 @@
       <object class="AdwToolbarView">
         <property name="top-bar-style">raised</property>
         <child type="top">
-          <object class="AdwHeaderBar"/>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="AdwHeaderBar">
+                <child>
+                  <object class="GtkToggleButton" id="search_button">
+                    <property name="icon-name">edit-find-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSearchBar" id="search_bar">
+                <property name="child">
+                  <object class="GtkSearchEntry" id="search_entry">
+                    <property name="width-request">300</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
         </child>
         <property name="content">
           <object class="GtkStack" id="stack">
@@ -46,8 +66,15 @@
                         <property name="model">
                           <object class="GtkNoSelection" id="selection">
                             <property name="model">
-                              <object class="GListStore" id="model">
-                                <property name="item-type">GtkStringObject</property>
+                              <object class="GtkFilterListModel" id="filter_model">
+                                <property name="model">
+                                  <object class="GListStore" id="model">
+                                    <property name="item-type">GtkStringObject</property>
+                                  </object>
+                                </property>
+                                <property name="filter">
+                                  <object class="GtkCustomFilter" id="filter"/>
+                                </property>
                               </object>
                             </property>
                           </object>
