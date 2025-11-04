@@ -1,5 +1,6 @@
-use gtk::glib::{self, object::ObjectExt};
+use gtk::prelude::WidgetExt;
 use adw::subclass::prelude::*;
+use gtk::glib;
 
 use crate::rsync_process::Stats;
 
@@ -76,19 +77,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for StatsTable {
-        //---------------------------------------
-        // Constructor
-        //---------------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            let obj = self.obj();
-
-            obj.setup_widgets();
-        }
-    }
-
+    impl ObjectImpl for StatsTable {}
     impl WidgetImpl for StatsTable {}
     impl BinImpl for StatsTable {}
 }
@@ -103,33 +92,6 @@ glib::wrapper! {
 }
 
 impl StatsTable {
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        let widgets = [
-            (&imp.source_files_box, &imp.source_files_label),
-            (&imp.source_dirs_box, &imp.source_dirs_label),
-            (&imp.source_links_box, &imp.source_links_label),
-            (&imp.source_specials_box, &imp.source_specials_label),
-
-            (&imp.destination_files_box, &imp.destination_files_label),
-            (&imp.destination_dirs_box, &imp.destination_dirs_label),
-            (&imp.destination_links_box, &imp.destination_links_label),
-            (&imp.destination_specials_box, &imp.destination_specials_label),
-            (&imp.destination_deleted_box, &imp.destination_deleted_label),
-        ];
-
-        for (box_, label) in widgets {
-            label.bind_property("label", &box_.get(), "visible")
-                .transform_to(|_, label: &str| Some(!label.is_empty() && label != "0"))
-                .sync_create()
-                .build();
-        }
-    }
-
     //---------------------------------------
     // Fill function
     //---------------------------------------
@@ -175,6 +137,25 @@ impl StatsTable {
         imp.destination_links_label.set_label(&stats.created.links);
         imp.destination_specials_label.set_label(&stats.created.specials);
         imp.destination_deleted_label.set_label(&stats.deleted.total);
+
+        let widgets = [
+            (&imp.source_files_box, &imp.source_files_label),
+            (&imp.source_dirs_box, &imp.source_dirs_label),
+            (&imp.source_links_box, &imp.source_links_label),
+            (&imp.source_specials_box, &imp.source_specials_label),
+
+            (&imp.destination_files_box, &imp.destination_files_label),
+            (&imp.destination_dirs_box, &imp.destination_dirs_label),
+            (&imp.destination_links_box, &imp.destination_links_label),
+            (&imp.destination_specials_box, &imp.destination_specials_label),
+            (&imp.destination_deleted_box, &imp.destination_deleted_label),
+        ];
+
+        for (box_, label) in widgets {
+            let text = label.label();
+
+            box_.set_visible(!text.is_empty() && text != "0");
+        }
     }
 
 }
