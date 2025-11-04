@@ -2,8 +2,8 @@
 <interface>
   <!--// DetailsWindow template //-->
   <template class="DetailsWindow" parent="AdwWindow">
-    <property name="default-width">1000</property>
-    <property name="default-height">640</property>
+    <property name="default-width">800</property>
+    <property name="default-height">660</property>
     <property name="modal">true</property>
     <property name="title">Rsync Log</property>
     <property name="content">

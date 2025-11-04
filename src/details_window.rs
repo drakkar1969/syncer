@@ -123,7 +123,7 @@ impl DetailsWindow {
                             .map(|s| {
                                 if s.contains("->") {
                                     format_span(s, &accent_color)
-                                } else if s.contains("skipping") {
+                                } else if s.contains("skipping") || s.contains("deleting") {
                                     format_span(s, &warning_color)
                                 } else if s.contains(":: STATISTICS ::") || stats {
                                     stats = true;
