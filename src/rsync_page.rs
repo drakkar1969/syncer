@@ -176,8 +176,8 @@ impl RsyncPage {
         imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
 
-        imp.transferred_label.set_label("");
-        imp.speed_label.set_label("0");
+        imp.transferred_label.set_label("0B");
+        imp.speed_label.set_label("0B/s");
 
         imp.message_box.set_css_classes(&[]);
         imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
