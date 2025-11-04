@@ -131,6 +131,29 @@ impl StatsTable {
         }
     }
 
+    //---------------------------------------
+    // Reset function
+    //---------------------------------------
+    pub fn reset(&self) {
+        let imp = self.imp();
+
+        let widgets = [
+            &imp.source_files_box,
+            &imp.source_dirs_box,
+            &imp.source_links_box,
+            &imp.source_specials_box,
+
+            &imp.destination_files_box,
+            &imp.destination_dirs_box,
+            &imp.destination_links_box,
+            &imp.destination_specials_box,
+            &imp.destination_deleted_box,
+        ];
+
+        for box_ in widgets {
+            box_.set_visible(true);
+        }
+    }
 }
 
 impl Default for StatsTable {
