@@ -54,6 +54,7 @@
                 <child>
                   <object class="GtkLabel" id="source_total_label">
                     <property name="xalign">0</property>
+                    <property name="tooltip-text">In Source</property>
                     <style>
                       <class name="heading"/>
                     </style>
@@ -158,6 +159,7 @@
                 <child>
                   <object class="GtkLabel" id="destination_total_label">
                     <property name="xalign">0</property>
+                    <property name="tooltip-text">Transferred to Destination</property>
                     <style>
                       <class name="heading"/>
                     </style>
@@ -246,11 +248,14 @@
                 </child>
                 <child>
                   <object class="GtkBox" id="destination_deleted_box">
-                    <property name="margin-start">24</property>
                     <property name="spacing">6</property>
                     <property name="tooltip-text">Deleted on Destination</property>
                     <child>
+                      <object class="GtkSeparator"/>
+                    </child>
+                    <child>
                       <object class="GtkImage">
+                        <property name="margin-start">18</property>
                         <property name="icon-name">stats-deleted-symbolic</property>
                       </object>
                     </child>
