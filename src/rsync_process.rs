@@ -34,38 +34,25 @@ enum Msg {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: StatsRow
-//------------------------------------------------------------------------------
-#[derive(Default, Debug, Clone)]
-pub struct StatsRow {
-    pub total: String,
-    pub files: String,
-    pub dirs: String,
-    pub links: String,
-    pub specials: String
-}
-
-//------------------------------------------------------------------------------
-// STRUCT: StatsBytes
-//------------------------------------------------------------------------------
-#[derive(Default, Debug, Clone)]
-pub struct StatsBytes {
-    pub source: String,
-    pub transferred: String,
-    pub speed: String
-}
-
-//------------------------------------------------------------------------------
 // STRUCT: Stats
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone, glib::Boxed)]
 #[boxed_type(name = "Stats", nullable)]
 pub struct Stats {
-    pub source: StatsRow,
-    pub created: StatsRow,
-    pub deleted: StatsRow,
-    pub transferred: String,
-    pub bytes: StatsBytes
+    pub source_total: String,
+    pub source_files: String,
+    pub source_dirs: String,
+    pub source_links: String,
+    pub source_specials: String,
+    pub destination_total: String,
+    pub destination_files: String,
+    pub destination_dirs: String,
+    pub destination_links: String,
+    pub destination_specials: String,
+    pub destination_deleted: String,
+    pub bytes_source: String,
+    pub bytes_transferred: String,
+    pub speed: String
 }
 
 //------------------------------------------------------------------------------
@@ -157,9 +144,9 @@ impl RsyncProcess {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
                 Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*created\s*files:\s*(?P<ct>[\d,.]+)\s*\(?(?:reg:\s*(?P<cf>[\d,.]+))?,?\s*(?:dir:\s*(?P<cd>[\d,.]+))?,?\s*(?:link:\s*(?P<cl>[\d,.]+))?,?\s*(?:special:\s*(?P<cs>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*deleted\s*files:\s*(?P<dt>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tn>[\d,.]+)\n
+                Number\s*of\s*created\s*files:\s*(?P<dt>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*deleted\s*files:\s*(?P<dr>[\d,.]+)\s*\(?(?:reg:\s*(?P<nf>[\d,.]+))?,?\s*(?:dir:\s*(?P<nd>[\d,.]+))?,?\s*(?:link:\s*(?P<nl>[\d,.]+))?,?\s*(?:special:\s*(?P<ns>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tt>[\d,.]+)\n
                 Total\s*file\s*size:\s*(?P<bs>.+)\s*bytes\n
                 Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes\n
                 .*\n
@@ -182,34 +169,48 @@ impl RsyncProcess {
                         .unwrap_or_default()
                 };
 
+                let to_u64 = |s: &str| -> u64 {
+                    s.replace([',', '.'], "")
+                        .parse::<u64>()
+                        .unwrap_or_default()
+                };
+
+                let d_total = get_match(&caps, "dt");
+                let n_total = to_u64(&d_total);
+
+                let d_files = get_match(&caps, "df");
+                let n_files = to_u64(&d_files);
+
+                let d_transf = get_match(&caps, "tt");
+                let n_transf = to_u64(&d_transf);
+
+                let dest_total = if n_total > n_transf {
+                    d_total
+                } else {
+                    d_transf.clone()
+                };
+
+                let dest_files = if n_files > n_transf {
+                    d_files
+                } else {
+                    d_transf
+                };
+
                 Stats {
-                    source: StatsRow {
-                        total: get_match(&caps, "st"),
-                        files: get_match(&caps, "sf"),
-                        dirs: get_match(&caps, "sd"),
-                        links: get_match(&caps, "sl"),
-                        specials: get_match(&caps, "ss")
-                    },
-                    created: StatsRow {
-                        total: get_match(&caps, "ct"),
-                        files: get_match(&caps, "cf"),
-                        dirs: get_match(&caps, "cd"),
-                        links: get_match(&caps, "cl"),
-                        specials: get_match(&caps, "cs")
-                    },
-                    deleted: StatsRow {
-                        total: get_match(&caps, "dt"),
-                        files: get_match(&caps, "df"),
-                        dirs: get_match(&caps, "dd"),
-                        links: get_match(&caps, "dl"),
-                        specials: get_match(&caps, "ds")
-                    },
-                    transferred: get_match(&caps, "tn"),
-                    bytes: StatsBytes {
-                        source: get_match(&caps, "bs"),
-                        transferred: get_match(&caps, "bt"),
-                        speed:format!("{}B/s", get_match(&caps, "ts"))
-                    }
+                    source_total: get_match(&caps, "st"),
+                    source_files: get_match(&caps, "sf"),
+                    source_dirs: get_match(&caps, "sd"),
+                    source_links: get_match(&caps, "sl"),
+                    source_specials: get_match(&caps, "ss"),
+                    destination_total: dest_total,
+                    destination_files: dest_files,
+                    destination_dirs: get_match(&caps, "dd"),
+                    destination_links: get_match(&caps, "dl"),
+                    destination_specials: get_match(&caps, "ds"),
+                    destination_deleted: get_match(&caps, "dr"),
+                    bytes_source: get_match(&caps, "bs"),
+                    bytes_transferred: get_match(&caps, "bt"),
+                    speed:format!("{}B/s", get_match(&caps, "ts"))
                 }
             })
     }

@@ -265,8 +265,8 @@ impl RsyncPage {
 
                 imp.message_label.set_label(&format!(
                     "Success: {} of {} transferred",
-                    stats.bytes.transferred,
-                    stats.bytes.source
+                    stats.bytes_transferred,
+                    stats.bytes_source
                 ));
             }
 
@@ -289,11 +289,13 @@ impl RsyncPage {
 
         // Show stats
         if let Some(stats) = stats {
-            imp.speed_label.set_label(&stats.bytes.speed);
+            imp.speed_label.set_label(&stats.speed);
 
             imp.stats_table.fill(stats);
 
             imp.stack.set_visible_child_name("stats");
+        } else {
+            imp.stack.set_visible_child_name("empty");
         }
 
         self.set_can_pop(true);

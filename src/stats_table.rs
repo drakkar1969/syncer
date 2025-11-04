@@ -98,45 +98,18 @@ impl StatsTable {
     pub fn fill(&self, stats: &Stats) {
         let imp = self.imp();
 
-        let dest_created = stats.created.total
-            .replace([',', '.'], "")
-            .parse::<u64>()
-            .unwrap_or_default();
+        imp.source_total_label.set_label(&stats.source_total);
+        imp.source_files_label.set_label(&stats.source_files);
+        imp.source_dirs_label.set_label(&stats.source_dirs);
+        imp.source_links_label.set_label(&stats.source_links);
+        imp.source_specials_label.set_label(&stats.source_specials);
 
-        let dest_created_files = stats.created.files
-            .replace([',', '.'], "")
-            .parse::<u64>()
-            .unwrap_or_default();
-
-        let dest_transferred = stats.transferred
-            .replace([',', '.'], "")
-            .parse::<u64>()
-            .unwrap_or_default();
-
-        let dest_total = if dest_created > dest_transferred {
-            &stats.created.total
-        } else {
-            &stats.transferred
-        };
-
-        let dest_files = if dest_created_files > dest_transferred {
-            &stats.created.files
-        } else {
-            &stats.transferred
-        };
-
-        imp.source_total_label.set_label(&stats.source.total);
-        imp.source_files_label.set_label(&stats.source.files);
-        imp.source_dirs_label.set_label(&stats.source.dirs);
-        imp.source_links_label.set_label(&stats.source.links);
-        imp.source_specials_label.set_label(&stats.source.specials);
-
-        imp.destination_total_label.set_label(dest_total);
-        imp.destination_files_label.set_label(dest_files);
-        imp.destination_dirs_label.set_label(&stats.created.dirs);
-        imp.destination_links_label.set_label(&stats.created.links);
-        imp.destination_specials_label.set_label(&stats.created.specials);
-        imp.destination_deleted_label.set_label(&stats.deleted.total);
+        imp.destination_total_label.set_label(&stats.destination_total);
+        imp.destination_files_label.set_label(&stats.destination_files);
+        imp.destination_dirs_label.set_label(&stats.destination_dirs);
+        imp.destination_links_label.set_label(&stats.destination_links);
+        imp.destination_specials_label.set_label(&stats.destination_specials);
+        imp.destination_deleted_label.set_label(&stats.destination_deleted);
 
         let widgets = [
             (&imp.source_files_box, &imp.source_files_label),
