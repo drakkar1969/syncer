@@ -110,6 +110,7 @@ mod imp {
                             i32::static_type(),
                             Option::<Stats>::static_type(),
                             Option::<String>::static_type(),
+                            Vec::<String>::static_type(),
                             Vec::<String>::static_type()
                         ])
                         .build()
@@ -443,15 +444,12 @@ impl RsyncProcess {
                             process.set_paused(false);
                             imp.id.set(None);
 
-                            messages.push(String::new());
-                            messages.push(String::from(":: STATISTICS ::"));
-                            messages.extend_from_slice(&stats);
-
                             process.emit_by_name::<()>("exit", &[
                                 &code,
                                 &process.stats(&stats),
                                 &process.error(code, &errors),
-                                &messages
+                                &messages,
+                                &stats
                             ]);
                         }
 

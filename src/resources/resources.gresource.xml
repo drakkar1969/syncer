@@ -23,6 +23,7 @@
     <file alias="stats-link-symbolic.svg">icons/stats-link-symbolic.svg</file>
     <file alias="stats-special-symbolic.svg">icons/stats-special-symbolic.svg</file>
     <file alias="stats-deleted-symbolic.svg">icons/stats-deleted-symbolic.svg</file>
+    <file alias="stats-skipped-symbolic.svg">icons/stats-skipped-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/RsyncUI/">
     <file compressed="true">style.css</file>

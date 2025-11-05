@@ -10,3 +10,14 @@ image.bubble.accent {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
 }
+
+/* Round controls */
+entry.round {
+	border-radius: 9999px;
+	padding-right: 12px;
+}
+
+/* Card views */
+listview.card-list {
+	background-color: transparent;
+}

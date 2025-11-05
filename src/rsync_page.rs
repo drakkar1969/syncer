@@ -60,7 +60,8 @@ mod imp {
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
 
-        pub(super) details: RefCell<Option<Vec<String>>>,
+        pub(super) messages: RefCell<Vec<String>>,
+        pub(super) stats_msgs: RefCell<Vec<String>>,
     }
 
     //---------------------------------------
@@ -150,15 +151,18 @@ impl RsyncPage {
         imp.details_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
             move|_| {
-                if let Some(details) = page.imp().details.borrow().as_deref() {
-                    let parent = page.root()
-                        .and_downcast::<gtk::Window>()
-                        .expect("Could not downcast to 'GtkWindow'");
+                let imp = page.imp();
 
-                    let window = DetailsWindow::new(&parent);
+                let parent = page.root()
+                    .and_downcast::<gtk::Window>()
+                    .expect("Could not downcast to 'GtkWindow'");
 
-                    window.display(details);
-                }
+                let window = DetailsWindow::new(&parent);
+
+                window.display(
+                    imp.messages.borrow().as_ref(),
+                    imp.stats_msgs.borrow().as_ref()
+                );
             }
         ));
     }
@@ -171,7 +175,8 @@ impl RsyncPage {
 
         self.set_can_pop(false);
 
-        imp.details.replace(None);
+        imp.messages.replace(vec![]);
+        imp.stats_msgs.replace(vec![]);
 
         imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
@@ -240,15 +245,19 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, details: &[String]) {
+    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String], stats_msgs: &[String]) {
         let imp = self.imp();
 
         // Store messages
-        let has_details = !details.is_empty();
+        let has_messages = !messages.is_empty();
 
-        imp.details.replace(has_details.then(|| details.to_vec()));
+        imp.messages.replace(messages.to_vec());
 
-        imp.details_button.set_sensitive(has_details);
+        let has_stats_msgs = !stats_msgs.is_empty();
+
+        imp.stats_msgs.replace(stats_msgs.to_vec());
+
+        imp.details_button.set_sensitive(has_messages || has_stats_msgs);
 
         // Ensure progress bar at 100% if success
         if code == 0 {
