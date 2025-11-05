@@ -233,7 +233,7 @@ impl RsyncPage {
         imp.progress_label.set_label(&format!("{progress}%"));
         imp.progress_bar.set_fraction(progress/100.0);
 
-        imp.transferred_label.set_label(size);
+        imp.transferred_label.set_label(&format!("{size}B"));
         imp.speed_label.set_label(speed);
     }
 

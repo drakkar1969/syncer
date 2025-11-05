@@ -208,8 +208,8 @@ impl RsyncProcess {
                     destination_links: get_match(&caps, "dl"),
                     destination_specials: get_match(&caps, "ds"),
                     destination_deleted: get_match(&caps, "dr"),
-                    bytes_source: get_match(&caps, "bs"),
-                    bytes_transferred: get_match(&caps, "bt"),
+                    bytes_source: format!("{}B", get_match(&caps, "bs")),
+                    bytes_transferred: format!("{}B", get_match(&caps, "bt")),
                     speed:format!("{}B/s", get_match(&caps, "ts"))
                 }
             })
