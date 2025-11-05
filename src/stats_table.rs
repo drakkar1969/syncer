@@ -127,7 +127,7 @@ impl StatsTable {
         for (box_, label) in widgets {
             let text = label.label();
 
-            box_.set_visible(!text.is_empty() && text != "0");
+            box_.set_visible(text != "0");
         }
     }
 

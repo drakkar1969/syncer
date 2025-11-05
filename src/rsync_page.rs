@@ -263,7 +263,7 @@ impl RsyncPage {
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
 
                 imp.message_label.set_label(&format!(
-                    "Success: {} of {} transferred",
+                    "Success: {}B of {}B transferred",
                     stats.bytes_transferred,
                     stats.bytes_source
                 ));
@@ -288,7 +288,7 @@ impl RsyncPage {
 
         // Show stats
         if let Some(stats) = stats {
-            imp.speed_label.set_label(&stats.speed);
+            imp.speed_label.set_label(&format!("{}B/s", stats.speed));
 
             imp.stats_table.fill(stats);
 

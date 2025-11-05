@@ -165,36 +165,30 @@ impl RsyncProcess {
             .map(|caps| {
                 let get_match = |caps: &Captures, m: &str| -> String {
                     caps.name(m)
-                        .map(|m| m.as_str().trim_end_matches(',').trim().to_owned())
+                        .map(|m| m.as_str().trim_end_matches(',').trim())
+                        .unwrap_or("0")
+                        .to_owned()
+                };
+
+                let to_u64 = |s: &str| -> u32 {
+                    s.replace(',', "")
+                        .parse::<u32>()
                         .unwrap_or_default()
                 };
 
-                let to_u64 = |s: &str| -> u64 {
-                    s.replace([',', '.'], "")
-                        .parse::<u64>()
-                        .unwrap_or_default()
+                let max_str = |s1: &str, s2: &str| -> String {
+                    let n1 = to_u64(s1);
+                    let n2 = to_u64(s2);
+
+                    if n1 > n2 { s1 } else { s2 }.to_owned()
                 };
 
                 let d_total = get_match(&caps, "dt");
-                let n_total = to_u64(&d_total);
-
                 let d_files = get_match(&caps, "df");
-                let n_files = to_u64(&d_files);
-
                 let d_transf = get_match(&caps, "tt");
-                let n_transf = to_u64(&d_transf);
 
-                let dest_total = if n_total > n_transf {
-                    d_total
-                } else {
-                    d_transf.clone()
-                };
-
-                let dest_files = if n_files > n_transf {
-                    d_files
-                } else {
-                    d_transf
-                };
+                let dest_total = max_str(&d_total, &d_transf);
+                let dest_files = max_str(&d_files, &d_transf);
 
                 Stats {
                     source_total: get_match(&caps, "st"),
@@ -208,9 +202,9 @@ impl RsyncProcess {
                     destination_links: get_match(&caps, "dl"),
                     destination_specials: get_match(&caps, "ds"),
                     destination_deleted: get_match(&caps, "dr"),
-                    bytes_source: format!("{}B", get_match(&caps, "bs")),
-                    bytes_transferred: format!("{}B", get_match(&caps, "bt")),
-                    speed:format!("{}B/s", get_match(&caps, "ts"))
+                    bytes_source: get_match(&caps, "bs"),
+                    bytes_transferred: get_match(&caps, "bt"),
+                    speed: get_match(&caps, "ts")
                 }
             })
     }
