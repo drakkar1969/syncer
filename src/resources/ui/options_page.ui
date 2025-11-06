@@ -132,7 +132,7 @@
                     <property name="title">_Advanced Options</property>
                     <property name="subtitle">Configure rsync options</property>
                     <property name="use-underline">true</property>
-                    <property name="action-name">content.push-options</property>
+                    <property name="action-name">content.push-advanced</property>
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>

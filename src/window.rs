@@ -68,9 +68,9 @@ mod imp {
             klass.bind_template();
 
             //---------------------------------------
-            // Content push options action
+            // Content push advanced action
             //---------------------------------------
-            klass.install_action("content.push-options", None, |window, _, _| {
+            klass.install_action("content.push-advanced", None, |window, _, _| {
                 window.imp().content_navigation_view.push_by_tag("advanced");
             });
 
