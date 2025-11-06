@@ -348,7 +348,7 @@ impl LogWindow {
 
                 // Populate view
                 let objects: Vec<gtk::StringObject> = messages.iter()
-                    .chain(iter::once(&String::from("")).filter(|_| messages.len() > 0))
+                    .chain(iter::once(&String::from("")).filter(|_| !messages.is_empty()))
                     .chain(stats_msgs.iter())
                     .map(|s| gtk::StringObject::new(s))
                     .collect();
