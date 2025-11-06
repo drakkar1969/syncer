@@ -110,7 +110,7 @@
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>
-                        <property name="icon-name">options-check-symbolic</property>
+                        <property name="icon-name">selection-mode-symbolic</property>
                         <style>
                           <class name="bubble"/>
                         </style>
@@ -136,7 +136,7 @@
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>
-                        <property name="icon-name">options-advanced-symbolic</property>
+                        <property name="icon-name">system-run-symbolic</property>
                         <style>
                           <class name="bubble"/>
                         </style>
@@ -156,7 +156,7 @@
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>
-                        <property name="icon-name">options-extra-symbolic</property>
+                        <property name="icon-name">document-edit-symbolic</property>
                         <style>
                           <class name="bubble"/>
                         </style>
