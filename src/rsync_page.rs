@@ -189,7 +189,6 @@ impl RsyncPage {
         imp.message_label.set_label("");
 
         imp.stack.set_visible_child_name("empty");
-        imp.stats_table.reset();
     }
 
     //---------------------------------------

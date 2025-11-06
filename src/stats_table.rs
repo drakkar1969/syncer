@@ -36,6 +36,8 @@ mod imp {
         pub(super) source_specials_label: TemplateChild<gtk::Label>,
 
         #[template_child]
+        pub(super) destination_none_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) destination_total_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) destination_files_box: TemplateChild<gtk::Box>,
@@ -111,6 +113,8 @@ impl StatsTable {
         imp.destination_specials_label.set_label(&stats.destination_specials);
         imp.destination_deleted_label.set_label(&stats.destination_deleted);
 
+        imp.destination_none_label.set_visible(stats.destination_total == "0");
+
         let widgets = [
             (&imp.source_files_box, &imp.source_files_label),
             (&imp.source_dirs_box, &imp.source_dirs_label),
@@ -125,33 +129,7 @@ impl StatsTable {
         ];
 
         for (box_, label) in widgets {
-            let text = label.label();
-
-            box_.set_visible(text != "0");
-        }
-    }
-
-    //---------------------------------------
-    // Reset function
-    //---------------------------------------
-    pub fn reset(&self) {
-        let imp = self.imp();
-
-        let widgets = [
-            &imp.source_files_box,
-            &imp.source_dirs_box,
-            &imp.source_links_box,
-            &imp.source_specials_box,
-
-            &imp.destination_files_box,
-            &imp.destination_dirs_box,
-            &imp.destination_links_box,
-            &imp.destination_specials_box,
-            &imp.destination_deleted_box,
-        ];
-
-        for box_ in widgets {
-            box_.set_visible(true);
+            box_.set_visible(label.label() != "0");
         }
     }
 }
