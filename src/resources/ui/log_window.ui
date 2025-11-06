@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// DetailsWindow template //-->
-  <template class="DetailsWindow" parent="AdwWindow">
+  <!--// LogWindow template //-->
+  <template class="LogWindow" parent="AdwWindow">
     <property name="default-width">800</property>
     <property name="default-height">660</property>
     <property name="modal">true</property>
@@ -112,7 +112,7 @@
                 </child>
                 <child>
                   <object class="GtkStackPage">
-                    <property name="name">details</property>
+                    <property name="name">log</property>
                     <property name="child">
                       <object class="GtkScrolledWindow">
                         <property name="hexpand">true</property>

@@ -232,13 +232,13 @@
                           <object class="StatsTable" id="stats_table"/>
                         </child>
                         <child>
-                          <object class="GtkButton" id="details_button">
+                          <object class="GtkButton" id="log_button">
                             <property name="halign">center</property>
                             <property name="margin-top">8</property>
                             <property name="child">
                               <object class="AdwButtonContent">
                                 <property name="icon-name">options-extra-symbolic</property>
-                                <property name="label">_View Rsync Log</property>
+                                <property name="label">Rsync _Log</property>
                                 <property name="use-underline">true</property>
                               </object>
                             </property>

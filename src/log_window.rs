@@ -11,7 +11,7 @@ use glib::clone;
 const STATS_TAG: &str = "::STATS::";
 
 //------------------------------------------------------------------------------
-// MODULE: DetailsWindow
+// MODULE: LogWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -20,8 +20,8 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/RsyncUI/ui/details_window.ui")]
-    pub struct DetailsWindow {
+    #[template(resource = "/com/github/RsyncUI/ui/log_window.ui")]
+    pub struct LogWindow {
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
@@ -50,9 +50,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for DetailsWindow {
-        const NAME: &'static str = "DetailsWindow";
-        type Type = super::DetailsWindow;
+    impl ObjectSubclass for LogWindow {
+        const NAME: &'static str = "LogWindow";
+        type Type = super::LogWindow;
         type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
@@ -82,7 +82,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for DetailsWindow {
+    impl ObjectImpl for LogWindow {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -96,21 +96,21 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for DetailsWindow {}
-    impl WindowImpl for DetailsWindow {}
-    impl AdwWindowImpl for DetailsWindow {}
+    impl WidgetImpl for LogWindow {}
+    impl WindowImpl for LogWindow {}
+    impl AdwWindowImpl for LogWindow {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: DetailsWindow
+// IMPLEMENTATION: LogWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct DetailsWindow(ObjectSubclass<imp::DetailsWindow>)
+    pub struct LogWindow(ObjectSubclass<imp::LogWindow>)
     @extends adw::Window, gtk::Window, gtk::Widget,
     @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
-impl DetailsWindow {
+impl LogWindow {
     //---------------------------------------
     // New function
     //---------------------------------------
@@ -356,7 +356,7 @@ impl DetailsWindow {
                 imp.model.splice(0, 0, &objects);
 
                 // Display view
-                imp.stack.set_visible_child_name("details");
+                imp.stack.set_visible_child_name("log");
 
                 // Set initial focus on view
                 imp.view.grab_focus();

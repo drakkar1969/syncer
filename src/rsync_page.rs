@@ -7,7 +7,7 @@ use glib::clone;
 
 use crate::profile_object::ProfileObject;
 use crate::stats_table::StatsTable;
-use crate::details_window::DetailsWindow;
+use crate::log_window::LogWindow;
 use crate::rsync_process::Stats;
 
 //------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ mod imp {
         #[template_child]
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
         #[template_child]
-        pub(super) details_button: TemplateChild<gtk::Button>,
+        pub(super) log_button: TemplateChild<gtk::Button>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -147,8 +147,8 @@ impl RsyncPage {
             }
         });
 
-        // Details button clicked signal
-        imp.details_button.connect_clicked(clone!(
+        // Log button clicked signal
+        imp.log_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
             move|_| {
                 let imp = page.imp();
@@ -157,7 +157,7 @@ impl RsyncPage {
                     .and_downcast::<gtk::Window>()
                     .expect("Could not downcast to 'GtkWindow'");
 
-                let window = DetailsWindow::new(&parent);
+                let window = LogWindow::new(&parent);
 
                 window.display(
                     imp.messages.borrow().as_ref(),
@@ -257,7 +257,7 @@ impl RsyncPage {
 
         imp.stats_msgs.replace(stats_msgs.to_vec());
 
-        imp.details_button.set_sensitive(has_messages || has_stats_msgs);
+        imp.log_button.set_sensitive(has_messages || has_stats_msgs);
 
         // Ensure progress bar at 100% if success
         if code == 0 {
