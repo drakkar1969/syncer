@@ -29,17 +29,17 @@ mod imp {
     #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
+        pub(super) status_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub(super) status_new_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) main_navigation_view: TemplateChild<adw::NavigationView>,
+        #[template_child]
         pub(super) split_view: TemplateChild<adw::OverlaySplitView>,
-
         #[template_child]
         pub(super) sidebar: TemplateChild<Sidebar>,
-
-        #[template_child]
-        pub(super) content_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) content_navigation_view: TemplateChild<adw::NavigationView>,
-        #[template_child]
-        pub(super) new_profile_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
         #[template_child]
@@ -86,7 +86,7 @@ mod imp {
                     .expect("Could not get bool from variant");
 
                 // Show rsync page
-                imp.content_navigation_view.push_by_tag("rsync");
+                imp.main_navigation_view.push_by_tag("rsync");
 
                 // Get args
                 let args = vec![
@@ -260,8 +260,8 @@ impl AppWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // New profile button clicked signal
-        imp.new_profile_button.connect_clicked(clone!(
+        // Status new button clicked signal
+        imp.status_new_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
                 imp.sidebar.activate_action("sidebar.new-profile", None)
@@ -276,9 +276,9 @@ impl AppWindow {
                 if sidebar.n_items() == 0 {
                     imp.content_navigation_view.pop();
 
-                    imp.content_stack.set_visible_child_name("status");
+                    imp.status_stack.set_visible_child_name("status");
                 } else {
-                    imp.content_stack.set_visible_child_name("profile");
+                    imp.status_stack.set_visible_child_name("main");
                 }
             }
         ));
@@ -287,8 +287,6 @@ impl AppWindow {
         imp.rsync_page.connect_showing(clone!(
             #[weak] imp,
             move |_| {
-                imp.sidebar.set_sensitive(false);
-
                 imp.sidebar.action_set_enabled("sidebar.new-profile", false);
             }
         ));
@@ -296,8 +294,6 @@ impl AppWindow {
         imp.rsync_page.connect_hidden(clone!(
             #[weak] imp,
             move |_| {
-                imp.sidebar.set_sensitive(true);
-
                 imp.sidebar.action_set_enabled("sidebar.new-profile", true);
             }
         ));
@@ -378,7 +374,7 @@ impl AppWindow {
             .sync_create()
             .build();
 
-        // Bind sidebar selected profile to rsyn page
+        // Bind sidebar selected profile to rsync page
         imp.sidebar.bind_property("selected-profile", &imp.rsync_page.get(), "profile")
             .sync_create()
             .build();
