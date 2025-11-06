@@ -175,9 +175,6 @@ impl OptionsPage {
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
-
-                // Set page title
-                page.set_title(&profile.name());
             }
         });
 
