@@ -26,7 +26,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::AppWindow)]
-    #[template(resource = "/com/github/RsyncUI/ui/window.ui")]
+    #[template(resource = "/com/github/Syncer/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
         pub(super) status_stack: TemplateChild<gtk::Stack>,
@@ -130,7 +130,7 @@ mod imp {
             klass.install_action("rsync.show-cmdline", None, |window, _, _| {
                 let imp = window.imp();
 
-                let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/rsync_cmdline_dialog.ui");
+                let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/rsync_cmdline_dialog.ui");
 
                 let dialog: adw::AlertDialog = builder.object("dialog")
                     .expect("Could not get object from resource");
@@ -201,7 +201,7 @@ mod imp {
                     .expect("Could not activate action 'rsync.pause'");
 
                 let dialog = adw::AlertDialog::builder()
-                    .heading("Exit RsyncUI?")
+                    .heading("Exit Syncer?")
                     .body("Terminate transfer process and exit.")
                     .default_response("exit")
                     .build();

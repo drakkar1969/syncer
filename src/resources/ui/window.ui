@@ -6,7 +6,7 @@
     <property name="default-height">630</property>
     <property name="width-request">520</property>
     <property name="height-request">630</property>
-    <property name="title">RsyncUI</property>
+    <property name="title">Syncer</property>
     <child>
       <object class="AdwBreakpoint">
         <condition>max-width: 650px</condition>
@@ -26,7 +26,7 @@
                 <property name="content">
                   <object class="AdwStatusPage">
                     <property name="icon-name">document-edit-symbolic</property>
-                    <property name="title">Welcome to RsyncUI</property>
+                    <property name="title">Welcome to Syncer</property>
                     <property name="description">Create a new profile to get started</property>
                     <property name="child">
                       <object class="GtkButton" id="status_new_button">

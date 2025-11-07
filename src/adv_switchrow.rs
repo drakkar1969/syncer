@@ -15,7 +15,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::AdvSwitchRow)]
-    #[template(resource = "/com/github/RsyncUI/ui/adv_switchrow.ui")]
+    #[template(resource = "/com/github/Syncer/ui/adv_switchrow.ui")]
     pub struct AdvSwitchRow {
         #[template_child]
         pub(super) switch: TemplateChild<gtk::Switch>,

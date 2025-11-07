@@ -24,7 +24,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::Sidebar)]
-    #[template(resource = "/com/github/RsyncUI/ui/sidebar.ui")]
+    #[template(resource = "/com/github/Syncer/ui/sidebar.ui")]
     pub struct Sidebar {
         #[template_child]
         pub(super) new_button: TemplateChild<gtk::Button>,
@@ -258,7 +258,7 @@ impl Sidebar {
     //---------------------------------------
     fn profile_name_dialog<F>(&self, response: &str, f: F)
     where F: Fn(&str) + 'static {
-        let builder = gtk::Builder::from_resource("/com/github/RsyncUI/ui/builder/profile_name_dialog.ui");
+        let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_name_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
             .expect("Could not get object from resource");
@@ -317,7 +317,7 @@ impl Sidebar {
 
         // Load profiles from config file
         let config_path = xdg::BaseDirectories::new()
-            .find_config_file("rsyncui/config.json")
+            .find_config_file("Syncer/config.json")
             .ok_or_else(|| io::Error::other("Config file not found"))?;
 
         let file = fs::File::open(config_path)?;
@@ -352,7 +352,7 @@ impl Sidebar {
             .expect("Could not pretty print JSON string");
 
         let config_path = xdg::BaseDirectories::new()
-            .place_config_file("rsyncui/config.json")?;
+            .place_config_file("Syncer/config.json")?;
 
         let mut file = fs::File::create(config_path)?;
 

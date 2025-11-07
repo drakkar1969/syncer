@@ -18,7 +18,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::AdvancedPage)]
-    #[template(resource = "/com/github/RsyncUI/ui/advanced_page.ui")]
+    #[template(resource = "/com/github/Syncer/ui/advanced_page.ui")]
     pub struct AdvancedPage {
         #[template_child]
         pub(super) switches_box: TemplateChild<gtk::Box>,

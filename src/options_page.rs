@@ -19,7 +19,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::OptionsPage)]
-    #[template(resource = "/com/github/RsyncUI/ui/options_page.ui")]
+    #[template(resource = "/com/github/Syncer/ui/options_page.ui")]
     pub struct OptionsPage {
         #[template_child]
         pub(super) copy_by_name_button: TemplateChild<gtk::ToggleButton>,

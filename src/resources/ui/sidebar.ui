@@ -86,7 +86,7 @@
     </section>
     <section>
       <item>
-        <attribute name="label">About RsyncUI</attribute>
+        <attribute name="label">About Syncer</attribute>
         <attribute name="action">app.show-about</attribute>
       </item>
     </section>

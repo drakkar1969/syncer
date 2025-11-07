@@ -14,7 +14,7 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/RsyncUI/ui/stats_table.ui")]
+    #[template(resource = "/com/github/Syncer/ui/stats_table.ui")]
     pub struct StatsTable {
         #[template_child]
         pub(super) source_total_label: TemplateChild<gtk::Label>,

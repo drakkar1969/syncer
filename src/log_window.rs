@@ -20,7 +20,7 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/RsyncUI/ui/log_window.ui")]
+    #[template(resource = "/com/github/Syncer/ui/log_window.ui")]
     pub struct LogWindow {
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,

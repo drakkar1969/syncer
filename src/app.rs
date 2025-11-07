@@ -98,7 +98,7 @@ impl Application {
                     .expect("Failed to retrieve active window");
 
                 let about_dialog = adw::AboutDialog::builder()
-                    .application_name("RsyncUI")
+                    .application_name("Syncer")
                     // .application_icon("pacview")
                     .developer_name("draKKar1969")
                     .version(env!("CARGO_PKG_VERSION"))

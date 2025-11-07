@@ -17,7 +17,7 @@ use gtk::prelude::*;
 
 use app::Application;
 
-const APP_ID: &str = "com.github.RsyncUI";
+const APP_ID: &str = "com.github.Syncer";
 
 fn main() -> glib::ExitCode {
     // Register and include resources

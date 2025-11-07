@@ -21,7 +21,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::RsyncPage)]
-    #[template(resource = "/com/github/RsyncUI/ui/rsync_page.ui")]
+    #[template(resource = "/com/github/Syncer/ui/rsync_page.ui")]
     pub struct RsyncPage {
         #[template_child]
         pub(super) progress_label: TemplateChild<gtk::Label>,

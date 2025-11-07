@@ -3,6 +3,24 @@
 version = 4
 
 [[package]]
+name = "Syncer"
+version = "0.1.0"
+dependencies = [
+ "async-channel",
+ "glib-build-tools",
+ "gtk4",
+ "indexmap",
+ "itertools",
+ "libadwaita",
+ "nix",
+ "regex",
+ "serde_json",
+ "strum",
+ "tokio",
+ "xdg",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -744,24 +762,6 @@ name = "regex-syntax"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
-
-[[package]]
-name = "rsync-ui"
-version = "0.1.0"
-dependencies = [
- "async-channel",
- "glib-build-tools",
- "gtk4",
- "indexmap",
- "itertools",
- "libadwaita",
- "nix",
- "regex",
- "serde_json",
- "strum",
- "tokio",
- "xdg",
-]
 
 [[package]]
 name = "rustc-demangle"

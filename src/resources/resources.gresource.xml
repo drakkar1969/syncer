@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/com/github/RsyncUI/icons/scalable/actions/">
+  <gresource prefix="/com/github/Syncer/icons/scalable/actions/">
     <file alias="options-copy-byname-symbolic.svg">icons/options-copy-byname-symbolic.svg</file>
     <file alias="options-swap-symbolic.svg">icons/options-swap-symbolic.svg</file>
     <file alias="rsync-start-symbolic.svg">icons/rsync-start-symbolic.svg</file>
@@ -22,7 +22,7 @@
     <file alias="stats-deleted-symbolic.svg">icons/stats-deleted-symbolic.svg</file>
     <file alias="stats-skipped-symbolic.svg">icons/stats-skipped-symbolic.svg</file>
   </gresource>
-  <gresource prefix="/com/github/RsyncUI/">
+  <gresource prefix="/com/github/Syncer/">
     <file compressed="true">style.css</file>
     <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
     <file compressed="true">ui/builder/profile_name_dialog.ui</file>

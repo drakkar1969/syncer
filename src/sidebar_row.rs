@@ -18,7 +18,7 @@ mod imp {
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::SidebarRow)]
-    #[template(resource = "/com/github/RsyncUI/ui/sidebar_row.ui")]
+    #[template(resource = "/com/github/Syncer/ui/sidebar_row.ui")]
     pub struct SidebarRow {
         #[template_child]
         pub(super) label: TemplateChild<gtk::Label>,
