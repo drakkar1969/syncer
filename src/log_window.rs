@@ -29,8 +29,6 @@ mod imp {
         #[template_child]
         pub(super) deleted_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) stack: TemplateChild<gtk::Stack>,
-        #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::NoSelection>,
@@ -337,9 +335,6 @@ impl LogWindow {
                     .collect();
 
                 imp.model.splice(0, 0, &objects);
-
-                // Display view
-                imp.stack.set_visible_child_name("log");
 
                 // Set initial focus on view
                 imp.view.grab_focus();
