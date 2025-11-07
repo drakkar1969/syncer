@@ -17,6 +17,8 @@ use nix::unistd::Pid as NixPid;
 use regex::{Regex, Captures};
 use itertools::{Itertools, izip};
 
+use crate::utils::convert;
+
 //------------------------------------------------------------------------------
 // ENUM: Msg
 //------------------------------------------------------------------------------
@@ -171,25 +173,12 @@ impl RsyncProcess {
                         .to_owned()
                 };
 
-                let to_u64 = |s: &str| -> u32 {
-                    s.replace(',', "")
-                        .parse::<u32>()
-                        .unwrap_or_default()
-                };
-
-                let max_str = |s1: &str, s2: &str| -> String {
-                    let n1 = to_u64(s1);
-                    let n2 = to_u64(s2);
-
-                    if n1 > n2 { s1 } else { s2 }.to_owned()
-                };
-
                 let d_total = get_match(&caps, "dt");
                 let d_files = get_match(&caps, "df");
                 let d_transf = get_match(&caps, "tt");
 
-                let dest_total = max_str(&d_total, &d_transf);
-                let dest_files = max_str(&d_files, &d_transf);
+                let dest_total = convert::max_str::<u32>(&d_total, &d_transf);
+                let dest_files = convert::max_str::<u32>(&d_files, &d_transf);
 
                 Stats {
                     source_total: get_match(&caps, "st"),

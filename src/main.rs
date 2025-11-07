@@ -10,6 +10,7 @@ mod rsync_page;
 mod stats_table;
 mod log_window;
 mod rsync_process;
+mod utils;
 
 use gtk::{glib, gio};
 use gtk::prelude::*;
