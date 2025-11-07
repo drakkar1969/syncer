@@ -138,17 +138,7 @@
                                       </object>
                                     </property>
                                     <property name="filter">
-                                      <object class="GtkEveryFilter">
-                                        <child>
-                                          <object class="GtkCustomFilter" id="search_filter"/>
-                                        </child>
-                                        <child>
-                                          <object class="GtkCustomFilter" id="skipped_filter"/>
-                                        </child>
-                                        <child>
-                                          <object class="GtkCustomFilter" id="deleted_filter"/>
-                                        </child>
-                                      </object>
+                                      <object class="GtkCustomFilter" id="filter"/>
                                     </property>
                                   </object>
                                 </property>

@@ -37,11 +37,7 @@ mod imp {
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
-        #[template_child]
-        pub(super) skipped_filter: TemplateChild<gtk::CustomFilter>,
-        #[template_child]
-        pub(super) deleted_filter: TemplateChild<gtk::CustomFilter>,
+        pub(super) filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
     }
@@ -166,11 +162,11 @@ impl LogWindow {
                 .and_downcast::<gtk::Label>()
                 .expect("Could not downcast to 'GtkLabel'");
 
-            let obj = item.item()
+            let text = item.item()
                 .and_downcast::<gtk::StringObject>()
-                .expect("Could not downcast to 'GtkStringObject'");
+                .expect("Could not downcast to 'GtkStringObject'")
+                .string();
 
-            let text = obj.string();
             let is_stats = text.starts_with(STATS_TAG);
 
             if is_stats {
@@ -224,23 +220,31 @@ impl LogWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |_| {
-                imp.search_filter.changed(gtk::FilterChange::Different);
+                imp.filter.changed(gtk::FilterChange::Different);
             }
         ));
 
         // Skipped button toggled signal
         imp.skipped_button.connect_toggled(clone!(
             #[weak] imp,
-            move |_| {
-                imp.skipped_filter.changed(gtk::FilterChange::Different);
+            move |button| {
+                if button.is_active() {
+                    imp.filter.changed(gtk::FilterChange::LessStrict);
+                } else {
+                    imp.filter.changed(gtk::FilterChange::MoreStrict);
+                }
             }
         ));
 
         // Deleted button toggled signal
         imp.deleted_button.connect_toggled(clone!(
             #[weak] imp,
-            move |_| {
-                imp.deleted_filter.changed(gtk::FilterChange::Different);
+            move |button| {
+                if button.is_active() {
+                    imp.filter.changed(gtk::FilterChange::LessStrict);
+                } else {
+                    imp.filter.changed(gtk::FilterChange::MoreStrict);
+                }
             }
         ));
     }
@@ -254,52 +258,27 @@ impl LogWindow {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
-        // Set search filter function widget
-        imp.search_filter.set_filter_func(clone!(
+        // Set filter function
+        imp.filter.set_filter_func(clone!(
             #[weak] imp,
             #[upgrade_or] false,
             move |obj| {
                 let text = obj
                     .downcast_ref::<gtk::StringObject>()
                     .expect("Could not downcast to 'GtkStringObject'")
-                    .string();
+                    .string()
+                    .to_lowercase();
 
-                text.to_lowercase().contains(&imp.search_entry.text().to_lowercase())
-            }
-        ));
-
-        // Set skipped filter function widget
-        imp.skipped_filter.set_filter_func(clone!(
-            #[weak] imp,
-            #[upgrade_or] false,
-            move |obj| {
-                let text = obj
-                    .downcast_ref::<gtk::StringObject>()
-                    .expect("Could not downcast to 'GtkStringObject'")
-                    .string();
-
-                if text.starts_with("skipping") {
-                    imp.skipped_button.is_active()
+                if text.contains(&imp.search_entry.text().to_lowercase()) {
+                    if text.starts_with("skipping") {
+                        imp.skipped_button.is_active()
+                    } else if text.starts_with("deleting") {
+                        imp.deleted_button.is_active()
+                    } else {
+                        true
+                    }
                 } else {
-                    true
-                }
-            }
-        ));
-
-        // Set deleted filter function widget
-        imp.deleted_filter.set_filter_func(clone!(
-            #[weak] imp,
-            #[upgrade_or] false,
-            move |obj| {
-                let text = obj
-                    .downcast_ref::<gtk::StringObject>()
-                    .expect("Could not downcast to 'GtkStringObject'")
-                    .string();
-
-                if text.starts_with("deleting") {
-                    imp.deleted_button.is_active()
-                } else {
-                    true
+                    false
                 }
             }
         ));
@@ -329,17 +308,17 @@ impl LogWindow {
     // Display function
     //---------------------------------------
     pub fn display(&self, messages: &[String], stats_msgs: &[String]) {
+        let imp = self.imp();
+
         self.present();
 
         let messages = messages.to_vec();
         let stats_msgs = stats_msgs.to_vec();
 
         glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak] imp,
             async move {
-                let imp = window.imp();
-
-                // Spawn task
+                // Spawn task to populate view
                 let stats_msgs: Vec<String> = gio::spawn_blocking(clone!(
                     move || {
                         stats_msgs.into_iter()
@@ -352,7 +331,7 @@ impl LogWindow {
 
                 // Populate view
                 let objects: Vec<gtk::StringObject> = messages.iter()
-                    .chain(iter::once(&String::from("")).filter(|_| !messages.is_empty()))
+                    .chain(iter::once(&String::new()).filter(|_| !messages.is_empty()))
                     .chain(stats_msgs.iter())
                     .map(|s| gtk::StringObject::new(s))
                     .collect();
@@ -366,6 +345,5 @@ impl LogWindow {
                 imp.view.grab_focus();
             }
         ));
-
     }
 }
