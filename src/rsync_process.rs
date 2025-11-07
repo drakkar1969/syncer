@@ -208,40 +208,34 @@ impl RsyncProcess {
                 .expect("Failed to compile Regex")
         });
 
-        // Return none if more that two error strings
+        // Expect exactly two error strings
         let (err_detail, err_main) = errors.iter().collect_tuple()?;
+
+        // Helper closure to extract error
+        let extract_error = |s: &str| -> Option<String> {
+            EXPR.captures(s)?
+                .name("err")
+                .map(|m| m.as_str().trim().trim_end_matches('.').replace("rsync error: ", ""))
+                .map(|mut s| {
+                    if let Some(first) = s.get_mut(0..1) {
+                        first.make_ascii_uppercase();
+                    }
+
+                    s
+                })
+        };
 
         // Get error string
         match code {
             // Terminated by user
-            20 => { Some(String::from("Terminated by user")) }
+            20 => Some(String::from("Terminated by user")),
 
             // Usage error | partial transfer due to error
-            1 | 23 => {
-                EXPR.captures(err_detail)?
-                    .name("err")
-                    .map(|m| {
-                        let mut chars = m.as_str().trim().trim_end_matches('.').chars();
-
-                        chars.next()
-                            .map_or_else(
-                                String::new,
-                                |first| first.to_uppercase().collect::<String>() + chars.as_str()
-                            )
-                    })
-                    .or_else(|| {
-                        EXPR.captures(err_main)?
-                            .name("err")
-                            .map(|m| m.as_str().trim().replace("rsync error: ", ""))
-                    })
-            }
+            1 | 23 => extract_error(err_detail)
+                .or_else(|| extract_error(err_main)),
 
             // Other error
-            _ => {
-                EXPR.captures(err_main)?
-                    .name("err")
-                    .map(|m| m.as_str().trim().replace("rsync error: ", ""))
-            }
+            _ => extract_error(err_main)
         }
     }
 
