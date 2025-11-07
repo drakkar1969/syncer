@@ -54,8 +54,14 @@
                     <property name="valign">center</property>
                     <property name="spacing">6</property>
                     <child>
-                      <object class="GtkSearchEntry" id="search_entry">
+                      <object class="AdwSpinner" id="spinner">
+                        <property name="visible">true</property>
                         <property name="margin-start">20</property>
+                        <property name="margin-end">6</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSearchEntry" id="search_entry">
                         <property name="margin-end">14</property>
                         <property name="placeholder-text">Search</property>
                         <style>
@@ -108,6 +114,7 @@
                       <object class="GtkNoSelection" id="selection">
                         <property name="model">
                           <object class="GtkFilterListModel" id="filter_model">
+                            <property name="incremental">true</property>
                             <property name="model">
                               <object class="GListStore" id="model">
                                 <property name="item-type">GtkStringObject</property>

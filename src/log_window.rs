@@ -23,6 +23,8 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/log_window.ui")]
     pub struct LogWindow {
         #[template_child]
+        pub(super) spinner: TemplateChild<adw::Spinner>,
+        #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
         pub(super) skipped_button: TemplateChild<gtk::ToggleButton>,
@@ -36,6 +38,8 @@ mod imp {
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) filter: TemplateChild<gtk::CustomFilter>,
+        #[template_child]
+        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
     }
@@ -218,6 +222,8 @@ impl LogWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |_| {
+                imp.spinner.set_visible(true);
+
                 imp.filter.changed(gtk::FilterChange::Different);
             }
         ));
@@ -225,23 +231,29 @@ impl LogWindow {
         // Skipped button toggled signal
         imp.skipped_button.connect_toggled(clone!(
             #[weak] imp,
-            move |button| {
-                if button.is_active() {
-                    imp.filter.changed(gtk::FilterChange::LessStrict);
-                } else {
-                    imp.filter.changed(gtk::FilterChange::MoreStrict);
-                }
+            move |_| {
+                imp.spinner.set_visible(true);
+
+                imp.filter.changed(gtk::FilterChange::Different);
             }
         ));
 
         // Deleted button toggled signal
         imp.deleted_button.connect_toggled(clone!(
             #[weak] imp,
-            move |button| {
-                if button.is_active() {
-                    imp.filter.changed(gtk::FilterChange::LessStrict);
-                } else {
-                    imp.filter.changed(gtk::FilterChange::MoreStrict);
+            move |_| {
+                imp.spinner.set_visible(true);
+
+                imp.filter.changed(gtk::FilterChange::Different);
+            }
+        ));
+
+        // Filter model pending property notify signal
+        imp.filter_model.connect_pending_notify(clone!(
+            #[weak] imp,
+            move |model| {
+                if model.pending() == 0 {
+                    imp.spinner.set_visible(false);
                 }
             }
         ));
