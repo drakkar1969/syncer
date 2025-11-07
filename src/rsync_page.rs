@@ -47,9 +47,11 @@ mod imp {
         pub(super) destination_label: TemplateChild<gtk::Label>,
 
         #[template_child]
-        pub(super) stack: TemplateChild<gtk::Stack>,
+        pub(super) stats_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) stats_table: TemplateChild<StatsTable>,
+        #[template_child]
+        pub(super) button_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) pause_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -188,7 +190,8 @@ impl RsyncPage {
         imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
         imp.message_label.set_label("");
 
-        imp.stack.set_visible_child_name("empty");
+        imp.stats_stack.set_visible_child_name("empty");
+        imp.button_stack.set_visible_child_name("empty");
     }
 
     //---------------------------------------
@@ -214,8 +217,8 @@ impl RsyncPage {
     pub fn set_start(&self) {
         let imp = self.imp();
 
-        if imp.stack.visible_child_name() == Some("empty".into()) {
-            imp.stack.set_visible_child_name("buttons");
+        if imp.button_stack.visible_child_name() == Some("empty".into()) {
+            imp.button_stack.set_visible_child_name("buttons");
         }
     }
 
@@ -246,17 +249,6 @@ impl RsyncPage {
     //---------------------------------------
     pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String], stats_msgs: &[String]) {
         let imp = self.imp();
-
-        // Store messages
-        let has_messages = !messages.is_empty();
-
-        imp.messages.replace(messages.to_vec());
-
-        let has_stats_msgs = !stats_msgs.is_empty();
-
-        imp.stats_msgs.replace(stats_msgs.to_vec());
-
-        imp.log_button.set_sensitive(has_messages || has_stats_msgs);
 
         // Ensure progress bar at 100% if success
         if code == 0 {
@@ -300,9 +292,19 @@ impl RsyncPage {
 
             imp.stats_table.fill(stats);
 
-            imp.stack.set_visible_child_name("stats");
+            imp.stats_stack.set_visible_child_name("stats");
         } else {
-            imp.stack.set_visible_child_name("empty");
+            imp.stats_stack.set_visible_child_name("empty");
+        }
+
+        // Show details
+        if messages.is_empty() && stats_msgs.is_empty() {
+            imp.button_stack.set_visible_child_name("empty");
+        } else {
+            imp.messages.replace(messages.to_vec());
+            imp.stats_msgs.replace(stats_msgs.to_vec());
+
+            imp.button_stack.set_visible_child_name("log");
         }
 
         self.set_can_pop(true);
