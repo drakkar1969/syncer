@@ -23,6 +23,8 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/log_window.ui")]
     pub struct LogWindow {
         #[template_child]
+        pub(super) header_sub_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) spinner: TemplateChild<adw::Spinner>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -245,6 +247,16 @@ impl LogWindow {
                 imp.spinner.set_visible(true);
 
                 imp.filter.changed(gtk::FilterChange::Different);
+            }
+        ));
+
+        // Selection items changed signal
+        imp.selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                imp.header_sub_label.set_label(&format!("{n_items} item{}", if n_items == 1 { "" } else { "s" }));
             }
         ));
 
