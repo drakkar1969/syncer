@@ -15,7 +15,7 @@ use tokio::io::AsyncReadExt as _;
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
 use regex::{Regex, Captures};
-use itertools::{Itertools, izip};
+use itertools::Itertools;
 
 use crate::utils::convert;
 
@@ -276,7 +276,7 @@ impl RsyncProcess {
 
                 let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
 
-                let mut stats = false;
+                let mut stats_mode = false;
 
                 'read: loop {
                     tokio::select! {
@@ -310,35 +310,33 @@ impl RsyncProcess {
 
                                 if line.starts_with('\r') {
                                     for chunk in line.split_terminator('\r') {
-                                        let vec: Vec<&str> = chunk
+                                        let parts: Vec<&str> = chunk
                                             .split_whitespace()
                                             .collect();
 
-                                        let values = izip!(
-                                            vec.first().map(|&s| s.to_owned()),
-                                            vec.get(2).map(|&s| s.to_owned()),
-                                            vec.get(1).and_then(|s| {
+                                        if let (Some(&size), Some(&speed), Some(progress)) = (
+                                            parts.first(),
+                                            parts.get(2),
+                                            parts.get(1).and_then(|s| {
                                                 s.trim_end_matches('%').parse::<f64>().ok()
                                             })
-                                        ).next();
-
-                                        if let Some((size, speed, progress)) = values {
+                                        ) {
                                             sender
-                                                .send(Msg::Progress(size, speed, progress))
+                                                .send(Msg::Progress(size.into(), speed.into(), progress))
                                                 .await
                                                 .expect("Could not send through channel");
                                         }
                                     }
-                                } else if line.starts_with("Number of files:") || stats {
-                                    stats = true;
+                                } else if line.starts_with("Number of files:") || stats_mode {
+                                    stats_mode = true;
 
                                     sender
-                                        .send(Msg::Stats(line.to_owned()))
+                                        .send(Msg::Stats(line.into()))
                                         .await
                                         .expect("Could not send through channel");
                                 } else {
                                     sender
-                                        .send(Msg::Message(line.to_owned()))
+                                        .send(Msg::Message(line.into()))
                                         .await
                                         .expect("Could not send through channel");
                                 }
