@@ -4,6 +4,7 @@ use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
+
 use strum::EnumProperty;
 
 use crate::profile_object::{CheckMode, ProfileObject};
@@ -33,10 +34,6 @@ mod imp {
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) extra_options_row: TemplateChild<adw::EntryRow>,
-
-        #[property(get)]
-        #[template_child]
-        pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,

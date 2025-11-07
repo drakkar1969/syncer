@@ -54,7 +54,7 @@
                 <child>
                   <object class="GtkLabel" id="source_total_label">
                     <property name="xalign">0</property>
-                    <property name="tooltip-text">In Source</property>
+                    <property name="tooltip-text">On Source</property>
                     <style>
                       <class name="heading"/>
                     </style>

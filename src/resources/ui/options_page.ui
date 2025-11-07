@@ -5,205 +5,191 @@
     <property name="title">Options</property>
     <property name="tag">options</property>
     <property name="child">
-      <object class="AdwToolbarView">
-        <child type="top">
-          <object class="AdwHeaderBar">
+      <object class="GtkBox" id="content_box">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">24</property>
+        <property name="margin-end">24</property>
+        <property name="margin-top">24</property>
+        <property name="margin-bottom">24</property>
+        <property name="spacing">24</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Paths</property>
+            <property name="header-suffix">
+              <object class="GtkBox">
+                <property name="spacing">8</property>
+                <child>
+                  <object class="GtkToggleButton" id="copy_by_name_button">
+                    <property name="icon-name">options-copy-byname-symbolic</property>
+                    <property name="tooltip-text">Copy Source Directory by Name</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="swap_paths_button">
+                    <property name="icon-name">options-swap-symbolic</property>
+                    <property name="tooltip-text">Swap Source With Destination</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </property>
             <child>
-              <object class="GtkToggleButton" id="sidebar_button">
-                <property name="icon-name">sidebar-show-symbolic</property>
-                <property name="tooltip-text">Toggle Sidebar</property>
+              <object class="AdwActionRow" id="source_row">
+                <property name="activatable">true</property>
+                <property name="title">_Source</property>
+                <property name="use-underline">true</property>
+                <style>
+                  <class name="property"/>
+                </style>
+                <child type="prefix">
+                  <object class="GtkImage">
+                    <property name="valign">center</property>
+                    <property name="icon-name">folder-open-symbolic</property>
+                    <style>
+                      <class name="bubble"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">go-next-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="destination_row">
+                <property name="activatable">true</property>
+                <property name="title">_Destination</property>
+                <property name="use-underline">true</property>
+                <style>
+                  <class name="property"/>
+                </style>
+                <child type="prefix">
+                  <object class="GtkImage">
+                    <property name="valign">center</property>
+                    <property name="icon-name">folder-open-symbolic</property>
+                    <style>
+                      <class name="bubble"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">go-next-symbolic</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
         </child>
-        <property name="content">
-          <object class="GtkBox" id="content_box">
-            <property name="orientation">vertical</property>
-            <property name="margin-start">24</property>
-            <property name="margin-end">24</property>
-            <property name="margin-top">24</property>
-            <property name="margin-bottom">24</property>
-            <property name="spacing">24</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Options</property>
             <child>
-              <object class="AdwPreferencesGroup">
-                <property name="title">Paths</property>
-                <property name="header-suffix">
-                  <object class="GtkBox">
-                    <property name="spacing">8</property>
-                    <child>
-                      <object class="GtkToggleButton" id="copy_by_name_button">
-                        <property name="icon-name">options-copy-byname-symbolic</property>
-                        <property name="tooltip-text">Copy Source Directory by Name</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="swap_paths_button">
-                        <property name="icon-name">options-swap-symbolic</property>
-                        <property name="tooltip-text">Swap Source With Destination</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
+              <object class="AdwComboRow" id="check_mode_combo">
+                <property name="title">File _Check</property>
+                <property name="use-underline">true</property>
+                <child type="prefix">
+                  <object class="GtkImage">
+                    <property name="valign">center</property>
+                    <property name="icon-name">selection-mode-symbolic</property>
+                    <style>
+                      <class name="bubble"/>
+                    </style>
+                  </object>
+                </child>
+                <property name="model">
+                  <object class="AdwEnumListModel">
+                    <property name="enum-type">CheckMode</property>
                   </object>
                 </property>
-                <child>
-                  <object class="AdwActionRow" id="source_row">
-                    <property name="activatable">true</property>
-                    <property name="title">_Source</property>
-                    <property name="use-underline">true</property>
+                <property name="expression">
+                  <lookup type="AdwEnumListItem" name="name"/>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="options_row">
+                <property name="activatable">true</property>
+                <property name="title">_Advanced Options</property>
+                <property name="subtitle">Configure rsync options</property>
+                <property name="use-underline">true</property>
+                <property name="action-name">navigation.push-advanced</property>
+                <child type="prefix">
+                  <object class="GtkImage">
+                    <property name="valign">center</property>
+                    <property name="icon-name">system-run-symbolic</property>
                     <style>
-                      <class name="property"/>
+                      <class name="bubble"/>
                     </style>
-                    <child type="prefix">
-                      <object class="GtkImage">
-                        <property name="valign">center</property>
-                        <property name="icon-name">folder-open-symbolic</property>
-                        <style>
-                          <class name="bubble"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="AdwActionRow" id="destination_row">
-                    <property name="activatable">true</property>
-                    <property name="title">_Destination</property>
-                    <property name="use-underline">true</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child type="prefix">
-                      <object class="GtkImage">
-                        <property name="valign">center</property>
-                        <property name="icon-name">folder-open-symbolic</property>
-                        <style>
-                          <class name="bubble"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
+                  <object class="GtkImage">
+                    <property name="icon-name">go-next-symbolic</property>
                   </object>
                 </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup">
-                <property name="title">Options</property>
-                <child>
-                  <object class="AdwComboRow" id="check_mode_combo">
-                    <property name="title">File _Check</property>
-                    <property name="use-underline">true</property>
-                    <child type="prefix">
-                      <object class="GtkImage">
-                        <property name="valign">center</property>
-                        <property name="icon-name">selection-mode-symbolic</property>
-                        <style>
-                          <class name="bubble"/>
-                        </style>
-                      </object>
-                    </child>
-                    <property name="model">
-                      <object class="AdwEnumListModel">
-                        <property name="enum-type">CheckMode</property>
-                      </object>
-                    </property>
-                    <property name="expression">
-                      <lookup type="AdwEnumListItem" name="name"/>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="options_row">
-                    <property name="activatable">true</property>
-                    <property name="title">_Advanced Options</property>
-                    <property name="subtitle">Configure rsync options</property>
-                    <property name="use-underline">true</property>
-                    <property name="action-name">content.push-advanced</property>
-                    <child type="prefix">
-                      <object class="GtkImage">
-                        <property name="valign">center</property>
-                        <property name="icon-name">system-run-symbolic</property>
-                        <style>
-                          <class name="bubble"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwEntryRow" id="extra_options_row">
-                    <property name="title">_Extra Options</property>
-                    <property name="use-underline">true</property>
-                    <child type="prefix">
-                      <object class="GtkImage">
-                        <property name="valign">center</property>
-                        <property name="icon-name">document-edit-symbolic</property>
-                        <style>
-                          <class name="bubble"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox">
-                <property name="halign">center</property>
-                <property name="homogeneous">true</property>
-                <property name="margin-top">24</property>
-                <property name="spacing">36</property>
-                <child>
-                  <object class="GtkButton" id="dryrun_button">
-                    <property name="label">Dr_y Run</property>
-                    <property name="use-underline">true</property>
-                    <property name="action-name">rsync.start</property>
-                    <property name="action-target">true</property>
+              <object class="AdwEntryRow" id="extra_options_row">
+                <property name="title">_Extra Options</property>
+                <property name="use-underline">true</property>
+                <child type="prefix">
+                  <object class="GtkImage">
+                    <property name="valign">center</property>
+                    <property name="icon-name">document-edit-symbolic</property>
                     <style>
-                      <class name="pill"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton" id="rsync_button">
-                    <property name="action-name">rsync.start</property>
-                    <property name="action-target">false</property>
-                    <property name="child">
-                      <object class="AdwButtonContent">
-                        <property name="icon-name">rsync-start-symbolic</property>
-                        <property name="label">Start _Rsync</property>
-                        <property name="use-underline">true</property>
-                      </object>
-                    </property>
-                    <style>
-                      <class name="suggested-action"/>
-                      <class name="pill"/>
+                      <class name="bubble"/>
                     </style>
                   </object>
                 </child>
               </object>
             </child>
           </object>
-        </property>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="halign">center</property>
+            <property name="homogeneous">true</property>
+            <property name="margin-top">24</property>
+            <property name="spacing">36</property>
+            <child>
+              <object class="GtkButton" id="dryrun_button">
+                <property name="label">Dr_y Run</property>
+                <property name="use-underline">true</property>
+                <property name="action-name">rsync.start</property>
+                <property name="action-target">true</property>
+                <style>
+                  <class name="pill"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="rsync_button">
+                <property name="action-name">rsync.start</property>
+                <property name="action-target">false</property>
+                <property name="child">
+                  <object class="AdwButtonContent">
+                    <property name="icon-name">rsync-start-symbolic</property>
+                    <property name="label">Start _Rsync</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </property>
+                <style>
+                  <class name="suggested-action"/>
+                  <class name="pill"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </property>
   </template>

@@ -1,14 +1,18 @@
 use std::cell::{Cell, RefCell};
 use std::iter;
 use std::time::Duration;
+use std::io::{self, Write};
+use std::fs;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::{clone, closure_local, Variant, VariantTy};
 
+use itertools::Itertools;
+use serde_json::{to_string_pretty, from_reader, Value as JsonValue};
+
 use crate::Application;
-use crate::sidebar::Sidebar;
 use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
@@ -33,13 +37,13 @@ mod imp {
         #[template_child]
         pub(super) status_new_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) main_navigation_view: TemplateChild<adw::NavigationView>,
+        pub(super) profile_box: TemplateChild<gtk::Box>,
         #[template_child]
-        pub(super) split_view: TemplateChild<adw::OverlaySplitView>,
+        pub(super) profile_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
-        pub(super) sidebar: TemplateChild<Sidebar>,
+        pub(super) profile_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub(super) content_navigation_view: TemplateChild<adw::NavigationView>,
+        pub(super) navigation_view: TemplateChild<adw::NavigationView>,
         #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
         #[template_child]
@@ -68,10 +72,141 @@ mod imp {
             klass.bind_template();
 
             //---------------------------------------
-            // Content push advanced action
+            // New profile action
             //---------------------------------------
-            klass.install_action("content.push-advanced", None, |window, _, _| {
-                window.imp().content_navigation_view.push_by_tag("advanced");
+            klass.install_action("profile.new", None, |window, _, _| {
+                let imp = window.imp();
+
+                window.profile_name_dialog("New", clone!(
+                    #[weak] imp,
+                    move |name| {
+                        imp.profile_model.append(&ProfileObject::new(name));
+
+                        imp.profile_dropdown.set_selected(imp.profile_model.n_items() - 1);
+                    }
+                ));
+            });
+
+            //---------------------------------------
+            // Rename profile action
+            //---------------------------------------
+            klass.install_action("profile.rename", None, |window, _, _| {
+                let imp = window.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                if let Some(obj) = imp.profile_model.iter::<ProfileObject>().flatten()
+                    .find(|obj| obj.name() == name)
+                {
+                    window.profile_name_dialog("Rename", move |new_name| {
+                        obj.set_name(new_name);
+                    });
+                }
+            });
+
+            //---------------------------------------
+            // Delete profile action
+            //---------------------------------------
+            klass.install_action("profile.delete", None, |window, _, _| {
+                let imp = window.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Delete Profile?")
+                    .body(format!("Permamenently delete the \"{name}\" profile."))
+                    .default_response("delete")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("delete", "_Delete")]);
+                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("delete"), clone!(
+                    #[weak] imp,
+                    move |_, _| {
+                        if let Some(pos) = imp.profile_model.iter::<ProfileObject>().flatten()
+                            .position(|obj| obj.name() == name)
+                        {
+                            imp.profile_model.remove(pos as u32);
+                        }
+                    }
+                ));
+
+                dialog.present(Some(window));
+            });
+
+            //---------------------------------------
+            // Duplicate profile action
+            //---------------------------------------
+            klass.install_action("profile.duplicate", None, |window, _, _| {
+                let imp = window.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                if let Some((pos, obj)) = imp.profile_model.iter::<ProfileObject>().flatten()
+                    .find_position(|obj| obj.name() == name)
+                {
+                    window.profile_name_dialog("Duplicate", clone!(
+                        #[weak] imp,
+                        move |new_name| {
+                            let dup_obj = obj.duplicate(new_name);
+
+                            imp.profile_model.insert(pos as u32 + 1, &dup_obj);
+
+                            imp.profile_dropdown.set_selected(pos as u32 + 1);
+                        }
+                    ));
+                }
+            });
+
+            //---------------------------------------
+            // Reset profile action
+            //---------------------------------------
+            klass.install_action("profile.reset", None, |window, _, _| {
+                let imp = window.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Reset Profile?")
+                    .body(format!("Reset the \"{name}\" profile to default values."))
+                    .default_response("delete")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+                dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("reset"), clone!(
+                    #[weak] imp,
+                    move |_, _| {
+                        if let Some(obj) = imp.profile_model.iter::<ProfileObject>().flatten()
+                            .find(|obj| obj.name() == name)
+                        {
+                            obj.reset();
+                        }
+                    }
+                ));
+
+                dialog.present(Some(window));
+            });
+
+            //---------------------------------------
+            // Navigation push advanced action
+            //---------------------------------------
+            klass.install_action("navigation.push-advanced", None, |window, _, _| {
+                window.imp().navigation_view.push_by_tag("advanced");
             });
 
             //---------------------------------------
@@ -86,7 +221,12 @@ mod imp {
                     .expect("Could not get bool from variant");
 
                 // Show rsync page
-                imp.main_navigation_view.push_by_tag("rsync");
+                imp.navigation_view.push_by_tag("rsync");
+
+                // Get profile
+                let profile = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'");
 
                 // Get args
                 let args = vec![
@@ -96,7 +236,7 @@ mod imp {
                     .into_iter()
                     .chain(iter::once("--dry-run").filter(|_| dry_run))
                     .map(ToOwned::to_owned)
-                    .chain(imp.options_page.profile().unwrap().args(false))
+                    .chain(profile.args(false))
                     .collect();
 
                 // Start rsync
@@ -130,6 +270,7 @@ mod imp {
             klass.install_action("rsync.show-cmdline", None, |window, _, _| {
                 let imp = window.imp();
 
+                // Build command line dialog
                 let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/rsync_cmdline_dialog.ui");
 
                 let dialog: adw::AlertDialog = builder.object("dialog")
@@ -138,10 +279,17 @@ mod imp {
                 let label: gtk::Label = builder.object("label")
                     .expect("Could not get object from resource");
 
+                // Get profile
+                let profile = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'");
+
+                // Get args
                 let args: Vec<String> = iter::once(String::from("rsync"))
-                    .chain(imp.options_page.profile().unwrap().args(true))
+                    .chain(profile.args(true))
                     .collect();
 
+                // Init command line dialog
                 label.set_label(&args.join(" "));
 
                 let copy_button: gtk::Button = builder.object("copy_button")
@@ -160,12 +308,7 @@ mod imp {
             //---------------------------------------
             // New profile key binding
             //---------------------------------------
-            klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |window| {
-                window.imp().sidebar.activate_action("sidebar.new-profile", None)
-                    .expect("Could not activate action 'sidebar.new-profile'");
-
-                glib::Propagation::Stop
-            });
+            klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "profile.new");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -225,7 +368,7 @@ mod imp {
                 return glib::Propagation::Stop;
             }
 
-            let _ = self.sidebar.save_config();
+            let _ = window.save_config();
 
             glib::Propagation::Proceed
         }
@@ -262,19 +405,19 @@ impl AppWindow {
 
         // Status new button clicked signal
         imp.status_new_button.connect_clicked(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |_| {
-                imp.sidebar.activate_action("sidebar.new-profile", None)
-                    .expect("Could not activate action 'sidebar.new-profile'");
+                gtk::prelude::WidgetExt::activate_action(&window, "profile.new", None)
+                    .expect("Could not activate action 'new-profile'");
             }
         ));
 
-        // Sidebar n_items property notify signal
-        imp.sidebar.connect_n_items_notify(clone!(
+        // Profile model n_items property notify signal
+        imp.profile_model.connect_items_changed(clone!(
             #[weak] imp,
-            move |sidebar| {
-                if sidebar.n_items() == 0 {
-                    imp.content_navigation_view.pop();
+            move |model, _, _, _| {
+                if model.n_items() == 0 {
+                    imp.navigation_view.pop();
 
                     imp.status_stack.set_visible_child_name("status");
                 } else {
@@ -285,16 +428,22 @@ impl AppWindow {
 
         // Rsync page showing/hidden signals
         imp.rsync_page.connect_showing(clone!(
+            #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                imp.sidebar.action_set_enabled("sidebar.new-profile", false);
+                window.action_set_enabled("profile.new", false);
+
+                imp.profile_box.set_visible(false);
             }
         ));
 
         imp.rsync_page.connect_hidden(clone!(
+            #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                imp.sidebar.action_set_enabled("sidebar.new-profile", true);
+                window.action_set_enabled("profile.new", true);
+
+                imp.profile_box.set_visible(true);
             }
         ));
 
@@ -358,28 +507,99 @@ impl AppWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind sidebar visibility to options page sidebar button
-        imp.split_view.bind_property("show-sidebar", &imp.options_page.sidebar_button(), "active")
-            .bidirectional()
+        // Bind selected profile to options page
+        imp.profile_dropdown.bind_property("selected-item", &imp.options_page.get(), "profile")
             .sync_create()
             .build();
 
-        // Bind sidebar selected profile to options page
-        imp.sidebar.bind_property("selected-profile", &imp.options_page.get(), "profile")
+        // Bind selected profile to advanced page
+        imp.profile_dropdown.bind_property("selected-item", &imp.advanced_page.get(), "profile")
             .sync_create()
             .build();
 
-        // Bind sidebar selected profile to advanced page
-        imp.sidebar.bind_property("selected-profile", &imp.advanced_page.get(), "profile")
-            .sync_create()
-            .build();
-
-        // Bind sidebar selected profile to rsync page
-        imp.sidebar.bind_property("selected-profile", &imp.rsync_page.get(), "profile")
+        // Bind selected profile to rsync page
+        imp.profile_dropdown.bind_property("selected-item", &imp.rsync_page.get(), "profile")
             .sync_create()
             .build();
 
         // Load profiles from config file
-        let _ = imp.sidebar.load_config();
+        let _ = self.load_config();
+    }
+
+    //---------------------------------------
+    // Load config function
+    //---------------------------------------
+    fn load_config(&self) -> io::Result<()> {
+        let imp = self.imp();
+
+        // Load profiles from config file
+        let config_path = xdg::BaseDirectories::new()
+            .find_config_file("Syncer/config.json")
+            .ok_or_else(|| io::Error::other("Config file not found"))?;
+
+        let file = fs::File::open(config_path)?;
+
+        let reader = io::BufReader::new(file);
+
+        let json: Vec<JsonValue> = from_reader(reader)?;
+
+        let profiles: Vec<ProfileObject> = json.iter()
+            .filter_map(ProfileObject::from_json)
+            .collect();
+
+        // Add profiles to model
+        imp.profile_model.splice(0, 0, &profiles);
+
+        Ok(())
+    }
+
+    //---------------------------------------
+    // Save config function
+    //---------------------------------------
+    pub fn save_config(&self) -> io::Result<()> {
+        let profiles: Vec<JsonValue> = self.imp().profile_model.iter::<ProfileObject>()
+            .flatten()
+            .map(|obj| obj.to_json())
+            .collect();
+
+        let json = to_string_pretty(&profiles)
+            .expect("Could not pretty print JSON string");
+
+        let config_path = xdg::BaseDirectories::new()
+            .place_config_file("Syncer/config.json")?;
+
+        let mut file = fs::File::create(config_path)?;
+
+        file.write_all(json.as_bytes())
+    }
+
+    //---------------------------------------
+    // Profile name dialog function
+    //---------------------------------------
+    fn profile_name_dialog<F>(&self, response: &str, f: F)
+    where F: Fn(&str) + 'static {
+        let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_name_dialog.ui");
+
+        let dialog: adw::AlertDialog = builder.object("dialog")
+            .expect("Could not get object from resource");
+
+        dialog.set_heading(Some(&format!("{response} Profile")));
+        dialog.set_response_label("add", response);
+
+        let entry: adw::EntryRow = builder.object("entry")
+            .expect("Could not get object from resource");
+
+        entry.connect_changed(clone!(
+            #[weak] dialog,
+            move |entry| {
+                dialog.set_response_enabled("add", !entry.text().is_empty());
+            }
+        ));
+
+        dialog.connect_response(Some("add"), move |_, _| {
+            f(&entry.text());
+        });
+
+        dialog.present(Some(self));
     }
 }

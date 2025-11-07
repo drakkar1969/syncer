@@ -2,17 +2,11 @@
 <interface>
   <!--// AppWindow template //-->
   <template class="AppWindow" parent="AdwApplicationWindow">
-    <property name="default-width">750</property>
-    <property name="default-height">630</property>
-    <property name="width-request">520</property>
-    <property name="height-request">630</property>
+    <property name="default-width">650</property>
+    <property name="default-height">600</property>
+    <property name="width-request">650</property>
+    <property name="height-request">600</property>
     <property name="title">Syncer</property>
-    <child>
-      <object class="AdwBreakpoint">
-        <condition>max-width: 650px</condition>
-        <setter object="split_view" property="collapsed">true</setter>
-      </object>
-    </child>
     <property name="content">
       <object class="GtkStack" id="status_stack">
         <child>
@@ -49,38 +43,63 @@
           <object class="GtkStackPage">
             <property name="name">main</property>
             <property name="child">
-              <object class="AdwNavigationView" id="main_navigation_view">
-                <property name="hhomogeneous">true</property>
-                <property name="vhomogeneous">true</property>
-                <child>
-                  <object class="AdwNavigationPage">
-                    <property name="tag">main</property>
-                    <property name="title">Syncer</property>
-                    <property name="child">
-                      <object class="AdwOverlaySplitView" id="split_view">
-                        <property name="max-sidebar-width">240</property>
-                        <property name="sidebar">
-                          <object class="Sidebar" id="sidebar"/>
-                        </property>
-                        <property name="content">
-                          <object class="AdwNavigationView" id="content_navigation_view">
-                            <property name="hhomogeneous">true</property>
-                            <property name="vhomogeneous">true</property>
-                            <child>
-                              <object class="OptionsPage" id="options_page"/>
-                            </child>
-                            <child>
-                              <object class="AdvancedPage" id="advanced_page"/>
-                            </child>
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar">
+                    <child>
+                      <object class="GtkBox" id="profile_box">
+                        <style>
+                          <class name="linked"/>
+                        </style>
+                        <child>
+                          <object class="GtkDropDown" id="profile_dropdown">
+                            <property name="width-request">200</property>
+                            <property name="show-arrow">false</property>
+                            <property name="model">
+                              <object class="GListStore" id="profile_model">
+                                <property name="item-type">ProfileObject</property>
+                              </object>
+                            </property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/Syncer/ui/window/profile_item.ui</property>
+                              </object>
+                            </property>
                           </object>
-                        </property>
+                        </child>
+                        <child>
+                          <object class="GtkMenuButton" id="profile_button">
+                            <property name="icon-name">view-more-symbolic</property>
+                            <property name="menu-model">profile_menu</property>
+                          </object>
+                        </child>
                       </object>
-                    </property>
+                    </child>
+                    <child type="end">
+                      <object class="GtkMenuButton" id="mainmenu_button">
+                        <property name="icon-name">open-menu-symbolic</property>
+                        <property name="primary">true</property>
+                        <property name="tooltip-text">Main Menu</property>
+                        <property name="menu-model">primary_menu</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
-                <child>
-                  <object class="RsyncPage" id="rsync_page"/>
-                </child>
+                <property name="content">
+                  <object class="AdwNavigationView" id="navigation_view">
+                    <property name="hhomogeneous">true</property>
+                    <property name="vhomogeneous">true</property>
+                    <child>
+                      <object class="OptionsPage" id="options_page"/>
+                    </child>
+                    <child>
+                      <object class="AdvancedPage" id="advanced_page"/>
+                    </child>
+                    <child>
+                      <object class="RsyncPage" id="rsync_page"/>
+                    </child>
+                  </object>
+                </property>
               </object>
             </property>
           </object>
@@ -88,4 +107,56 @@
       </object>
     </property>
   </template>
+
+  <!--// Primary menu //-->
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="label">Rsync Command Line</attribute>
+        <attribute name="action">rsync.show-cmdline</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Keyboard Shortcuts</attribute>
+        <attribute name="action">app.shortcuts</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">About Syncer</attribute>
+        <attribute name="action">app.show-about</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!--// Profile menu //-->
+  <menu id="profile_menu">
+    <section>
+      <item>
+        <attribute name="label">New…</attribute>
+        <attribute name="action">profile.new</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Rename…</attribute>
+        <attribute name="action">profile.rename</attribute>
+      </item>
+      <item>
+        <attribute name="label">Delete</attribute>
+        <attribute name="action">profile.delete</attribute>
+      </item>
+      <item>
+        <attribute name="label">Duplicate…</attribute>
+        <attribute name="action">profile.duplicate</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Reset to Default</attribute>
+        <attribute name="action">profile.reset</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>
