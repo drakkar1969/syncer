@@ -15,7 +15,6 @@ use tokio::io::AsyncReadExt as _;
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
 use regex::{Regex, Captures};
-use itertools::Itertools;
 
 use crate::utils::convert;
 
@@ -208,8 +207,8 @@ impl RsyncProcess {
                 .expect("Failed to compile Regex")
         });
 
-        // Expect exactly two error strings
-        let (err_detail, err_main) = errors.iter().collect_tuple()?;
+        // Get first (detailed) and last (main) errors
+        let (err_detail, err_main) = (errors.first()?, errors.last()?);
 
         // Helper closure to extract error
         let extract_error = |s: &str| -> Option<String> {
@@ -230,8 +229,8 @@ impl RsyncProcess {
             // Terminated by user
             20 => Some(String::from("Terminated by user")),
 
-            // Usage error | partial transfer due to error
-            1 | 23 => extract_error(err_detail)
+            // Usage error
+            1 => extract_error(err_detail)
                 .or_else(|| extract_error(err_main)),
 
             // Other error

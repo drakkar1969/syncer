@@ -182,11 +182,15 @@ impl LogWindow {
             image.set_visible(true);
             image.set_icon_name(None);
 
-            if text.contains("skipping") {
+            if text.starts_with("cannot") {
+                box_.set_css_classes(&["error"]);
+
+                image.set_icon_name(Some("rsync-error-symbolic"));
+            } else if text.starts_with("skipping") {
                 box_.set_css_classes(&["warning"]);
 
                 image.set_icon_name(Some("stats-skipped-symbolic"));
-            } else if text.contains("deleting") {
+            } else if text.starts_with("deleting") {
                 box_.set_css_classes(&["warning"]);
 
                 image.set_icon_name(Some("stats-deleted-symbolic"));
