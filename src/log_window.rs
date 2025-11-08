@@ -73,28 +73,8 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            //---------------------------------------
-            // Filter type property action
-            //---------------------------------------
-            klass.install_property_action("filter.type", "filter-type");
-
-            //---------------------------------------
-            // Search key binding
-            //---------------------------------------
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if !imp.search_entry.has_focus() {
-                    imp.search_entry.grab_focus();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            //---------------------------------------
-            // Close window key binding
-            //---------------------------------------
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
+            Self::setup_actions(klass);
+            Self::setup_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -120,6 +100,35 @@ mod imp {
     impl WidgetImpl for LogWindow {}
     impl WindowImpl for LogWindow {}
     impl AdwWindowImpl for LogWindow {}
+
+    impl LogWindow {
+        //---------------------------------------
+        // Setup actions
+        //---------------------------------------
+        fn setup_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Filter type property action
+            klass.install_property_action("filter.type", "filter-type");
+        }
+
+        //---------------------------------------
+        // Setup shortcuts
+        //---------------------------------------
+        fn setup_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Search key binding
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if !imp.search_entry.has_focus() {
+                    imp.search_entry.grab_focus();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Close window key binding
+            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
