@@ -19,11 +19,11 @@ use regex::{Regex, Captures};
 use crate::utils::convert;
 
 //------------------------------------------------------------------------------
-// ENUM: Msg
+// ENUM: RsyncMsg
 //------------------------------------------------------------------------------
 #[derive(Debug, Default, PartialEq)]
 #[repr(u32)]
-enum Msg {
+enum RsyncMsg {
     #[default]
     None,
     Start(Option<i32>),
@@ -257,7 +257,7 @@ impl RsyncProcess {
 
                 // Send rsync process id
                 sender
-                    .send(Msg::Start(rsync_process.id().map(|id| id as i32)))
+                    .send(RsyncMsg::Start(rsync_process.id().map(|id| id as i32)))
                     .await
                     .expect("Could not send through channel");
 
@@ -320,7 +320,7 @@ impl RsyncProcess {
                                             })
                                         ) {
                                             sender
-                                                .send(Msg::Progress(size.into(), speed.into(), progress))
+                                                .send(RsyncMsg::Progress(size.into(), speed.into(), progress))
                                                 .await
                                                 .expect("Could not send through channel");
                                         }
@@ -329,12 +329,12 @@ impl RsyncProcess {
                                     stats_mode = true;
 
                                     sender
-                                        .send(Msg::Stats(line.into()))
+                                        .send(RsyncMsg::Stats(line.into()))
                                         .await
                                         .expect("Could not send through channel");
                                 } else {
                                     sender
-                                        .send(Msg::Message(line.into()))
+                                        .send(RsyncMsg::Message(line.into()))
                                         .await
                                         .expect("Could not send through channel");
                                 }
@@ -351,7 +351,7 @@ impl RsyncProcess {
                                 for chunk in error.split_terminator('\n') {
                                     if !chunk.is_empty() {
                                         sender
-                                            .send(Msg::Error(chunk.to_owned()))
+                                            .send(RsyncMsg::Error(chunk.to_owned()))
                                             .await
                                             .expect("Could not send through channel");
                                     }
@@ -364,7 +364,7 @@ impl RsyncProcess {
                             let status = result?;
 
                             sender
-                                .send(Msg::Exit(status.code().unwrap_or(1)))
+                                .send(RsyncMsg::Exit(status.code().unwrap_or(1)))
                                 .await
                                 .expect("Could not send through channel");
 
@@ -389,20 +389,20 @@ impl RsyncProcess {
 
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
-                        Msg::Start(id) => {
+                        RsyncMsg::Start(id) => {
                             imp.id.set(id);
                             process.set_running(true);
 
                             process.emit_by_name::<()>("start", &[]);
                         }
 
-                        Msg::Message(message) => {
+                        RsyncMsg::Message(message) => {
                             process.emit_by_name::<()>("message", &[&message]);
 
                             messages.push(message);
                         }
 
-                        Msg::Progress(size, speed, progress) => {
+                        RsyncMsg::Progress(size, speed, progress) => {
                             process.emit_by_name::<()>("progress", &[
                                 &size,
                                 &speed,
@@ -410,15 +410,15 @@ impl RsyncProcess {
                             ]);
                         }
 
-                        Msg::Stats(stat) => {
+                        RsyncMsg::Stats(stat) => {
                             stats.push(stat);
                         }
 
-                        Msg::Error(error) => {
+                        RsyncMsg::Error(error) => {
                             errors.push(error);
                         }
 
-                        Msg::Exit(code) => {
+                        RsyncMsg::Exit(code) => {
                             process.set_running(false);
                             process.set_paused(false);
                             imp.id.set(None);
@@ -432,7 +432,7 @@ impl RsyncProcess {
                             ]);
                         }
 
-                        Msg::None => {}
+                        RsyncMsg::None => {}
                     }
                 }
             }
