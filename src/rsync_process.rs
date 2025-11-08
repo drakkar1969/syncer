@@ -213,7 +213,12 @@ impl RsyncProcess {
         let extract_error = |s: &str| -> Option<String> {
             EXPR.captures(s)?
                 .name("err")
-                .map(|m| m.as_str().trim().trim_end_matches('.').replace("rsync error: ", ""))
+                .map(|m| {
+                    m.as_str().trim()
+                        .trim_end_matches('.')
+                        .replace("rsync error: ", "")
+                        .replace("rsync warning: ", "")
+                })
                 .map(|mut s| {
                     if let Some(first) = s.get_mut(0..1) {
                         first.make_ascii_uppercase();
