@@ -6,6 +6,7 @@ use gtk::glib;
 // CONST Variables
 //------------------------------------------------------------------------------
 pub const STATS_TAG: &str = "::STATS::";
+pub const ERROR_TAG: &str = "::ERROR::";
 
 //------------------------------------------------------------------------------
 // MODULE: LogItem
@@ -70,6 +71,12 @@ impl LogItem {
             imp.box_.set_css_classes(&["success"]);
 
             imp.label.set_label(&text.replace(STATS_TAG, ""));
+
+            imp.image.set_visible(false);
+        } else if text.starts_with(ERROR_TAG) {
+            imp.box_.set_css_classes(&["error"]);
+
+            imp.label.set_label(&text.replace(ERROR_TAG, ""));
 
             imp.image.set_visible(false);
         } else {

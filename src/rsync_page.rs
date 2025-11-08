@@ -64,6 +64,7 @@ mod imp {
 
         pub(super) messages: RefCell<Vec<String>>,
         pub(super) stats_msgs: RefCell<Vec<String>>,
+        pub(super) error_msgs: RefCell<Vec<String>>,
     }
 
     //---------------------------------------
@@ -163,7 +164,8 @@ impl RsyncPage {
 
                 window.display(
                     imp.messages.borrow().as_ref(),
-                    imp.stats_msgs.borrow().as_ref()
+                    imp.stats_msgs.borrow().as_ref(),
+                    imp.error_msgs.borrow().as_ref()
                 );
             }
         ));
@@ -247,7 +249,7 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String], stats_msgs: &[String]) {
+    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String], stats_msgs: &[String], error_msgs: &[String]) {
         let imp = self.imp();
 
         // Ensure progress bar at 100% if success
@@ -303,6 +305,7 @@ impl RsyncPage {
         } else {
             imp.messages.replace(messages.to_vec());
             imp.stats_msgs.replace(stats_msgs.to_vec());
+            imp.error_msgs.replace(error_msgs.to_vec());
 
             imp.button_stack.set_visible_child_name("log");
         }

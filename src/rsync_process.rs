@@ -112,6 +112,7 @@ mod imp {
                             Option::<Stats>::static_type(),
                             Option::<String>::static_type(),
                             Vec::<String>::static_type(),
+                            Vec::<String>::static_type(),
                             Vec::<String>::static_type()
                         ])
                         .build()
@@ -433,7 +434,8 @@ impl RsyncProcess {
                                 &process.stats(&stats),
                                 &process.error(code, &errors),
                                 &messages,
-                                &stats
+                                &stats,
+                                &errors
                             ]);
                         }
 

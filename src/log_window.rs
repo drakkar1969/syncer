@@ -6,7 +6,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::log_item::{STATS_TAG, LogItem}; 
+use crate::log_item::{STATS_TAG, ERROR_TAG, LogItem}; 
 
 //------------------------------------------------------------------------------
 // ENUM: FilterType
@@ -299,22 +299,41 @@ impl LogWindow {
     //---------------------------------------
     // Display function
     //---------------------------------------
-    pub fn display(&self, messages: &[String], stats_msgs: &[String]) {
+    pub fn display(&self, messages: &[String], stats_msgs: &[String], error_msgs: &[String]) {
         let imp = self.imp();
 
         self.present();
 
         let messages = messages.to_vec();
         let stats_msgs = stats_msgs.to_vec();
+        let error_msgs = error_msgs.to_vec();
 
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {
-                // Spawn task to process stats messages
-                let stats_msgs: Vec<String> = gio::spawn_blocking(clone!(
+                // Spawn task to process messages
+                let msgs: Vec<String> = gio::spawn_blocking(clone!(
                     move || {
-                        stats_msgs.into_iter()
-                            .map(|s| format!("{STATS_TAG}{s}"))
+                        let messages_empty = messages.is_empty();
+                        
+                        messages.into_iter()
+                            .chain(
+                                iter::once(String::new()).filter(|_| {
+                                    (!stats_msgs.is_empty() || !error_msgs.is_empty())
+                                        && !messages_empty
+                                })
+                            )
+                            .chain(
+                                error_msgs.iter().map(|s| format!("{ERROR_TAG}{s}"))
+                            )
+                            .chain(
+                                iter::once(String::new()).filter(|_| {
+                                    !stats_msgs.is_empty() && !error_msgs.is_empty()
+                                })
+                            )
+                            .chain(
+                                stats_msgs.iter().map(|s| format!("{STATS_TAG}{s}"))
+                            )
                             .collect()
                     }
                 ))
@@ -322,12 +341,7 @@ impl LogWindow {
                 .expect("Failed to complete task");
 
                 // Populate view
-                let objects: Vec<gtk::StringObject> = messages.iter()
-                    .chain(
-                        iter::once(&String::new())
-                            .filter(|_| !messages.is_empty() && !stats_msgs.is_empty())
-                    )
-                    .chain(stats_msgs.iter())
+                let objects: Vec<gtk::StringObject> = msgs.iter()
                     .map(|s| gtk::StringObject::new(s))
                     .collect();
 
