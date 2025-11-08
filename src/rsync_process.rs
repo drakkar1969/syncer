@@ -167,8 +167,7 @@ impl RsyncProcess {
             .map(|caps| {
                 let get_match = |caps: &Captures, m: &str| -> String {
                     caps.name(m)
-                        .map(|m| m.as_str().trim_end_matches(',').trim())
-                        .unwrap_or("0")
+                        .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
                         .to_owned()
                 };
 
