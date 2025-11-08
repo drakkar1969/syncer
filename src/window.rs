@@ -75,7 +75,7 @@ mod imp {
             klass.install_action("profile.new", None, |window, _, _| {
                 let imp = window.imp();
 
-                window.profile_name_dialog("New", clone!(
+                window.profile_name_dialog("New", None, clone!(
                     #[weak] imp,
                     move |name| {
                         imp.profile_model.append(&ProfileObject::new(name));
@@ -99,7 +99,7 @@ mod imp {
                 if let Some(obj) = imp.profile_model.iter::<ProfileObject>().flatten()
                     .find(|obj| obj.name() == name)
                 {
-                    window.profile_name_dialog("Rename", move |new_name| {
+                    window.profile_name_dialog("Rename", Some(&name), move |new_name| {
                         obj.set_name(new_name);
                     });
                 }
@@ -153,7 +153,7 @@ mod imp {
                 if let Some((pos, obj)) = imp.profile_model.iter::<ProfileObject>().flatten()
                     .find_position(|obj| obj.name() == name)
                 {
-                    window.profile_name_dialog("Duplicate", clone!(
+                    window.profile_name_dialog("Duplicate", Some(&name), clone!(
                         #[weak] imp,
                         move |new_name| {
                             let dup_obj = obj.duplicate(new_name);
@@ -574,7 +574,7 @@ impl AppWindow {
     //---------------------------------------
     // Profile name dialog function
     //---------------------------------------
-    fn profile_name_dialog<F>(&self, response: &str, f: F)
+    fn profile_name_dialog<F>(&self, response: &str, default: Option<&str>, f: F)
     where F: Fn(&str) + 'static {
         let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_name_dialog.ui");
 
@@ -593,6 +593,10 @@ impl AppWindow {
                 dialog.set_response_enabled("add", !entry.text().is_empty());
             }
         ));
+
+        if let Some(text) = default {
+            entry.set_text(text);
+        }
 
         dialog.connect_response(Some("add"), move |_, _| {
             f(&entry.text());
