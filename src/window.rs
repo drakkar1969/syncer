@@ -37,6 +37,8 @@ mod imp {
         #[template_child]
         pub(super) status_new_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub(super) back_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) profile_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub(super) profile_model: TemplateChild<gio::ListStore>,
@@ -201,10 +203,20 @@ mod imp {
             });
 
             //---------------------------------------
+            // Navigation pop action
+            //---------------------------------------
+            klass.install_action("navigation.pop", None, |window, _, _| {
+                window.imp().navigation_view.pop();
+            });
+
+            //---------------------------------------
             // Navigation push advanced action
             //---------------------------------------
             klass.install_action("navigation.push-advanced", None, |window, _, _| {
-                window.imp().navigation_view.push_by_tag("advanced");
+                let imp = window.imp();
+
+                imp.navigation_view.push_by_tag("advanced");
+                imp.back_button.set_visible(true);
             });
 
             //---------------------------------------
@@ -424,6 +436,16 @@ impl AppWindow {
             }
         ));
 
+        // Navigation view popped signal
+        imp.navigation_view.connect_popped(clone!(
+            #[weak] imp,
+            move |view, _| {
+                if view.visible_page_tag() == Some("options".into()) {
+                    imp.back_button.set_visible(false);
+                }
+            }
+        ));
+
         // Rsync page showing/hidden signals
         imp.rsync_page.connect_showing(clone!(
             #[weak(rename_to = window)] self,
@@ -445,9 +467,23 @@ impl AppWindow {
             }
         ));
 
-        // Rsync process paused property notify signal
+        // Rsync process running property notify signal
         let rsync_process = self.rsync_process();
 
+        rsync_process.connect_running_notify(clone!(
+            #[weak] imp,
+            move |process| {
+                if !process.running() {
+                    if imp.navigation_view.visible_page_tag()
+                        .is_some_and(|tag| tag == "rsync")
+                    {
+                        imp.back_button.set_visible(true);
+                    }
+                }
+            }
+        ));
+
+        // Rsync process paused property notify signal
         rsync_process.connect_paused_notify(clone!(
             #[weak] imp,
             move |process| {

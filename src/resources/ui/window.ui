@@ -46,6 +46,14 @@
               <object class="AdwToolbarView">
                 <child type="top">
                   <object class="AdwHeaderBar">
+                    <child>
+                      <object class="GtkButton" id="back_button">
+                        <property name="visible">false</property>
+                        <property name="icon-name">go-previous-symbolic</property>
+                        <property name="tooltip-text">Go Back</property>
+                        <property name="action-name">navigation.pop</property>
+                      </object>
+                    </child>
                     <property name="title-widget">
                       <object class="GtkDropDown" id="profile_dropdown">
                         <style>
