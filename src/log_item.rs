@@ -72,13 +72,13 @@ impl LogItem {
 
             imp.label.set_label(&text.replace(STATS_TAG, ""));
 
-            imp.image.set_visible(false);
+            imp.image.set_icon_name(Some("stats-symbolic"));
         } else if text.starts_with(ERROR_TAG) {
             imp.box_.set_css_classes(&["error"]);
 
             imp.label.set_label(&text.replace(ERROR_TAG, ""));
 
-            imp.image.set_visible(false);
+            imp.image.set_icon_name(Some("rsync-error-symbolic"));
         } else {
             imp.label.set_label(text);
 
