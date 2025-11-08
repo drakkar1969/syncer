@@ -258,19 +258,35 @@ impl LogWindow {
                 let text = obj
                     .downcast_ref::<gtk::StringObject>()
                     .expect("Could not downcast to 'GtkStringObject'")
-                    .string()
-                    .to_lowercase();
+                    .string();
 
-                if text.contains(&imp.search_entry.text().to_lowercase()) {
-                    match window.filter_type() {
-                        FilterType::All => true,
-                        FilterType::Errors => text.starts_with("cannot"),
-                        FilterType::Deleted => text.starts_with("deleting"),
-                        FilterType::Skipped => text.starts_with("skipping"),
-                        FilterType::Messages => !text.starts_with("cannot") && !text.starts_with("deleting") && !text.starts_with("skipping")
+                let search = imp.search_entry.text();
+
+                // Return if the text doesn’t contain the search string (ignore case)
+                if !text.to_ascii_lowercase().contains(&search.to_ascii_lowercase()) {
+                    return false;
+                }
+
+                // Helper closure for case-insensitive prefix check
+                let starts_with_ic = |prefix: &str| -> bool {
+                    text.get(..prefix.len())
+                        .map_or(false, |s| s.eq_ignore_ascii_case(prefix))
+                };
+
+                match window.filter_type() {
+                    FilterType::All => true,
+                    FilterType::Errors => {
+                        starts_with_ic("cannot")
+                            || starts_with_ic(ERROR_TAG)
                     }
-                } else {
-                    false
+                    FilterType::Deleted => starts_with_ic("deleting"),
+                    FilterType::Skipped => starts_with_ic("skipping"),
+                    FilterType::Messages => {
+                        !starts_with_ic("cannot")
+                            && !starts_with_ic(ERROR_TAG)
+                            && !starts_with_ic("deleting")
+                            && !starts_with_ic("skipping")
+                    }
                 }
             }
         ));
