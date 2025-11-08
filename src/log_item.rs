@@ -73,7 +73,7 @@ impl LogItem {
 
             imp.image.set_visible(false);
         } else {
-            imp.label.set_label(&text);
+            imp.label.set_label(text);
 
             imp.image.set_visible(true);
             imp.image.set_icon_name(None);

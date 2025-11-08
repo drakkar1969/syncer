@@ -473,12 +473,10 @@ impl AppWindow {
         rsync_process.connect_running_notify(clone!(
             #[weak] imp,
             move |process| {
-                if !process.running() {
-                    if imp.navigation_view.visible_page_tag()
-                        .is_some_and(|tag| tag == "rsync")
-                    {
-                        imp.back_button.set_visible(true);
-                    }
+                if !process.running() && imp.navigation_view.visible_page_tag()
+                    .is_some_and(|tag| tag == "rsync")
+                {
+                    imp.back_button.set_visible(true);
                 }
             }
         ));
