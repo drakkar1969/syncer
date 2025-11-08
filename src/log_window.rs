@@ -20,7 +20,6 @@ pub enum FilterType {
     Errors,
     Deleted,
     Skipped,
-    Messages,
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +168,6 @@ impl LogWindow {
                 FilterType::Errors => "rsync-error-symbolic",
                 FilterType::Deleted => "stats-deleted-symbolic",
                 FilterType::Skipped => "stats-skipped-symbolic",
-                FilterType::Messages => "stats-messages-symbolic",
             };
 
             imp.filter_button.set_icon_name(icon);
@@ -280,13 +278,7 @@ impl LogWindow {
                             || starts_with_ic(ERROR_TAG)
                     }
                     FilterType::Deleted => starts_with_ic("deleting"),
-                    FilterType::Skipped => starts_with_ic("skipping"),
-                    FilterType::Messages => {
-                        !starts_with_ic("cannot")
-                            && !starts_with_ic(ERROR_TAG)
-                            && !starts_with_ic("deleting")
-                            && !starts_with_ic("skipping")
-                    }
+                    FilterType::Skipped => starts_with_ic("skipping")
                 }
             }
         ));

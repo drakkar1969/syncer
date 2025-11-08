@@ -158,13 +158,6 @@
     </section>
     <section>
       <item>
-        <attribute name="label">Messages</attribute>
-        <attribute name="action">filter.type</attribute>
-        <attribute name="target">messages</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
         <attribute name="label">Errors</attribute>
         <attribute name="action">filter.type</attribute>
         <attribute name="target">errors</attribute>
