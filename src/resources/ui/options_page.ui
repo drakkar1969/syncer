@@ -7,10 +7,10 @@
     <property name="child">
       <object class="GtkBox" id="content_box">
         <property name="orientation">vertical</property>
-        <property name="margin-start">24</property>
-        <property name="margin-end">24</property>
+        <property name="margin-start">48</property>
+        <property name="margin-end">48</property>
         <property name="margin-top">24</property>
-        <property name="margin-bottom">24</property>
+        <property name="margin-bottom">36</property>
         <property name="spacing">24</property>
         <child>
           <object class="AdwPreferencesGroup">
