@@ -46,35 +46,29 @@
               <object class="AdwToolbarView">
                 <child type="top">
                   <object class="AdwHeaderBar">
-                    <child>
-                      <object class="GtkBox" id="profile_box">
+                    <property name="title-widget">
+                      <object class="GtkDropDown" id="profile_dropdown">
                         <style>
-                          <class name="linked"/>
+                          <class name="flat"/>
                         </style>
-                        <child>
-                          <object class="GtkDropDown" id="profile_dropdown">
-                            <property name="width-request">200</property>
-                            <property name="show-arrow">false</property>
-                            <property name="model">
-                              <object class="GListStore" id="profile_model">
-                                <property name="item-type">ProfileObject</property>
-                              </object>
-                            </property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/Syncer/ui/window/profile_item.ui</property>
-                              </object>
-                            </property>
+                        <property name="width-request">250</property>
+                        <property name="model">
+                          <object class="GListStore" id="profile_model">
+                            <property name="item-type">ProfileObject</property>
                           </object>
-                        </child>
-                        <child>
-                          <object class="GtkMenuButton" id="profile_button">
-                            <property name="icon-name">view-more-symbolic</property>
-                            <property name="menu-model">profile_menu</property>
+                        </property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/Syncer/ui/window/profile_item.ui</property>
                           </object>
-                        </child>
+                        </property>
+                        <property name="list-factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/Syncer/ui/window/profile_list_item.ui</property>
+                          </object>
+                        </property>
                       </object>
-                    </child>
+                    </property>
                     <child type="end">
                       <object class="GtkMenuButton" id="mainmenu_button">
                         <property name="icon-name">open-menu-symbolic</property>
@@ -112,6 +106,32 @@
   <menu id="primary_menu">
     <section>
       <item>
+        <attribute name="label">New Profile…</attribute>
+        <attribute name="action">profile.new</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Rename Profile…</attribute>
+        <attribute name="action">profile.rename</attribute>
+      </item>
+      <item>
+        <attribute name="label">Delete Profile</attribute>
+        <attribute name="action">profile.delete</attribute>
+      </item>
+      <item>
+        <attribute name="label">Duplicate Profile…</attribute>
+        <attribute name="action">profile.duplicate</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Reset Profile to Default</attribute>
+        <attribute name="action">profile.reset</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="label">Rsync Command Line</attribute>
         <attribute name="action">rsync.show-cmdline</attribute>
       </item>
@@ -126,36 +146,6 @@
       <item>
         <attribute name="label">About Syncer</attribute>
         <attribute name="action">app.show-about</attribute>
-      </item>
-    </section>
-  </menu>
-
-  <!--// Profile menu //-->
-  <menu id="profile_menu">
-    <section>
-      <item>
-        <attribute name="label">New…</attribute>
-        <attribute name="action">profile.new</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Rename…</attribute>
-        <attribute name="action">profile.rename</attribute>
-      </item>
-      <item>
-        <attribute name="label">Delete</attribute>
-        <attribute name="action">profile.delete</attribute>
-      </item>
-      <item>
-        <attribute name="label">Duplicate…</attribute>
-        <attribute name="action">profile.duplicate</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Reset to Default</attribute>
-        <attribute name="action">profile.reset</attribute>
       </item>
     </section>
   </menu>

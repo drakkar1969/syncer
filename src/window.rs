@@ -37,8 +37,6 @@ mod imp {
         #[template_child]
         pub(super) status_new_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) profile_box: TemplateChild<gtk::Box>,
-        #[template_child]
         pub(super) profile_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub(super) profile_model: TemplateChild<gio::ListStore>,
@@ -433,7 +431,7 @@ impl AppWindow {
             move |_| {
                 window.action_set_enabled("profile.new", false);
 
-                imp.profile_box.set_visible(false);
+                imp.profile_dropdown.set_sensitive(false);
             }
         ));
 
@@ -443,7 +441,7 @@ impl AppWindow {
             move |_| {
                 window.action_set_enabled("profile.new", true);
 
-                imp.profile_box.set_visible(true);
+                imp.profile_dropdown.set_sensitive(true);
             }
         ));
 

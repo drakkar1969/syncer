@@ -1,3 +1,17 @@
+/* Flat dropdown */
+dropdown.flat button.toggle {
+	background-color: transparent;
+}
+
+dropdown.flat button.toggle:hover {
+	background: color-mix(in srgb, currentColor 7%, transparent);
+}
+
+dropdown.flat button.toggle:active,
+dropdown.flat button.toggle:checked {
+	background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
 /* Bubble images */
 image.bubble {
 	border-radius: 50%;

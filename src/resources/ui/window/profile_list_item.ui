@@ -8,6 +8,7 @@
             <lookup name="item">GtkListItem</lookup>
           </lookup>
         </binding>
+        <property name="xalign">0</property>
       </object>
     </property>
   </template>
