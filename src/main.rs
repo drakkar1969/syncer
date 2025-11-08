@@ -7,6 +7,7 @@ mod adv_switchrow;
 mod rsync_page;
 mod stats_table;
 mod log_window;
+mod log_item;
 mod rsync_process;
 mod utils;
 

@@ -30,6 +30,7 @@
     <file compressed="true">ui/window/profile_item.ui</file>
     <file compressed="true">ui/advanced_page.ui</file>
     <file compressed="true">ui/adv_switchrow.ui</file>
+    <file compressed="true">ui/log_item.ui</file>
     <file compressed="true">ui/log_window.ui</file>
     <file compressed="true">ui/options_page.ui</file>
     <file compressed="true">ui/rsync_page.ui</file>

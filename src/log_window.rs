@@ -5,10 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-//------------------------------------------------------------------------------
-// CONST Variables
-//------------------------------------------------------------------------------
-const STATS_TAG: &str = "::STATS::";
+use crate::log_item::{STATS_TAG, LogItem}; 
 
 //------------------------------------------------------------------------------
 // MODULE: LogWindow
@@ -132,20 +129,7 @@ impl LogWindow {
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Could not downcast to 'GtkLIstItem'");
 
-            let image = gtk::Image::new();
-
-            let label = gtk::Label::builder()
-                .xalign(0.0)
-                .build();
-
-            let box_ = gtk::Box::builder()
-                .spacing(8)
-                .build();
-
-            box_.append(&image);
-            box_.append(&label);
-
-            item.set_child(Some(&box_));
+            item.set_child(Some(&LogItem::default()));
         });
 
         // Factory bind signal
@@ -154,63 +138,16 @@ impl LogWindow {
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Could not downcast to 'GtkListItem'");
 
-            let box_ = item.child()
-                .and_downcast::<gtk::Box>()
-                .expect("Could not downcast to 'GtkBox'");
-
-            let image = box_.first_child()
-                .and_downcast::<gtk::Image>()
-                .expect("Could not downcast to 'GtkImage'");
-
-            let label = box_.last_child()
-                .and_downcast::<gtk::Label>()
-                .expect("Could not downcast to 'GtkLabel'");
+            let child = item.child()
+                .and_downcast::<LogItem>()
+                .expect("Could not downcast to 'LogItem'");
 
             let text = item.item()
                 .and_downcast::<gtk::StringObject>()
                 .expect("Could not downcast to 'GtkStringObject'")
                 .string();
 
-            let is_stats = text.starts_with(STATS_TAG);
-
-            if is_stats {
-                label.set_label(&text.replace(STATS_TAG, ""));
-            } else {
-                label.set_label(&text);
-            }
-
-            image.set_visible(true);
-            image.set_icon_name(None);
-
-            if text.starts_with("cannot") {
-                box_.set_css_classes(&["error"]);
-
-                image.set_icon_name(Some("rsync-error-symbolic"));
-            } else if text.starts_with("skipping") {
-                box_.set_css_classes(&["warning"]);
-
-                image.set_icon_name(Some("stats-skipped-symbolic"));
-            } else if text.starts_with("deleting") {
-                box_.set_css_classes(&["warning"]);
-
-                image.set_icon_name(Some("stats-deleted-symbolic"));
-            } else if text.contains("->") {
-                box_.set_css_classes(&["accent"]);
-
-                image.set_icon_name(Some("stats-link-symbolic"));
-            } else if is_stats {
-                box_.set_css_classes(&["success"]);
-
-                image.set_visible(false);
-            } else {
-                box_.set_css_classes(&[]);
-
-                if text.ends_with('/') {
-                    image.set_icon_name(Some("stats-dir-symbolic"));
-                } else if !text.is_empty() {
-                    image.set_icon_name(Some("stats-file-symbolic"));
-                }
-            }
+            child.bind(&text);
         });
 
         // Search entry search started signal
@@ -340,7 +277,7 @@ impl LogWindow {
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {
-                // Spawn task to populate view
+                // Spawn task to process stats messages
                 let stats_msgs: Vec<String> = gio::spawn_blocking(clone!(
                     move || {
                         stats_msgs.into_iter()
@@ -353,7 +290,10 @@ impl LogWindow {
 
                 // Populate view
                 let objects: Vec<gtk::StringObject> = messages.iter()
-                    .chain(iter::once(&String::new()).filter(|_| !messages.is_empty()))
+                    .chain(
+                        iter::once(&String::new())
+                            .filter(|_| !messages.is_empty() && !stats_msgs.is_empty())
+                    )
                     .chain(stats_msgs.iter())
                     .map(|s| gtk::StringObject::new(s))
                     .collect();
