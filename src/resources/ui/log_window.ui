@@ -80,7 +80,7 @@
                     </child>
                     <child>
                       <object class="GtkSearchEntry" id="search_entry">
-                        <property name="margin-end">14</property>
+                        <property name="margin-end">6</property>
                         <property name="placeholder-text">Search</property>
                         <style>
                           <class name="round"/>
@@ -88,24 +88,13 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkToggleButton" id="skipped_button">
-                        <property name="icon-name">stats-skipped-symbolic</property>
-                        <property name="tooltip-text">Show Skipped Files</property>
-                        <property name="active">true</property>
+                      <object class="GtkMenuButton" id="filter_button">
+                        <property name="always-show-arrow">true</property>
+                        <property name="icon-name">stats-symbolic</property>
+                        <property name="tooltip-text">Filter</property>
+                        <property name="menu-model">filter_menu</property>
                         <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkToggleButton" id="deleted_button">
-                        <property name="icon-name">stats-deleted-symbolic</property>
-                        <property name="tooltip-text">Show Deleted Files</property>
-                        <property name="active">true</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
+                          <class name="round"/>
                         </style>
                       </object>
                     </child>
@@ -157,4 +146,39 @@
       </object>
     </property>
   </template>
+
+  <!--// Filter menu //-->
+  <menu id="filter_menu">
+    <section>
+      <item>
+        <attribute name="label">All</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">all</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Messages</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">messages</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Errors</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">errors</attribute>
+      </item>
+      <item>
+        <attribute name="label">Deleted</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">deleted</attribute>
+      </item>
+      <item>
+        <attribute name="label">Skipped</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">skipped</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::iter;
 
 use gtk::{gio, glib, gdk};
@@ -8,6 +9,21 @@ use glib::clone;
 use crate::log_item::{STATS_TAG, LogItem}; 
 
 //------------------------------------------------------------------------------
+// ENUM: FilterType
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "FilterType")]
+pub enum FilterType {
+    #[default]
+    All,
+    Errors,
+    Deleted,
+    Skipped,
+    Messages,
+}
+
+//------------------------------------------------------------------------------
 // MODULE: LogWindow
 //------------------------------------------------------------------------------
 mod imp {
@@ -16,7 +32,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::LogWindow)]
     #[template(resource = "/com/github/Syncer/ui/log_window.ui")]
     pub struct LogWindow {
         #[template_child]
@@ -26,9 +43,7 @@ mod imp {
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
-        pub(super) skipped_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
-        pub(super) deleted_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) filter_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
@@ -41,6 +56,9 @@ mod imp {
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
+
+        #[property(get, set, builder(FilterType::default()))]
+        filter_type: Cell<FilterType>,
     }
 
     //---------------------------------------
@@ -54,6 +72,11 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            //---------------------------------------
+            // Filter type property action
+            //---------------------------------------
+            klass.install_property_action("filter.type", "filter-type");
 
             //---------------------------------------
             // Search key binding
@@ -79,6 +102,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for LogWindow {
         //---------------------------------------
         // Constructor
@@ -122,6 +146,25 @@ impl LogWindow {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Filter type prperty notify signal 
+        self.connect_filter_type_notify(|window| {
+            let imp = window.imp();
+
+            imp.spinner.set_visible(true);
+
+            imp.filter.changed(gtk::FilterChange::Different);
+
+            let icon = match window.filter_type() {
+                FilterType::All => "stats-symbolic",
+                FilterType::Errors => "rsync-error-symbolic",
+                FilterType::Deleted => "stats-deleted-symbolic",
+                FilterType::Skipped => "stats-skipped-symbolic",
+                FilterType::Messages => "stats-messages-symbolic",
+            };
+
+            imp.filter_button.set_icon_name(icon);
+        });
 
         // Factory setup signal
         imp.factory.connect_setup(|_, obj| {
@@ -167,26 +210,6 @@ impl LogWindow {
             }
         ));
 
-        // Skipped button toggled signal
-        imp.skipped_button.connect_toggled(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.spinner.set_visible(true);
-
-                imp.filter.changed(gtk::FilterChange::Different);
-            }
-        ));
-
-        // Deleted button toggled signal
-        imp.deleted_button.connect_toggled(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.spinner.set_visible(true);
-
-                imp.filter.changed(gtk::FilterChange::Different);
-            }
-        ));
-
         // Selection items changed signal
         imp.selection.connect_items_changed(clone!(
             #[weak] imp,
@@ -219,6 +242,7 @@ impl LogWindow {
 
         // Set filter function
         imp.filter.set_filter_func(clone!(
+            #[weak(rename_to = window)] self,
             #[weak] imp,
             #[upgrade_or] false,
             move |obj| {
@@ -229,12 +253,12 @@ impl LogWindow {
                     .to_lowercase();
 
                 if text.contains(&imp.search_entry.text().to_lowercase()) {
-                    if text.starts_with("skipping") {
-                        imp.skipped_button.is_active()
-                    } else if text.starts_with("deleting") {
-                        imp.deleted_button.is_active()
-                    } else {
-                        true
+                    match window.filter_type() {
+                        FilterType::All => true,
+                        FilterType::Errors => text.starts_with("cannot"),
+                        FilterType::Deleted => text.starts_with("deleting"),
+                        FilterType::Skipped => text.starts_with("skipping"),
+                        FilterType::Messages => !text.starts_with("cannot") && !text.starts_with("deleting") && !text.starts_with("skipping")
                     }
                 } else {
                     false

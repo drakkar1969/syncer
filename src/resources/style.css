@@ -17,6 +17,12 @@ entry.round {
 	padding-right: 12px;
 }
 
+menubutton.round button.toggle {
+	border-radius: 9999px;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
 /* Card views */
 listview.card-list {
 	background-color: transparent;
