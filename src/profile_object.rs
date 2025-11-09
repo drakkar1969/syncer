@@ -253,9 +253,9 @@ impl ProfileObject {
     }
 
     //---------------------------------------
-    // Args function
+    // To args function
     //---------------------------------------
-    pub fn args(&self, quoted: bool) -> Vec<String> {
+    pub fn to_args(&self, quoted: bool) -> Vec<String> {
         let adv_args_map = IndexMap::from(ADVANCED_ARGS);
 
         // Advanced options

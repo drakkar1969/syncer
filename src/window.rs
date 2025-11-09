@@ -318,7 +318,7 @@ mod imp {
                     .into_iter()
                     .chain(iter::once("--dry-run").filter(|_| dry_run))
                     .map(ToOwned::to_owned)
-                    .chain(profile.args(false))
+                    .chain(profile.to_args(false))
                     .collect();
 
                 // Start rsync
@@ -360,7 +360,7 @@ mod imp {
 
                 // Get args
                 let args: Vec<String> = iter::once(String::from("rsync"))
-                    .chain(profile.args(true))
+                    .chain(profile.to_args(true))
                     .collect();
 
                 // Init command line dialog
