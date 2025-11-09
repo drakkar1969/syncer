@@ -28,6 +28,7 @@ enum RsyncMsg {
     None,
     Start(Option<i32>),
     Message(String),
+    Recurse(String),
     Progress(String, String, f64),
     Stats(String),
     Error(String),
@@ -281,6 +282,7 @@ impl RsyncProcess {
                 let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
 
                 let mut stats_mode = false;
+                let mut recurse_mode = false;
 
                 'read: loop {
                     tokio::select! {
@@ -331,6 +333,13 @@ impl RsyncProcess {
                                                 .expect("Could not send through channel");
                                         }
                                     }
+                                } else if recurse_mode && line.ends_with('\r') {
+                                    for chunk in line.split_terminator('\r') {
+                                        sender
+                                            .send(RsyncMsg::Recurse(chunk.into()))
+                                            .await
+                                            .expect("Could not send through channel");
+                                    }
                                 } else if line.starts_with("Number of files:") || stats_mode {
                                     stats_mode = true;
 
@@ -339,6 +348,12 @@ impl RsyncProcess {
                                         .await
                                         .expect("Could not send through channel");
                                 } else {
+                                    if line.contains("building file list ...") {
+                                        recurse_mode = true;
+                                    } else if line.ends_with("to consider") {
+                                        recurse_mode = false;
+                                    }
+
                                     sender
                                         .send(RsyncMsg::Message(line.into()))
                                         .await
@@ -406,6 +421,10 @@ impl RsyncProcess {
                             process.emit_by_name::<()>("message", &[&message]);
 
                             messages.push(message);
+                        }
+
+                        RsyncMsg::Recurse(message) => {
+                            process.emit_by_name::<()>("message", &[&message]);
                         }
 
                         RsyncMsg::Progress(size, speed, progress) => {

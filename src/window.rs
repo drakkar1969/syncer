@@ -313,7 +313,7 @@ mod imp {
                 // Get args
                 let args = vec![
                         "--human-readable",
-                        "--info=copy,del,flist0,misc,name,progress2,symsafe,stats2"
+                        "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2"
                     ]
                     .into_iter()
                     .chain(iter::once("--dry-run").filter(|_| dry_run))

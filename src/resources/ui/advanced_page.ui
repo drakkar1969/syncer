@@ -26,6 +26,13 @@
                     <property name="prop-name">recursive</property>
                   </object>
                 </child>
+                <child>
+                  <object class="AdvSwitchRow">
+                    <property name="title">Incremental Recursion</property>
+                    <property name="subtitle">Enable incremental recursion when scanning for files [ --inc-recursive | --i-r ]</property>
+                    <property name="prop-name">incremental-recursion</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

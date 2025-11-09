@@ -45,8 +45,9 @@ impl CheckMode {
 //------------------------------------------------------------------------------
 // DATA: Advanced Switches
 //------------------------------------------------------------------------------
-const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 17] = [
+const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 18] = [
     ("recursive", ("-r", Some("-d"))),
+    ("incremental-recursion", ("--i-r", Some("--no-i-r"))),
     ("preserve-time", ("-t", None)),
     ("preserve-permissions", ("-p", None)),
     ("preserve-owner", ("-o", None)),
@@ -94,6 +95,8 @@ mod imp {
 
         #[property(get, set, default = true, construct)]
         recursive: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        incremental_recursion: Cell<bool>,
         #[property(get, set, default = true, construct)]
         preserve_time: Cell<bool>,
         #[property(get, set, default = true, construct)]
