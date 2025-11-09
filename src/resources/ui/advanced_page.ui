@@ -22,14 +22,14 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Recursive</property>
-                    <property name="subtitle">Recurse into directories [ --recursive | -r ]</property>
+                    <property name="subtitle">Recurse into directories [ -r ]</property>
                     <property name="prop-name">recursive</property>
                   </object>
                 </child>
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Incremental Recursion</property>
-                    <property name="subtitle">Enable incremental recursion when scanning for files [ --inc-recursive | --i-r ]</property>
+                    <property name="subtitle">Enable incremental recursion when scanning for files [ --i-r ]</property>
                     <property name="prop-name">incremental-recursion</property>
                   </object>
                 </child>
@@ -40,14 +40,14 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Preserve Time</property>
-                    <property name="subtitle">Preserve modification times [ --times | -t ]</property>
+                    <property name="subtitle">Preserve modification times [ -t ]</property>
                     <property name="prop-name">preserve-time</property>
                   </object>
                 </child>
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Preserve Permissions</property>
-                    <property name="subtitle">Preserve permissions [ --perms | -p ]</property>
+                    <property name="subtitle">Preserve permissions [ -p ]</property>
                     <property name="prop-name">preserve-permissions</property>
                   </object>
                 </child>
@@ -58,14 +58,14 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Preserve Owner</property>
-                    <property name="subtitle">Preserve owner [ --owner | -o ]</property>
+                    <property name="subtitle">Preserve owner [ -o ]</property>
                     <property name="prop-name">preserve-owner</property>
                   </object>
                 </child>
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Preserve Group</property>
-                    <property name="subtitle">Preserve group [ --group | -g ]</property>
+                    <property name="subtitle">Preserve group [ -g ]</property>
                     <property name="prop-name">preserve-group</property>
                   </object>
                 </child>
@@ -83,21 +83,21 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Preserve Symlinks</property>
-                    <property name="subtitle">Copy symlinks as symlinks [ --links | -l ]</property>
+                    <property name="subtitle">Copy symlinks as symlinks [ -l ]</property>
                     <property name="prop-name">preserve-symlinks</property>
                   </object>
                 </child>
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Preserve Hardlinks</property>
-                    <property name="subtitle">Copy hardlinks as hardlinks [ --hard-links | -H ]</property>
+                    <property name="subtitle">Copy hardlinks as hardlinks [ -H ]</property>
                     <property name="prop-name">preserve-hardlinks</property>
                   </object>
                 </child>
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Preserve Devices</property>
-                    <property name="subtitle">Preserve device and special files [ --devices --specials | -D ]</property>
+                    <property name="subtitle">Preserve device and special files [ -D ]</property>
                     <property name="prop-name">preserve-devices</property>
                   </object>
                 </child>
@@ -108,7 +108,7 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Do Not Leave Filesystem</property>
-                    <property name="subtitle">Do not cross filesystem boundaries [ --one-file-system | -x ]</property>
+                    <property name="subtitle">Do not cross filesystem boundaries [ -x ]</property>
                     <property name="prop-name">one-filesystem</property>
                   </object>
                 </child>
@@ -140,7 +140,7 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Skip Newer</property>
-                    <property name="subtitle">Skip files that are newer on destination [ --update | -u ]</property>
+                    <property name="subtitle">Skip files that are newer on destination [ -u ]</property>
                     <property name="prop-name">skip-newer</property>
                   </object>
                 </child>
@@ -158,7 +158,7 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Backup Files</property>
-                    <property name="subtitle">Make backups of existing files on destination [ --backup | -b ]</property>
+                    <property name="subtitle">Make backups of existing files on destination [ -b ]</property>
                     <property name="prop-name">backup</property>
                   </object>
                 </child>
@@ -169,7 +169,7 @@
                 <child>
                   <object class="AdvSwitchRow">
                     <property name="title">Secluded Args</property>
-                    <property name="subtitle">Protect remote arguments from shell expansion [ --secluded-args | -s ]</property>
+                    <property name="subtitle">Protect remote arguments from shell expansion [ -s ]</property>
                     <property name="prop-name">secluded-args</property>
                   </object>
                 </child>
