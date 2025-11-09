@@ -175,18 +175,17 @@ impl ProfileObject {
             if obj.has_property(key) {
                 match value {
                     JsonValue::String(s) => {
-                        obj.set_property_from_value(key, &s.to_value());
+                        obj.set_property(key, &s);
                     },
                     JsonValue::Number(i) => {
-                        let value = i.as_u64()
+                        let mode = i.as_u64()
                             .and_then(|i| CheckMode::from_repr(i as u32))
-                            .unwrap_or_default()
-                            .to_value();
+                            .unwrap_or_default();
 
-                        obj.set_property_from_value(key, &value);
+                        obj.set_property(key, &mode);
                     },
                     JsonValue::Bool(b) => {
-                        obj.set_property_from_value(key, &b.to_value());
+                        obj.set_property(key, &b);
                     }
                     _ => {}
                 }
@@ -208,7 +207,7 @@ impl ProfileObject {
             let nick = property.nick();
 
             if nick != "name" {
-                dup_obj.set_property(nick, self.property_value(nick));
+                dup_obj.set_property_from_value(nick, &self.property_value(nick));
             }
         }
 
