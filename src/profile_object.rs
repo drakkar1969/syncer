@@ -32,7 +32,7 @@ impl CheckMode {
     pub fn value(self) -> u32 {
         EnumValue::from_value(&self.to_value())
             .map(|(_, enum_value)| enum_value.value() as u32)
-            .expect("Failed to get 'EnumValue'")
+            .expect("Could not get 'EnumValue'")
     }
 }
 

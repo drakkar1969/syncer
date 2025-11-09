@@ -86,7 +86,7 @@ impl Application {
         let quit_action = gio::ActionEntry::builder("quit-app")
             .activate(move |app: &Self, _, _| {
                 app.active_window()
-                    .expect("Could not get active window")
+                    .expect("Failed to retrieve active window")
                     .close();
             })
             .build();

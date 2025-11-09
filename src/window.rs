@@ -597,8 +597,7 @@ impl AppWindow {
             .map(|obj| obj.to_json())
             .collect();
 
-        let json = to_string_pretty(&profiles)
-            .expect("Could not pretty print JSON string");
+        let json = to_string_pretty(&profiles)?;
 
         let config_path = xdg::BaseDirectories::new()
             .place_config_file("Syncer/config.json")?;
