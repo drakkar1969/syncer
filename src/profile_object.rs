@@ -2,8 +2,8 @@ use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
-use gtk::prelude::{ObjectExt, ToValue};
-use glib::EnumValue;
+use gtk::prelude::ObjectExt;
+use glib::translate::IntoGlib;
 
 use strum::{EnumProperty, FromRepr};
 use indexmap::IndexMap;
@@ -30,9 +30,7 @@ pub enum CheckMode {
 
 impl CheckMode {
     pub fn value(self) -> u32 {
-        EnumValue::from_value(&self.to_value())
-            .map(|(_, enum_value)| enum_value.value() as u32)
-            .expect("Could not get 'EnumValue'")
+        self.into_glib() as u32
     }
 
     pub fn desc<'a>(self) -> Option<&'a str> {
