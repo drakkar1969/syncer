@@ -173,17 +173,17 @@ impl ProfileObject {
             if obj.has_property(key) {
                 match value {
                     JsonValue::String(s) => {
-                        obj.set_property(key, &s);
+                        obj.set_property(key, s);
                     },
                     JsonValue::Number(i) => {
                         let mode = i.as_u64()
                             .and_then(|i| CheckMode::from_repr(i as u32))
                             .unwrap_or_default();
 
-                        obj.set_property(key, &mode);
+                        obj.set_property(key, mode);
                     },
                     JsonValue::Bool(b) => {
-                        obj.set_property(key, &b);
+                        obj.set_property(key, b);
                     }
                     _ => {}
                 }

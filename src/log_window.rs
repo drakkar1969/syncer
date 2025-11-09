@@ -268,7 +268,7 @@ impl LogWindow {
                 // Helper closure for case-insensitive prefix check
                 let starts_with_ic = |prefix: &str| -> bool {
                     text.get(..prefix.len())
-                        .map_or(false, |s| s.eq_ignore_ascii_case(prefix))
+                        .is_some_and(|s| s.eq_ignore_ascii_case(prefix))
                 };
 
                 match window.filter_type() {

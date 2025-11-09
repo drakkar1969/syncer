@@ -229,17 +229,15 @@ impl RsyncProcess {
                                 .send(RsyncMsg::Stats(line.into()))
                                 .await
                                 .expect("Could not send through channel");
+                        } else if line.contains("building file list ...") {
+                            recurse_mode = true;
+                        } else if line.ends_with("to consider") {
+                            recurse_mode = false;
                         } else {
-                            if line.contains("building file list ...") {
-                                recurse_mode = true;
-                            } else if line.ends_with("to consider") {
-                                recurse_mode = false;
-                            } else {
-                                sender
-                                    .send(RsyncMsg::Message(line.into()))
-                                    .await
-                                    .expect("Could not send through channel");
-                            }
+                            sender
+                                .send(RsyncMsg::Message(line.into()))
+                                .await
+                                .expect("Could not send through channel");
                         }
                     }
                 }
@@ -303,7 +301,7 @@ impl RsyncProcess {
                     .expect("Could not send through channel");
 
                 // Parse rsync output
-                RsyncProcess::parse_output(&mut rsync_process, &sender).await
+                Box::pin(Self::parse_output(&mut rsync_process, &sender)).await
             }
         );
 
