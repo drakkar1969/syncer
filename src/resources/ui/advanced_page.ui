@@ -150,13 +150,6 @@
                 </child>
                 <child>
                   <object class="AdvSwitchRow">
-                    <property name="title">Compress File Data</property>
-                    <property name="subtitle">Compress file data when transferring [ --compress | -z ]</property>
-                    <property name="prop-name">compress-data</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
                     <property name="title">Backup Files</property>
                     <property name="subtitle">Make backups of existing files on destination [ --backup | -b ]</property>
                     <property name="prop-name">backup</property>

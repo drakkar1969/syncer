@@ -45,7 +45,7 @@ impl CheckMode {
 //------------------------------------------------------------------------------
 // DATA: Advanced Switches
 //------------------------------------------------------------------------------
-const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 18] = [
+const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 17] = [
     ("recursive", ("-r", Some("-d"))),
     ("preserve-time", ("-t", None)),
     ("preserve-permissions", ("-p", None)),
@@ -61,7 +61,6 @@ const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 18] = [
     ("ignore-existing", ("--ignore-existing", None)),
     ("skip-newer", ("-u", None)),
     ("partial", ("--partial", None)),
-    ("compress-data", ("-z", None)),
     ("backup", ("-b", None)),
     ("secluded-args", ("-s", None)),
 ];
@@ -123,8 +122,6 @@ mod imp {
         skip_newer: Cell<bool>,
         #[property(get, set, default = false, construct)]
         partial: Cell<bool>,
-        #[property(get, set, default = false, construct)]
-        compress_data: Cell<bool>,
         #[property(get, set, default = false, construct)]
         backup: Cell<bool>,
         #[property(get, set, default = false, construct)]
