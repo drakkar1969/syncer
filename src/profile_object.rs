@@ -34,6 +34,14 @@ impl CheckMode {
             .map(|(_, enum_value)| enum_value.value() as u32)
             .expect("Could not get 'EnumValue'")
     }
+
+    pub fn desc<'a>(self) -> Option<&'a str> {
+        self.get_str("Desc")
+    }
+
+    pub fn switch<'a>(self) -> Option<&'a str> {
+        self.get_str("Switch")
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -265,7 +273,7 @@ impl ProfileObject {
             .collect();
 
         // Check mode
-        if let Some(mode) = self.check_mode().get_str("Switch") {
+        if let Some(mode) = self.check_mode().switch() {
             args.push(mode.to_owned());
         }
 

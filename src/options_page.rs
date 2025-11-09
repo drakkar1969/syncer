@@ -5,8 +5,6 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
-use strum::EnumProperty;
-
 use crate::profile_object::{CheckMode, ProfileObject};
 
 //------------------------------------------------------------------------------
@@ -242,7 +240,7 @@ impl OptionsPage {
                     .and_downcast::<adw::EnumListItem>()
                     .and_then(|item| CheckMode::from_repr(item.value() as u32))?;
 
-                mode.get_str("Desc")
+                mode.desc()
             })
             .sync_create()
             .build();
