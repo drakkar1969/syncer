@@ -8,7 +8,7 @@ use glib::clone;
 use crate::profile_object::ProfileObject;
 use crate::stats_table::StatsTable;
 use crate::log_window::LogWindow;
-use crate::rsync_process::Stats;
+use crate::rsync_process::RsyncProcess;
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage
@@ -249,7 +249,7 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, stats: Option<&Stats>, error: Option<&str>, messages: &[String], stats_msgs: &[String], error_msgs: &[String]) {
+    pub fn set_exit_status(&self, code: i32, messages: &[String], stats_msgs: &[String], error_msgs: &[String]) {
         let imp = self.imp();
 
         // Ensure progress bar at 100% if success
@@ -259,7 +259,10 @@ impl RsyncPage {
         }
 
         // Show exit status in message label
-        match (code, stats) {
+        let stats = RsyncProcess::stats(stats_msgs);
+        let error = RsyncProcess::error(code, error_msgs);
+
+        match (code, &stats) {
             (0, Some(stats)) => {
                 imp.message_box.set_css_classes(&["success", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
@@ -282,7 +285,7 @@ impl RsyncPage {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
-                let error = error.unwrap_or("Unknown error");
+                let error = error.unwrap_or(String::from("Unknown error"));
 
                 imp.message_label.set_label(&format!("{error} (code {code})"));
             }
@@ -292,7 +295,7 @@ impl RsyncPage {
         if let Some(stats) = stats {
             imp.speed_label.set_label(&format!("{}B/s", stats.speed));
 
-            imp.stats_table.fill(stats);
+            imp.stats_table.fill(&stats);
 
             imp.stats_stack.set_visible_child_name("stats");
         } else {

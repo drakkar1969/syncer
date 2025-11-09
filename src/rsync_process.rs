@@ -111,8 +111,6 @@ mod imp {
                     Signal::builder("exit")
                         .param_types([
                             i32::static_type(),
-                            Option::<Stats>::static_type(),
-                            Option::<String>::static_type(),
                             Vec::<String>::static_type(),
                             Vec::<String>::static_type(),
                             Vec::<String>::static_type()
@@ -140,109 +138,6 @@ impl RsyncProcess {
         RUNTIME.get_or_init(|| {
             TkRuntime::new().expect("Setting up tokio runtime needs to succeed.")
         })
-    }
-
-    //---------------------------------------
-    // Stats function
-    //---------------------------------------
-    fn stats(&self, stats: &[String]) -> Option<Stats> {
-        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r"(?x)
-                Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*created\s*files:\s*(?P<dt>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*deleted\s*files:\s*(?P<dr>[\d,.]+)\s*\(?(?:reg:\s*(?P<nf>[\d,.]+))?,?\s*(?:dir:\s*(?P<nd>[\d,.]+))?,?\s*(?:link:\s*(?P<nl>[\d,.]+))?,?\s*(?:special:\s*(?P<ns>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tt>[\d,.]+)\n
-                Total\s*file\s*size:\s*(?P<bs>.+)\s*bytes\n
-                Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                .*\n
-                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<ts>.*?)\s*bytes
-            ")
-            .expect("Failed to compile Regex")
-        });
-
-        EXPR.captures(&stats.join("\n"))
-            .map(|caps| {
-                let get_match = |caps: &Captures, m: &str| -> String {
-                    caps.name(m)
-                        .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
-                        .to_owned()
-                };
-
-                let d_total = get_match(&caps, "dt");
-                let d_files = get_match(&caps, "df");
-                let d_transf = get_match(&caps, "tt");
-
-                let dest_total = convert::max_str::<u32>(&d_total, &d_transf);
-                let dest_files = convert::max_str::<u32>(&d_files, &d_transf);
-
-                Stats {
-                    source_total: get_match(&caps, "st"),
-                    source_files: get_match(&caps, "sf"),
-                    source_dirs: get_match(&caps, "sd"),
-                    source_links: get_match(&caps, "sl"),
-                    source_specials: get_match(&caps, "ss"),
-                    destination_total: dest_total,
-                    destination_files: dest_files,
-                    destination_dirs: get_match(&caps, "dd"),
-                    destination_links: get_match(&caps, "dl"),
-                    destination_specials: get_match(&caps, "ds"),
-                    destination_deleted: get_match(&caps, "dr"),
-                    bytes_source: get_match(&caps, "bs"),
-                    bytes_transferred: get_match(&caps, "bt"),
-                    speed: get_match(&caps, "ts")
-                }
-            })
-    }
-
-    //---------------------------------------
-    // Error function
-    //---------------------------------------
-    fn error(&self, code: i32, errors: &[String]) -> Option<String> {
-        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r"^(?P<err>[^(]*).*")
-                .expect("Failed to compile Regex")
-        });
-
-        // Get first (detailed) and last (main) errors
-        let (err_detail, err_main) = (errors.first()?, errors.last()?);
-
-        // Helper closure to extract error
-        let extract_error = |s: &str| -> Option<String> {
-            EXPR.captures(s)?
-                .name("err")
-                .map(|m| {
-                    m.as_str().trim()
-                        .trim_end_matches('.')
-                        .replace("rsync error: ", "")
-                        .replace("rsync warning: ", "")
-                })
-                .map(|mut s| {
-                    if let Some(first) = s.get_mut(0..1) {
-                        first.make_ascii_uppercase();
-                    }
-
-                    s
-                })
-        };
-
-        // Get error string
-        match code {
-            // Terminated by user
-            20 => Some(String::from("Terminated by user")),
-
-            // Usage error
-            1 => extract_error(err_detail)
-                .or_else(|| extract_error(err_main)),
-
-            // Other error
-            _ => extract_error(err_main)
-        }
     }
 
     //---------------------------------------
@@ -464,8 +359,6 @@ impl RsyncProcess {
 
                             process.emit_by_name::<()>("exit", &[
                                 &code,
-                                &process.stats(&stats),
-                                &process.error(code, &errors),
                                 &messages,
                                 &stats,
                                 &errors
@@ -529,6 +422,109 @@ impl RsyncProcess {
             let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
 
             self.set_paused(false);
+        }
+    }
+
+    //---------------------------------------
+    // Stats function
+    //---------------------------------------
+    pub fn stats(stats: &[String]) -> Option<Stats> {
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"(?x)
+                Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*created\s*files:\s*(?P<dt>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*deleted\s*files:\s*(?P<dr>[\d,.]+)\s*\(?(?:reg:\s*(?P<nf>[\d,.]+))?,?\s*(?:dir:\s*(?P<nd>[\d,.]+))?,?\s*(?:link:\s*(?P<nl>[\d,.]+))?,?\s*(?:special:\s*(?P<ns>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tt>[\d,.]+)\n
+                Total\s*file\s*size:\s*(?P<bs>.+)\s*bytes\n
+                Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<ts>.*?)\s*bytes
+            ")
+            .expect("Failed to compile Regex")
+        });
+
+        EXPR.captures(&stats.join("\n"))
+            .map(|caps| {
+                let get_match = |caps: &Captures, m: &str| -> String {
+                    caps.name(m)
+                        .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
+                        .to_owned()
+                };
+
+                let d_total = get_match(&caps, "dt");
+                let d_files = get_match(&caps, "df");
+                let d_transf = get_match(&caps, "tt");
+
+                let dest_total = convert::max_str::<u32>(&d_total, &d_transf);
+                let dest_files = convert::max_str::<u32>(&d_files, &d_transf);
+
+                Stats {
+                    source_total: get_match(&caps, "st"),
+                    source_files: get_match(&caps, "sf"),
+                    source_dirs: get_match(&caps, "sd"),
+                    source_links: get_match(&caps, "sl"),
+                    source_specials: get_match(&caps, "ss"),
+                    destination_total: dest_total,
+                    destination_files: dest_files,
+                    destination_dirs: get_match(&caps, "dd"),
+                    destination_links: get_match(&caps, "dl"),
+                    destination_specials: get_match(&caps, "ds"),
+                    destination_deleted: get_match(&caps, "dr"),
+                    bytes_source: get_match(&caps, "bs"),
+                    bytes_transferred: get_match(&caps, "bt"),
+                    speed: get_match(&caps, "ts")
+                }
+            })
+    }
+
+    //---------------------------------------
+    // Error function
+    //---------------------------------------
+    pub fn error(code: i32, errors: &[String]) -> Option<String> {
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"^(?P<err>[^(]*).*")
+                .expect("Failed to compile Regex")
+        });
+
+        // Get first (detailed) and last (main) errors
+        let (err_detail, err_main) = (errors.first()?, errors.last()?);
+
+        // Helper closure to extract error
+        let extract_error = |s: &str| -> Option<String> {
+            EXPR.captures(s)?
+                .name("err")
+                .map(|m| {
+                    m.as_str().trim()
+                        .trim_end_matches('.')
+                        .replace("rsync error: ", "")
+                        .replace("rsync warning: ", "")
+                })
+                .map(|mut s| {
+                    if let Some(first) = s.get_mut(0..1) {
+                        first.make_ascii_uppercase();
+                    }
+
+                    s
+                })
+        };
+
+        // Get error string
+        match code {
+            // Terminated by user
+            20 => Some(String::from("Terminated by user")),
+
+            // Usage error
+            1 => extract_error(err_detail)
+                .or_else(|| extract_error(err_main)),
+
+            // Other error
+            _ => extract_error(err_main)
         }
     }
 }
