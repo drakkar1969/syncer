@@ -68,7 +68,7 @@ impl LogItem {
         let imp = self.imp();
 
         if text.starts_with(STATS_TAG) {
-            imp.box_.set_css_classes(&["success"]);
+            imp.box_.set_css_classes(&["heading"]);
 
             imp.label.set_label(&text.replace(STATS_TAG, ""));
 

@@ -324,16 +324,8 @@ impl LogWindow {
                     move || {
                         let messages_empty = messages.is_empty();
                         
-                        messages.into_iter()
-                            .chain(
-                                iter::once(String::new()).filter(|_| {
-                                    (!stats_msgs.is_empty() || !error_msgs.is_empty())
-                                        && !messages_empty
-                                })
-                            )
-                            .chain(
-                                error_msgs.iter().map(|s| format!("{ERROR_TAG}{s}"))
-                            )
+                        error_msgs.iter()
+                            .map(|s| format!("{ERROR_TAG}{s}"))
                             .chain(
                                 iter::once(String::new()).filter(|_| {
                                     !stats_msgs.is_empty() && !error_msgs.is_empty()
@@ -342,6 +334,13 @@ impl LogWindow {
                             .chain(
                                 stats_msgs.iter().map(|s| format!("{STATS_TAG}{s}"))
                             )
+                            .chain(
+                                iter::once(String::new()).filter(|_| {
+                                    (!stats_msgs.is_empty() || !error_msgs.is_empty())
+                                        && !messages_empty
+                                })
+                            )
+                            .chain(messages.into_iter())
                             .collect()
                     }
                 ))
