@@ -1,7 +1,7 @@
 use std::cell::Cell;
 use std::sync::{OnceLock, LazyLock};
 use std::io;
-use std::process::Stdio;
+use std::process::{ExitStatus, Stdio};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -10,8 +10,8 @@ use glib::clone;
 use glib::subclass::Signal;
 
 use async_channel::Sender;
-use tokio::runtime::Runtime as TkRuntime;
-use tokio::process::{Command as TkCommand, Child as TkChild};
+use tokio::runtime::Runtime;
+use tokio::process::{Command, Child};
 use tokio::io::AsyncReadExt as _;
 use nix::sys::signal as nix_signal;
 use nix::unistd::Pid as NixPid;
@@ -133,17 +133,17 @@ impl RsyncProcess {
     //---------------------------------------
     // Tokio runtime helper function
     //---------------------------------------
-    fn runtime() -> &'static TkRuntime {
-        static RUNTIME: OnceLock<TkRuntime> = OnceLock::new();
+    fn runtime() -> &'static Runtime {
+        static RUNTIME: OnceLock<Runtime> = OnceLock::new();
         RUNTIME.get_or_init(|| {
-            TkRuntime::new().expect("Setting up tokio runtime needs to succeed.")
+            Runtime::new().expect("Setting up tokio runtime needs to succeed.")
         })
     }
 
     //---------------------------------------
     // Parse output async function
     //---------------------------------------
-    async fn parse_output(process: &mut TkChild, sender: &Sender::<RsyncMsg>) -> Result<(), io::Error> {
+    async fn parse_output(process: &mut Child, sender: &Sender::<RsyncMsg>) -> Result<ExitStatus, io::Error> {
         const BUFFER_SIZE: usize = 16384;
 
         // Get handles to read rsync stdout and stderr
@@ -153,129 +153,135 @@ impl RsyncProcess {
         let mut stderr = process.stderr.take()
             .ok_or_else(|| io::Error::other("Could not get stderr"))?;
 
-        // Create buffers to read stdout and stderr
-        let mut buffer_stdout = [0u8; BUFFER_SIZE];
-        let mut buffer_stderr = [0u8; BUFFER_SIZE];
+        // Spawn task to read stdout
+        let sender_out = sender.clone();
 
-        let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
+        let stdout_result = tokio::spawn(async move {
+            let mut buffer = [0u8; BUFFER_SIZE];
+            let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
 
-        let mut stats_mode = false;
-        let mut recurse_mode = false;
+            let mut stats_mode = false;
+            let mut recurse_mode = false;
 
-        'read: loop {
-            tokio::select! {
-                // Read stdout when available
-                result = stdout.read(&mut buffer_stdout) => {
-                    let bytes = result?;
-
-                    // Continue if stdout is empty
-                    if bytes == 0 {
-                        continue 'read;
-                    }
-
-                    // If buffer overflow, save stdout and continue
-                    if bytes >= BUFFER_SIZE {
-                        overflow.push_str(&String::from_utf8_lossy(&buffer_stdout[..bytes]));
-
-                        continue 'read;
-                    }
-
-                    // Read stdout
-                    let mut text = String::from_utf8_lossy(&buffer_stdout[..bytes])
-                        .into_owned();
-
-                    if !overflow.is_empty() {
-                        text.insert_str(0, &overflow);
-
-                        overflow.clear();
-                    }
-
-                    // Process stdout line by line
-                    for line in text.split_terminator('\n') {
-                        if line.is_empty() {
-                            continue;
-                        }
-
-                        if line.starts_with('\r') {
-                            for chunk in line.split_terminator('\r') {
-                                let parts: Vec<&str> = chunk
-                                    .split_whitespace()
-                                    .collect();
-
-                                if let (Some(&size), Some(&speed), Some(progress)) = (
-                                    parts.first(),
-                                    parts.get(2),
-                                    parts.get(1).and_then(|s| {
-                                        s.trim_end_matches('%').parse::<f64>().ok()
-                                    })
-                                ) {
-                                    sender
-                                        .send(RsyncMsg::Progress(size.into(), speed.into(), progress))
-                                        .await
-                                        .expect("Could not send through channel");
-                                }
-                            }
-                        } else if recurse_mode && line.ends_with('\r') {
-                            for chunk in line.split_terminator('\r') {
-                                sender
-                                    .send(RsyncMsg::Recurse(chunk.into()))
-                                    .await
-                                    .expect("Could not send through channel");
-                            }
-                        } else if line.starts_with("Number of files:") || stats_mode {
-                            stats_mode = true;
-
-                            sender
-                                .send(RsyncMsg::Stats(line.into()))
-                                .await
-                                .expect("Could not send through channel");
-                        } else if line.contains("building file list ...") {
-                            recurse_mode = true;
-                        } else if line.ends_with("to consider") {
-                            recurse_mode = false;
-                        } else {
-                            sender
-                                .send(RsyncMsg::Message(line.into()))
-                                .await
-                                .expect("Could not send through channel");
-                        }
-                    }
+            while let Ok(bytes) = stdout.read(&mut buffer).await {
+                // Break if stdout is empty
+                if bytes == 0 {
+                    break;
                 }
 
-                // Read stderr when available
-                result = stderr.read(&mut buffer_stderr) => {
-                    let bytes = result?;
+                // If buffer overflow, save stdout and continue
+                if bytes >= BUFFER_SIZE {
+                    overflow.push_str(&String::from_utf8_lossy(&buffer[..bytes]));
+                    continue;
+                }
 
-                    // If stderr is not empty, process stderr line by line
-                    if bytes != 0 {
-                        let error = String::from_utf8_lossy(&buffer_stderr[..bytes]);
+                // Read stdout
+                let mut text = String::from_utf8_lossy(&buffer[..bytes])
+                    .into_owned();
 
-                        for line in error.split_terminator('\n') {
-                            if !line.is_empty() {
-                                sender
-                                    .send(RsyncMsg::Error(line.to_owned()))
+                if !overflow.is_empty() {
+                    text.insert_str(0, &overflow);
+
+                    overflow.clear();
+                }
+
+                // Process stdout line by line
+                for line in text.split_terminator('\n') {
+                    if line.is_empty() {
+                        continue;
+                    }
+
+                    if line.starts_with('\r') {
+                        // Progress line
+                        for chunk in line.split_terminator('\r') {
+                            let parts: Vec<&str> = chunk
+                                .split_whitespace()
+                                .collect();
+
+                            if let (Some(&size), Some(&speed), Some(progress)) = (
+                                parts.first(),
+                                parts.get(2),
+                                parts.get(1).and_then(|s| {
+                                    s.trim_end_matches('%').parse::<f64>().ok()
+                                })
+                            ) {
+                                sender_out
+                                    .send(RsyncMsg::Progress(
+                                        size.into(),
+                                        speed.into(),
+                                        progress
+                                    ))
                                     .await
                                     .expect("Could not send through channel");
                             }
                         }
+                    } else if recurse_mode && line.ends_with('\r') {
+                        // Recursion line
+                        for chunk in line.split_terminator('\r') {
+                            sender_out
+                                .send(RsyncMsg::Recurse(chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        }
+                    } else if line.starts_with("Number of files:") || stats_mode {
+                        // Stats line
+                        stats_mode = true;
+
+                        sender_out
+                            .send(RsyncMsg::Stats(line.into()))
+                            .await
+                            .expect("Could not send through channel");
+                    } else if line.contains("building file list ...") {
+                        // Start of recursion
+                        recurse_mode = true;
+                    } else if line.ends_with("to consider") {
+                        // End of recursion
+                        recurse_mode = false;
+                    } else {
+                        // Message line
+                        sender_out
+                            .send(RsyncMsg::Message(line.into()))
+                            .await
+                            .expect("Could not send through channel");
                     }
-                }
-
-                // Process exit
-                result = process.wait() => {
-                    let status = result?;
-
-                    sender
-                        .send(RsyncMsg::Exit(status.code().unwrap_or(1)))
-                        .await
-                        .expect("Could not send through channel");
-
-                    break 'read;
                 }
             }
-        }
+        });
 
-        Ok(())
+        // Spawn task to read stderr
+        let sender_err = sender.clone();
+
+        let stderr_result = tokio::spawn(async move {
+            let mut buffer = [0u8; BUFFER_SIZE];
+
+            while let Ok(bytes) = stderr.read(&mut buffer).await {
+                // Break if stderr is empty
+                if bytes == 0 {
+                    break;
+                }
+
+                // Read stderr and process line by line
+                let error = String::from_utf8_lossy(&buffer[..bytes]);
+
+                for line in error.split_terminator('\n') {
+                    if !line.is_empty() {
+                        sender_err
+                            .send(RsyncMsg::Error(line.into()))
+                            .await
+                            .expect("Could not send through channel");
+                    }
+                }
+            }
+        });
+
+        // Wait for stdout, stderr and process
+        let (_, _, status) = tokio::join!(
+            stdout_result,
+            stderr_result,
+            process.wait()
+        );
+
+        status
     }
 
     //---------------------------------------
@@ -288,7 +294,7 @@ impl RsyncProcess {
         Self::runtime().spawn(
             async move {
                 // Start rsync
-                let mut rsync_process = TkCommand::new("rsync")
+                let mut rsync_process = Command::new("rsync")
                     .args(args)
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
@@ -301,7 +307,15 @@ impl RsyncProcess {
                     .expect("Could not send through channel");
 
                 // Parse rsync output
-                Box::pin(Self::parse_output(&mut rsync_process, &sender)).await
+                let status = Self::parse_output(&mut rsync_process, &sender).await;
+
+                // Send rsync exit code
+                sender
+                    .send(RsyncMsg::Exit(status?.code().unwrap_or(1)))
+                    .await
+                    .expect("Could not send through channel");
+
+                Ok::<(), io::Error>(())
             }
         );
 
