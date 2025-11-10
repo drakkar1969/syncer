@@ -2,7 +2,7 @@ use gtk::prelude::WidgetExt;
 use adw::subclass::prelude::*;
 use gtk::glib;
 
-use crate::rsync_process::Stats;
+use crate::rsync_process::RsyncStats;
 
 //------------------------------------------------------------------------------
 // MODULE: StatsTable
@@ -97,7 +97,7 @@ impl StatsTable {
     //---------------------------------------
     // Fill function
     //---------------------------------------
-    pub fn fill(&self, stats: &Stats) {
+    pub fn fill(&self, stats: &RsyncStats) {
         let imp = self.imp();
 
         imp.source_total_label.set_label(&stats.source_total);

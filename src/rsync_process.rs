@@ -37,11 +37,11 @@ enum RsyncMsg {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: Stats
+// STRUCT: RsyncStats
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone, glib::Boxed)]
-#[boxed_type(name = "Stats", nullable)]
-pub struct Stats {
+#[boxed_type(name = "RsyncStats", nullable)]
+pub struct RsyncStats {
     pub source_total: String,
     pub source_files: String,
     pub source_dirs: String,
@@ -440,7 +440,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Stats function
     //---------------------------------------
-    pub fn stats(stats: &[String]) -> Option<Stats> {
+    pub fn stats(stats: &[String]) -> Option<RsyncStats> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
                 Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
@@ -476,7 +476,7 @@ impl RsyncProcess {
                 let dest_total = convert::max_str::<u32>(&d_total, &d_transf);
                 let dest_files = convert::max_str::<u32>(&d_files, &d_transf);
 
-                Stats {
+                RsyncStats {
                     source_total: get_match(&caps, "st"),
                     source_files: get_match(&caps, "sf"),
                     source_dirs: get_match(&caps, "sd"),
