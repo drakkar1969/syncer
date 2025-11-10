@@ -393,11 +393,11 @@ impl RsyncProcess {
         if let Some(id) = imp.id.get() {
             let pid = NixPid::from_raw(id);
 
-            // Resume if paused
+            // Resume rsync if paused
             if self.paused() {
-                let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
-
-                self.set_paused(false);
+                if nix_signal::kill(pid, nix_signal::Signal::SIGCONT).is_ok() {
+                    self.set_paused(false);
+                }
             }
 
             // Terminate rsync
@@ -415,9 +415,9 @@ impl RsyncProcess {
         if !self.paused() && let Some(id) = imp.id.get() {
             let pid = NixPid::from_raw(id);
 
-            let _ = nix_signal::kill(pid, nix_signal::Signal::SIGSTOP);
-
-            self.set_paused(true);
+            if nix_signal::kill(pid, nix_signal::Signal::SIGSTOP).is_ok() {
+                self.set_paused(true);
+            }
         }
     }
 
@@ -431,9 +431,9 @@ impl RsyncProcess {
         if self.paused() && let Some(id) = imp.id.get() {
             let pid = NixPid::from_raw(id);
 
-            let _ = nix_signal::kill(pid, nix_signal::Signal::SIGCONT);
-
-            self.set_paused(false);
+            if nix_signal::kill(pid, nix_signal::Signal::SIGCONT).is_ok() {
+                self.set_paused(false);
+            }
         }
     }
 
