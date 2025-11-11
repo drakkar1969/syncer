@@ -428,6 +428,10 @@ impl AppWindow {
             #[weak] imp,
             move |_| {
                 window.action_set_enabled("profile.new", false);
+                window.action_set_enabled("profile.rename", false);
+                window.action_set_enabled("profile.delete", false);
+                window.action_set_enabled("profile.duplicate", false);
+                window.action_set_enabled("profile.reset", false);
 
                 imp.profile_dropdown.set_sensitive(false);
             }
@@ -438,6 +442,10 @@ impl AppWindow {
             #[weak] imp,
             move |_| {
                 window.action_set_enabled("profile.new", true);
+                window.action_set_enabled("profile.rename", true);
+                window.action_set_enabled("profile.delete", true);
+                window.action_set_enabled("profile.duplicate", true);
+                window.action_set_enabled("profile.reset", true);
 
                 imp.profile_dropdown.set_sensitive(true);
             }
