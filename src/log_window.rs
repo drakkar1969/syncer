@@ -1,5 +1,4 @@
 use std::cell::Cell;
-use std::iter;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -336,18 +335,16 @@ impl LogWindow {
                         error_msgs.iter()
                             .map(|s| format!("error|{s}"))
                             .chain(
-                                iter::once(String::new()).filter(|_| {
-                                    !stats_msgs.is_empty() && !error_msgs.is_empty()
-                                })
+                                (!stats_msgs.is_empty() && !error_msgs.is_empty())
+                                    .then(|| String::new())
                             )
                             .chain(
                                 stats_msgs.iter().map(|s| format!("stats|{s}"))
                             )
                             .chain(
-                                iter::once(String::new()).filter(|_| {
-                                    (!stats_msgs.is_empty() || !error_msgs.is_empty())
-                                        && !messages_empty
-                                })
+                                ((!stats_msgs.is_empty() || !error_msgs.is_empty())
+                                    && !messages_empty)
+                                    .then(|| String::new())
                             )
                             .chain(messages.into_iter())
                             .collect()

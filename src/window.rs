@@ -1,5 +1,4 @@
 use std::cell::Cell;
-use std::iter;
 use std::io::{self, Write};
 use std::fs;
 
@@ -332,21 +331,16 @@ mod imp {
                 let label: gtk::Label = builder.object("label")
                     .expect("Could not get object from resource");
 
+                let copy_button: gtk::Button = builder.object("copy_button")
+                    .expect("Could not get object from resource");
+
                 // Get profile
                 let profile = imp.profile_dropdown.selected_item()
                     .and_downcast::<ProfileObject>()
                     .expect("Could not downcast to 'ProfileObject'");
 
-                // Get args
-                let args: Vec<String> = iter::once(String::from("rsync"))
-                    .chain(profile.to_args(true))
-                    .collect();
-
                 // Init command line dialog
-                label.set_label(&args.join(" "));
-
-                let copy_button: gtk::Button = builder.object("copy_button")
-                    .expect("Could not get object from resource");
+                label.set_label(&format!("rsync {}", profile.to_args(true).join(" ")));
 
                 copy_button.connect_clicked(clone!(
                     #[weak] window,

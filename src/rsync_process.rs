@@ -481,34 +481,34 @@ impl RsyncProcess {
 
         EXPR.captures(&stats.join("\n"))
             .map(|caps| {
-                let get_match = |caps: &Captures, m: &str| -> String {
+                let regex_match = |caps: &Captures, m: &str| -> String {
                     caps.name(m)
                         .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
                         .to_owned()
                 };
 
-                let d_total = get_match(&caps, "dt");
-                let d_files = get_match(&caps, "df");
-                let d_transf = get_match(&caps, "tt");
+                let d_total = regex_match(&caps, "dt");
+                let d_files = regex_match(&caps, "df");
+                let d_transf = regex_match(&caps, "tt");
 
                 let dest_total = convert::max_str::<u32>(&d_total, &d_transf);
                 let dest_files = convert::max_str::<u32>(&d_files, &d_transf);
 
                 RsyncStats {
-                    source_total: get_match(&caps, "st"),
-                    source_files: get_match(&caps, "sf"),
-                    source_dirs: get_match(&caps, "sd"),
-                    source_links: get_match(&caps, "sl"),
-                    source_specials: get_match(&caps, "ss"),
+                    source_total: regex_match(&caps, "st"),
+                    source_files: regex_match(&caps, "sf"),
+                    source_dirs: regex_match(&caps, "sd"),
+                    source_links: regex_match(&caps, "sl"),
+                    source_specials: regex_match(&caps, "ss"),
                     destination_total: dest_total,
                     destination_files: dest_files,
-                    destination_dirs: get_match(&caps, "dd"),
-                    destination_links: get_match(&caps, "dl"),
-                    destination_specials: get_match(&caps, "ds"),
-                    destination_deleted: get_match(&caps, "dr"),
-                    bytes_source: get_match(&caps, "bs"),
-                    bytes_transferred: get_match(&caps, "bt"),
-                    speed: get_match(&caps, "ts")
+                    destination_dirs: regex_match(&caps, "dd"),
+                    destination_links: regex_match(&caps, "dl"),
+                    destination_specials: regex_match(&caps, "ds"),
+                    destination_deleted: regex_match(&caps, "dr"),
+                    bytes_source: regex_match(&caps, "bs"),
+                    bytes_transferred: regex_match(&caps, "bt"),
+                    speed: regex_match(&caps, "ts")
                 }
             })
     }
