@@ -310,7 +310,7 @@ mod imp {
                         "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2"
                     ]
                     .into_iter()
-                    .chain(dry_run.then(|| "--dry-run"))
+                    .chain(dry_run.then_some("--dry-run"))
                     .map(ToOwned::to_owned)
                     .chain(profile.to_args(false))
                     .collect();

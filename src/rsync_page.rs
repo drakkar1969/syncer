@@ -179,9 +179,7 @@ impl RsyncPage {
                     #[weak] imp,
                     move || {
                         if process.running() {
-                            if imp.button_stack.visible_child_name() == Some("empty".into()) {
-                                imp.button_stack.set_visible_child_name("buttons");
-                            }
+                            imp.button_stack.set_visible_child_name("buttons");
                         }
                     }
                 ));

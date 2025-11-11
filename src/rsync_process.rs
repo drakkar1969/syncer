@@ -414,10 +414,8 @@ impl RsyncProcess {
             let pid = NixPid::from_raw(id);
 
             // Resume rsync if paused
-            if self.paused() {
-                if nix_signal::kill(pid, nix_signal::Signal::SIGCONT).is_ok() {
-                    self.set_paused(false);
-                }
+            if self.paused() && nix_signal::kill(pid, nix_signal::Signal::SIGCONT).is_ok() {
+                self.set_paused(false);
             }
 
             // Terminate rsync
