@@ -269,6 +269,7 @@ impl RsyncPage {
 
         imp.messages.replace(vec![]);
         imp.stats_msgs.replace(vec![]);
+        imp.error_msgs.replace(vec![]);
 
         imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
