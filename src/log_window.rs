@@ -3,10 +3,38 @@ use std::cell::Cell;
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, BoxedAnyObject};
+
+use itertools::Itertools;
 
 use crate::log_item::LogItem;
-use crate::rsync_process::RsyncMessages;
+use crate::rsync_process::{RsyncMsgType, RsyncMessages};
+
+//------------------------------------------------------------------------------
+// STRUCT: LogObject
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone)]
+pub struct LogObject {
+    tag: RsyncMsgType,
+    msg: String
+}
+
+impl LogObject {
+    pub fn new(tag: RsyncMsgType, msg: &str) -> Self {
+        Self {
+            tag,
+            msg: msg.to_owned()
+        }
+    }
+
+    pub fn tag(&self) -> RsyncMsgType {
+        self.tag
+    }
+
+    pub fn msg(&self) -> &str {
+        &self.msg
+    }
+}
 
 //------------------------------------------------------------------------------
 // ENUM: FilterType
@@ -194,12 +222,11 @@ impl LogWindow {
                 .and_downcast::<LogItem>()
                 .expect("Could not downcast to 'LogItem'");
 
-            let text = item.item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Could not downcast to 'GtkStringObject'")
-                .string();
+            let log_object = item.item()
+                .and_downcast::<BoxedAnyObject>()
+                .expect("Could not downcast to 'BoxedAnyObject'");
 
-            child.bind(&text);
+            child.bind(&log_object.borrow());
         });
 
         // Search entry search started signal
@@ -255,22 +282,20 @@ impl LogWindow {
             #[weak] imp,
             #[upgrade_or] false,
             move |obj| {
-                let text = obj
-                    .downcast_ref::<gtk::StringObject>()
-                    .expect("Could not downcast to 'GtkStringObject'")
-                    .string();
+                let log_object = obj
+                    .downcast_ref::<BoxedAnyObject>()
+                    .expect("Could not downcast to 'BoxedAnyObject'")
+                    .borrow::<LogObject>();
+
+                let msg = log_object.msg();
+                let tag = log_object.tag();
 
                 let search = imp.search_entry.text();
 
-                // Return if the text doesn’t contain the search string (ignore case)
-                if !text.to_ascii_lowercase().contains(&search.to_ascii_lowercase()) {
+                // Return if message text doesn’t contain the search string (ignore case)
+                if !msg.to_ascii_lowercase().contains(&search.to_ascii_lowercase()) {
                     return false;
                 }
-
-                // Split into tag and message
-                let Some((tag, msg)) = text.split_once('|') else {
-                    return window.filter_type() == FilterType::All;
-                };
 
                 // Helper closure for case-insensitive prefix check
                 let starts_with_ic = |prefix: &str| -> bool {
@@ -280,14 +305,18 @@ impl LogWindow {
 
                 match window.filter_type() {
                     FilterType::All => true,
-                    FilterType::Errors => tag == "error",
+                    FilterType::Errors => tag == RsyncMsgType::Error,
                     FilterType::Info => {
-                        tag == "info"
+                        tag == RsyncMsgType::Info
                             && !starts_with_ic("deleting")
                             && !starts_with_ic("skipping")
                     }
-                    FilterType::Deleted => tag == "info" && starts_with_ic("deleting"),
-                    FilterType::Skipped => tag == "info" && starts_with_ic("skipping")
+                    FilterType::Deleted => {
+                        tag == RsyncMsgType::Info && starts_with_ic("deleting")
+                    }
+                    FilterType::Skipped => {
+                        tag == RsyncMsgType::Info && starts_with_ic("skipping")
+                    }
                 }
             }
         ));
@@ -321,47 +350,56 @@ impl LogWindow {
 
         self.present();
 
-        let messages = messages.clone();
+        // Add errors to model
+        let errors: Vec<BoxedAnyObject> = messages.errors().iter()
+            .map(|(flag, msg)| BoxedAnyObject::new(LogObject::new(*flag, msg)))
+            .collect();
 
+        imp.model.splice(0, 0, &errors);
+
+        if !messages.errors().is_empty() && !messages.stats().is_empty() {
+            imp.model.append(&BoxedAnyObject::new(LogObject::new(RsyncMsgType::None, "")));
+        }
+
+        // Add stats to model
+        let stats: Vec<BoxedAnyObject> = messages.stats().iter()
+            .map(|(flag, msg)| BoxedAnyObject::new(LogObject::new(*flag, msg)))
+            .collect();
+
+        imp.model.splice(imp.model.n_items(), 0, &stats);
+
+        if (!messages.errors().is_empty() || !messages.stats().is_empty())
+            && !messages.messages().is_empty() {
+            imp.model.append(&BoxedAnyObject::new(LogObject::new(RsyncMsgType::None, "")));
+        }
+
+        // Spawn task to process messages
+        let (sender, receiver) = async_channel::bounded(10);
+
+        let messages = messages.messages().to_vec();
+
+        gio::spawn_blocking(
+            move || {
+                for chunk in &messages.into_iter().chunks(500) {
+                    sender
+                        .send_blocking(chunk.collect::<Vec<(RsyncMsgType, String)>>())
+                        .expect("The channel needs to be open.");
+                }
+            }
+        );
+
+        // Attach receiver for task
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {
-                // Spawn task to process messages
-                let msgs: Vec<String> = gio::spawn_blocking(clone!(
-                    move || {
-                        let msgs = messages.messages();
-                        let stats_msgs = messages.stats();
-                        let error_msgs = messages.errors();
+                while let Ok(chunk) = receiver.recv().await {
+                    // Add messages to model
+                    let messages: Vec<BoxedAnyObject> = chunk.iter()
+                        .map(|(flag, msg)| BoxedAnyObject::new(LogObject::new(*flag, msg)))
+                        .collect();
 
-                        // Collect messages strings
-                        let mut collected: Vec<String> = error_msgs.iter()
-                            .chain(stats_msgs.iter())
-                            .chain(msgs.iter())
-                            .map(|(flag, msg)| format!("{}|{}", flag.nick(), msg))
-                            .collect();
-
-                        // Insert empty lines
-                        if (!stats_msgs.is_empty() || !error_msgs.is_empty())
-                            && !msgs.is_empty() {
-                            collected.insert(error_msgs.len() + stats_msgs.len(), String::from("none|"));
-                        }
-
-                        if !stats_msgs.is_empty() && !error_msgs.is_empty() {
-                            collected.insert(error_msgs.len(), String::from("none|"));
-                        }
-
-                        collected
-                    }
-                ))
-                .await
-                .expect("Failed to complete task");
-
-                // Populate view
-                let objects: Vec<gtk::StringObject> = msgs.iter()
-                    .map(|s| gtk::StringObject::new(s))
-                    .collect();
-
-                imp.model.splice(0, 0, &objects);
+                    imp.model.splice(imp.model.n_items(), 0, &messages);
+                }
 
                 // Set initial focus on view
                 imp.view.grab_focus();

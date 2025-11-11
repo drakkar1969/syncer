@@ -2,6 +2,9 @@ use gtk::prelude::WidgetExt;
 use adw::subclass::prelude::*;
 use gtk::glib;
 
+use crate::log_window::LogObject;
+use crate::rsync_process::RsyncMsgType;
+
 //------------------------------------------------------------------------------
 // MODULE: LogItem
 //------------------------------------------------------------------------------
@@ -58,26 +61,25 @@ impl LogItem {
     //---------------------------------------
     // Bind function
     //---------------------------------------
-    pub fn bind(&self, text: &str) {
+    pub fn bind(&self, obj: &LogObject) {
         let imp = self.imp();
 
-        let (tag, msg) = text.split_once('|')
-            .unwrap_or_default();
+        let msg = obj.msg();
 
         imp.box_.set_css_classes(&[""]);
         imp.image.set_icon_name(None);
         imp.label.set_label(msg);
 
-        match tag {
-            "error" => {
+        match obj.tag() {
+            RsyncMsgType::Error => {
                 imp.box_.set_css_classes(&["error"]);
                 imp.image.set_icon_name(Some("rsync-error-symbolic"));
             }
-            "stat" => {
+            RsyncMsgType::Stat => {
                 imp.box_.set_css_classes(&["heading"]);
                 imp.image.set_icon_name(Some("stats-symbolic"));
             }
-            "info" => {
+            RsyncMsgType::Info => {
                 imp.box_.set_css_classes(&["warning"]);
 
                 if msg.starts_with("deleting") {
@@ -88,10 +90,10 @@ impl LogItem {
                     imp.image.set_icon_name(Some("stats-info-symbolic"));
                 }
             }
-            "file" => imp.image.set_icon_name(Some("stats-file-symbolic")),
-            "dir" => imp.image.set_icon_name(Some("stats-dir-symbolic")),
-            "link" => imp.image.set_icon_name(Some("stats-link-symbolic")),
-            "special" => imp.image.set_icon_name(Some("stats-special-symbolic")),
+            RsyncMsgType::File => imp.image.set_icon_name(Some("stats-file-symbolic")),
+            RsyncMsgType::Dir => imp.image.set_icon_name(Some("stats-dir-symbolic")),
+            RsyncMsgType::Link => imp.image.set_icon_name(Some("stats-link-symbolic")),
+            RsyncMsgType::Special => imp.image.set_icon_name(Some("stats-special-symbolic")),
             _ => {}
         }
     }
