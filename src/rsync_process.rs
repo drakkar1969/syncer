@@ -251,12 +251,12 @@ impl RsyncProcess {
                                 .expect("Failed to split rsync message");
 
                             if first.starts_with('*') {
-                                ("warning", format!("{} {}", first.trim_start_matches('*'), last))
+                                ("info", format!("{} {}", first.trim_start_matches('*'), last))
                             } else {
                                 (first.get(1..2).unwrap_or_default(), last.to_owned())
                             }
                         } else {
-                            ("warning", line.to_owned())
+                            ("info", line.to_owned())
                         };
 
                         sender_out

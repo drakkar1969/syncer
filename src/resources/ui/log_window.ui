@@ -163,9 +163,9 @@
         <attribute name="target">errors</attribute>
       </item>
       <item>
-        <attribute name="label">Warnings</attribute>
+        <attribute name="label">Info Messages</attribute>
         <attribute name="action">filter.type</attribute>
-        <attribute name="target">warnings</attribute>
+        <attribute name="target">info</attribute>
       </item>
       <item>
         <attribute name="label">Deleted</attribute>

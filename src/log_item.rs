@@ -77,7 +77,7 @@ impl LogItem {
                 imp.box_.set_css_classes(&["heading"]);
                 imp.image.set_icon_name(Some("stats-symbolic"));
             }
-            "warning" => {
+            "info" => {
                 imp.box_.set_css_classes(&["warning"]);
 
                 if msg.starts_with("deleting") {
@@ -85,7 +85,7 @@ impl LogItem {
                 } else if msg.contains("non-regular") {
                     imp.image.set_icon_name(Some("stats-skipped-symbolic"));
                 } else {
-                    imp.image.set_icon_name(Some("stats-warning-symbolic"));
+                    imp.image.set_icon_name(Some("stats-info-symbolic"));
                 }
             }
             "f" => imp.image.set_icon_name(Some("stats-file-symbolic")),

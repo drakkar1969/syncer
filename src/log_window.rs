@@ -18,7 +18,7 @@ pub enum FilterType {
     #[default]
     All,
     Errors,
-    Warnings,
+    Info,
     Deleted,
     Skipped,
 }
@@ -167,7 +167,7 @@ impl LogWindow {
             let icon = match window.filter_type() {
                 FilterType::All => "stats-symbolic",
                 FilterType::Errors => "rsync-error-symbolic",
-                FilterType::Warnings => "stats-warning-symbolic",
+                FilterType::Info => "stats-info-symbolic",
                 FilterType::Deleted => "stats-deleted-symbolic",
                 FilterType::Skipped => "stats-skipped-symbolic",
             };
@@ -281,13 +281,13 @@ impl LogWindow {
                 match window.filter_type() {
                     FilterType::All => true,
                     FilterType::Errors => tag == "error",
-                    FilterType::Warnings => {
-                        tag == "warning"
+                    FilterType::Info => {
+                        tag == "info"
                             && !starts_with_ic("deleting")
                             && !starts_with_ic("skipping")
                     }
-                    FilterType::Deleted => tag == "warning" && starts_with_ic("deleting"),
-                    FilterType::Skipped => tag == "warning" && starts_with_ic("skipping")
+                    FilterType::Deleted => tag == "info" && starts_with_ic("deleting"),
+                    FilterType::Skipped => tag == "info" && starts_with_ic("skipping")
                 }
             }
         ));
