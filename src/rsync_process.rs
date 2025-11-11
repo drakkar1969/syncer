@@ -20,6 +20,11 @@ use regex::{Regex, Captures};
 use crate::utils::convert;
 
 //------------------------------------------------------------------------------
+// CONST Variables
+//------------------------------------------------------------------------------
+pub const ITEMIZE_TAG: &str = "[ITEMIZE]";
+
+//------------------------------------------------------------------------------
 // ENUM: RsyncMsg
 //------------------------------------------------------------------------------
 #[derive(Debug, Default, PartialEq)]
@@ -28,7 +33,7 @@ enum RsyncMsg {
     #[default]
     None,
     Start(Option<i32>),
-    Message(String),
+    Message(String, String),
     Recurse(String),
     Progress(String, String, f64),
     Stats(String),
@@ -239,8 +244,23 @@ impl RsyncProcess {
                         recurse_mode = false;
                     } else {
                         // Message line
+                        let (tag, msg) = if line.starts_with(ITEMIZE_TAG) {
+                            let (first, last) = line
+                                .trim_start_matches(ITEMIZE_TAG)
+                                .split_once(' ')
+                                .expect("Failed to split rsync message");
+
+                            if first.starts_with('*') {
+                                ("warning", format!("{} {}", first.trim_start_matches('*'), last))
+                            } else {
+                                (first.get(1..2).unwrap_or_default(), last.to_owned())
+                            }
+                        } else {
+                            ("warning", line.to_owned())
+                        };
+
                         sender_out
-                            .send(RsyncMsg::Message(line.into()))
+                            .send(RsyncMsg::Message(tag.into(), msg))
                             .await
                             .expect("Could not send through channel");
                     }
@@ -338,10 +358,10 @@ impl RsyncProcess {
                             process.emit_by_name::<()>("start", &[]);
                         }
 
-                        RsyncMsg::Message(message) => {
-                            process.emit_by_name::<()>("message", &[&message]);
+                        RsyncMsg::Message(msg_flag, msg) => {
+                            process.emit_by_name::<()>("message", &[&msg]);
 
-                            messages.push(message);
+                            messages.push(format!("{msg_flag}|{msg}"));
                         }
 
                         RsyncMsg::Recurse(message) => {

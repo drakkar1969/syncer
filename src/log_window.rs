@@ -6,7 +6,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::log_item::{STATS_TAG, ERROR_TAG, LogItem}; 
+use crate::log_item::LogItem; 
 
 //------------------------------------------------------------------------------
 // ENUM: FilterType
@@ -18,6 +18,7 @@ pub enum FilterType {
     #[default]
     All,
     Errors,
+    Warnings,
     Deleted,
     Skipped,
 }
@@ -155,7 +156,7 @@ impl LogWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Filter type prperty notify signal 
+        // Filter type property notify signal 
         self.connect_filter_type_notify(|window| {
             let imp = window.imp();
 
@@ -166,6 +167,7 @@ impl LogWindow {
             let icon = match window.filter_type() {
                 FilterType::All => "stats-symbolic",
                 FilterType::Errors => "rsync-error-symbolic",
+                FilterType::Warnings => "stats-warning-symbolic",
                 FilterType::Deleted => "stats-deleted-symbolic",
                 FilterType::Skipped => "stats-skipped-symbolic",
             };
@@ -265,20 +267,27 @@ impl LogWindow {
                     return false;
                 }
 
+                // Split into tag and message
+                let Some((tag, msg)) = text.split_once('|') else {
+                    return window.filter_type() == FilterType::All;
+                };
+
                 // Helper closure for case-insensitive prefix check
                 let starts_with_ic = |prefix: &str| -> bool {
-                    text.get(..prefix.len())
+                    msg.get(..prefix.len())
                         .is_some_and(|s| s.eq_ignore_ascii_case(prefix))
                 };
 
                 match window.filter_type() {
                     FilterType::All => true,
-                    FilterType::Errors => {
-                        starts_with_ic("cannot")
-                            || starts_with_ic(ERROR_TAG)
+                    FilterType::Errors => tag == "error",
+                    FilterType::Warnings => {
+                        tag == "warning"
+                            && !starts_with_ic("deleting")
+                            && !starts_with_ic("skipping")
                     }
-                    FilterType::Deleted => starts_with_ic("deleting"),
-                    FilterType::Skipped => starts_with_ic("skipping")
+                    FilterType::Deleted => tag == "warning" && starts_with_ic("deleting"),
+                    FilterType::Skipped => tag == "warning" && starts_with_ic("skipping")
                 }
             }
         ));
@@ -325,14 +334,14 @@ impl LogWindow {
                         let messages_empty = messages.is_empty();
                         
                         error_msgs.iter()
-                            .map(|s| format!("{ERROR_TAG}{s}"))
+                            .map(|s| format!("error|{s}"))
                             .chain(
                                 iter::once(String::new()).filter(|_| {
                                     !stats_msgs.is_empty() && !error_msgs.is_empty()
                                 })
                             )
                             .chain(
-                                stats_msgs.iter().map(|s| format!("{STATS_TAG}{s}"))
+                                stats_msgs.iter().map(|s| format!("stats|{s}"))
                             )
                             .chain(
                                 iter::once(String::new()).filter(|_| {

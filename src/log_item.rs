@@ -3,12 +3,6 @@ use adw::subclass::prelude::*;
 use gtk::glib;
 
 //------------------------------------------------------------------------------
-// CONST Variables
-//------------------------------------------------------------------------------
-pub const STATS_TAG: &str = "::STATS::";
-pub const ERROR_TAG: &str = "::ERROR::";
-
-//------------------------------------------------------------------------------
 // MODULE: LogItem
 //------------------------------------------------------------------------------
 mod imp {
@@ -67,49 +61,38 @@ impl LogItem {
     pub fn bind(&self, text: &str) {
         let imp = self.imp();
 
-        if text.starts_with(STATS_TAG) {
-            imp.box_.set_css_classes(&["heading"]);
+        let (tag, msg) = text.split_once('|')
+            .unwrap_or_default();
 
-            imp.label.set_label(&text.replace(STATS_TAG, ""));
+        imp.box_.set_css_classes(&[""]);
+        imp.image.set_icon_name(None);
+        imp.label.set_label(msg);
 
-            imp.image.set_icon_name(Some("stats-symbolic"));
-        } else if text.starts_with(ERROR_TAG) {
-            imp.box_.set_css_classes(&["error"]);
-
-            imp.label.set_label(&text.replace(ERROR_TAG, ""));
-
-            imp.image.set_icon_name(Some("rsync-error-symbolic"));
-        } else {
-            imp.label.set_label(text);
-
-            imp.image.set_visible(true);
-            imp.image.set_icon_name(None);
-
-            if text.starts_with("cannot") {
+        match tag {
+            "error" => {
                 imp.box_.set_css_classes(&["error"]);
-
                 imp.image.set_icon_name(Some("rsync-error-symbolic"));
-            } else if text.starts_with("skipping") {
+            }
+            "stats" => {
+                imp.box_.set_css_classes(&["heading"]);
+                imp.image.set_icon_name(Some("stats-symbolic"));
+            }
+            "warning" => {
                 imp.box_.set_css_classes(&["warning"]);
 
-                imp.image.set_icon_name(Some("stats-skipped-symbolic"));
-            } else if text.starts_with("deleting") {
-                imp.box_.set_css_classes(&["warning"]);
-
-                imp.image.set_icon_name(Some("stats-deleted-symbolic"));
-            } else if text.contains("->") {
-                imp.box_.set_css_classes(&["accent"]);
-
-                imp.image.set_icon_name(Some("stats-link-symbolic"));
-            } else {
-                imp.box_.set_css_classes(&[]);
-
-                if text.ends_with('/') {
-                    imp.image.set_icon_name(Some("stats-dir-symbolic"));
-                } else if !text.is_empty() {
-                    imp.image.set_icon_name(Some("stats-file-symbolic"));
+                if msg.starts_with("deleting") {
+                    imp.image.set_icon_name(Some("stats-deleted-symbolic"));
+                } else if msg.contains("non-regular") {
+                    imp.image.set_icon_name(Some("stats-skipped-symbolic"));
+                } else {
+                    imp.image.set_icon_name(Some("stats-warning-symbolic"));
                 }
             }
+            "f" => imp.image.set_icon_name(Some("stats-file-symbolic")),
+            "d" => imp.image.set_icon_name(Some("stats-dir-symbolic")),
+            "L" => imp.image.set_icon_name(Some("stats-link-symbolic")),
+            "D" | "S" => imp.image.set_icon_name(Some("stats-special-symbolic")),
+            _ => {}
         }
     }
 }

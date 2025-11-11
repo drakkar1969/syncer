@@ -17,7 +17,7 @@ use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
 use crate::rsync_page::RsyncPage;
-use crate::rsync_process::RsyncProcess;
+use crate::rsync_process::{ITEMIZE_TAG, RsyncProcess};
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -311,12 +311,13 @@ mod imp {
                     .expect("Could not downcast to 'ProfileObject'");
 
                 // Get args
-                let args = vec![
+                let args = [
                         "--human-readable",
+                        &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
                         "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2"
                     ]
                     .into_iter()
-                    .chain(iter::once("--dry-run").filter(|_| dry_run))
+                    .chain(dry_run.then(|| "--dry-run"))
                     .map(ToOwned::to_owned)
                     .chain(profile.to_args(false))
                     .collect();

@@ -163,6 +163,11 @@
         <attribute name="target">errors</attribute>
       </item>
       <item>
+        <attribute name="label">Warnings</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">warnings</attribute>
+      </item>
+      <item>
         <attribute name="label">Deleted</attribute>
         <attribute name="action">filter.type</attribute>
         <attribute name="target">deleted</attribute>
