@@ -73,7 +73,7 @@ impl LogItem {
                 imp.box_.set_css_classes(&["error"]);
                 imp.image.set_icon_name(Some("rsync-error-symbolic"));
             }
-            "stats" => {
+            "stat" => {
                 imp.box_.set_css_classes(&["heading"]);
                 imp.image.set_icon_name(Some("stats-symbolic"));
             }
@@ -88,10 +88,10 @@ impl LogItem {
                     imp.image.set_icon_name(Some("stats-info-symbolic"));
                 }
             }
-            "f" => imp.image.set_icon_name(Some("stats-file-symbolic")),
-            "d" => imp.image.set_icon_name(Some("stats-dir-symbolic")),
-            "L" => imp.image.set_icon_name(Some("stats-link-symbolic")),
-            "D" | "S" => imp.image.set_icon_name(Some("stats-special-symbolic")),
+            "file" => imp.image.set_icon_name(Some("stats-file-symbolic")),
+            "dir" => imp.image.set_icon_name(Some("stats-dir-symbolic")),
+            "link" => imp.image.set_icon_name(Some("stats-link-symbolic")),
+            "special" => imp.image.set_icon_name(Some("stats-special-symbolic")),
             _ => {}
         }
     }

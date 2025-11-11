@@ -9,7 +9,7 @@ use glib::{clone, closure_local};
 use crate::profile_object::ProfileObject;
 use crate::stats_table::StatsTable;
 use crate::log_window::LogWindow;
-use crate::rsync_process::RsyncProcess;
+use crate::rsync_process::{RsyncProcess, RsyncMessages};
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage
@@ -67,9 +67,7 @@ mod imp {
         #[property(get)]
         rsync_process: RefCell<RsyncProcess>,
 
-        pub(super) messages: RefCell<Vec<String>>,
-        pub(super) stats_msgs: RefCell<Vec<String>>,
-        pub(super) error_msgs: RefCell<Vec<String>>,
+        pub(super) messages: RefCell<RsyncMessages>,
     }
 
     //---------------------------------------
@@ -209,8 +207,8 @@ impl RsyncPage {
         // Rsync process exit signal
         rsync_process.connect_closure("exit", false, closure_local!(
             #[weak(rename_to = page)] self,
-            move |_: RsyncProcess, code: i32, messages: Vec<String>, stats_msgs: Vec<String>, error_msgs: Vec<String>| {
-                page.set_exit_status(code, messages, stats_msgs, error_msgs);
+            move |_: RsyncProcess, code: i32, messages: RsyncMessages| {
+                page.set_exit_status(code, messages);
             }
         ));
 
@@ -248,11 +246,7 @@ impl RsyncPage {
 
                 let window = LogWindow::new(&parent);
 
-                window.display(
-                    imp.messages.borrow().as_ref(),
-                    imp.stats_msgs.borrow().as_ref(),
-                    imp.error_msgs.borrow().as_ref()
-                );
+                window.display(&imp.messages.borrow());
             }
         ));
     }
@@ -265,9 +259,7 @@ impl RsyncPage {
 
         self.set_can_pop(false);
 
-        imp.messages.replace(vec![]);
-        imp.stats_msgs.replace(vec![]);
-        imp.error_msgs.replace(vec![]);
+        imp.messages.replace(RsyncMessages::new());
 
         imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
@@ -286,7 +278,7 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, messages: Vec<String>, stats_msgs: Vec<String>, error_msgs: Vec<String>) {
+    pub fn set_exit_status(&self, code: i32, messages: RsyncMessages) {
         let imp = self.imp();
 
         // Ensure progress bar at 100% if success
@@ -296,7 +288,7 @@ impl RsyncPage {
         }
 
         // Show exit status in message label
-        let stats = RsyncProcess::stats(&stats_msgs);
+        let stats = RsyncProcess::stats(messages.stats());
 
         match (code, &stats) {
             (0, Some(stats)) => {
@@ -321,7 +313,7 @@ impl RsyncPage {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
-                let error = RsyncProcess::error(code, &error_msgs)
+                let error = RsyncProcess::error(code, messages.errors())
                     .unwrap_or_else(|| String::from("Unknown error"));
 
                 imp.message_label.set_label(&format!("{error} (code {code})"));
@@ -340,12 +332,10 @@ impl RsyncPage {
         }
 
         // Show details
-        if messages.is_empty() && stats_msgs.is_empty() {
+        if messages.messages().is_empty() && messages.stats().is_empty() {
             imp.button_stack.set_visible_child_name("empty");
         } else {
             imp.messages.replace(messages);
-            imp.stats_msgs.replace(stats_msgs);
-            imp.error_msgs.replace(error_msgs);
 
             imp.button_stack.set_visible_child_name("log");
         }

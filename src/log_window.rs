@@ -5,7 +5,8 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::log_item::LogItem; 
+use crate::log_item::LogItem;
+use crate::rsync_process::RsyncMessages;
 
 //------------------------------------------------------------------------------
 // ENUM: FilterType
@@ -315,14 +316,12 @@ impl LogWindow {
     //---------------------------------------
     // Display function
     //---------------------------------------
-    pub fn display(&self, messages: &[String], stats_msgs: &[String], error_msgs: &[String]) {
+    pub fn display(&self, messages: &RsyncMessages) {
         let imp = self.imp();
 
         self.present();
 
-        let messages = messages.to_vec();
-        let stats_msgs = stats_msgs.to_vec();
-        let error_msgs = error_msgs.to_vec();
+        let messages = messages.clone();
 
         glib::spawn_future_local(clone!(
             #[weak] imp,
@@ -330,24 +329,28 @@ impl LogWindow {
                 // Spawn task to process messages
                 let msgs: Vec<String> = gio::spawn_blocking(clone!(
                     move || {
-                        let messages_empty = messages.is_empty();
-                        
-                        error_msgs.iter()
-                            .map(|s| format!("error|{s}"))
-                            .chain(
-                                (!stats_msgs.is_empty() && !error_msgs.is_empty())
-                                    .then(|| String::new())
-                            )
-                            .chain(
-                                stats_msgs.iter().map(|s| format!("stats|{s}"))
-                            )
-                            .chain(
-                                ((!stats_msgs.is_empty() || !error_msgs.is_empty())
-                                    && !messages_empty)
-                                    .then(|| String::new())
-                            )
-                            .chain(messages.into_iter())
-                            .collect()
+                        let msgs = messages.messages();
+                        let stats_msgs = messages.stats();
+                        let error_msgs = messages.errors();
+
+                        // Collect messages strings
+                        let mut collected: Vec<String> = error_msgs.iter()
+                            .chain(stats_msgs.iter())
+                            .chain(msgs.iter())
+                            .map(|(flag, msg)| format!("{}|{}", flag.nick(), msg))
+                            .collect();
+
+                        // Insert empty lines
+                        if (!stats_msgs.is_empty() || !error_msgs.is_empty())
+                            && !msgs.is_empty() {
+                            collected.insert(error_msgs.len() + stats_msgs.len(), String::from("none|"));
+                        }
+
+                        if !stats_msgs.is_empty() && !error_msgs.is_empty() {
+                            collected.insert(error_msgs.len(), String::from("none|"));
+                        }
+
+                        collected
                     }
                 ))
                 .await

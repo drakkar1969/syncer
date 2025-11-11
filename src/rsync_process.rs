@@ -1,4 +1,5 @@
 use std::cell::Cell;
+use std::collections::HashMap;
 use std::sync::{OnceLock, LazyLock};
 use std::io;
 use std::process::{ExitStatus, Stdio};
@@ -7,6 +8,7 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::{ObjectExt, StaticType};
 use glib::clone;
+use glib::value::ToValue;
 use glib::subclass::Signal;
 
 use async_channel::Sender;
@@ -31,12 +33,83 @@ pub const ITEMIZE_TAG: &str = "[ITEMIZE]";
 #[repr(u32)]
 enum RsyncSend {
     Start(Option<i32>),
-    Message(String, String),
+    Message(RsyncMsgType, String),
     Recurse(String),
     Progress(String, String, f64),
     Stats(String),
     Error(String),
     Exit(i32)
+}
+
+//------------------------------------------------------------------------------
+// ENUM: RsyncMsgType
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, glib::Enum, strum::EnumString)]
+#[repr(u32)]
+#[enum_type(name = "RsyncMsgType")]
+pub enum RsyncMsgType {
+    Stat,
+    Error,
+    Info,
+    File,
+    Dir,
+    Link,
+    Special,
+    #[default]
+    None
+}
+
+impl RsyncMsgType {
+    pub fn nick(self) -> String {
+        glib::EnumValue::from_value(&self.to_value())
+            .map(|(_, enum_value)| enum_value.nick().to_owned())
+            .expect("Failed to get 'EnumValue'")
+    }
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: RsyncMessages
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone, glib::Boxed)]
+#[boxed_type(name = "RsyncMessages")]
+pub struct RsyncMessages {
+    messages: Vec<(RsyncMsgType, String)>,
+    stats: Vec<(RsyncMsgType, String)>,
+    errors: Vec<(RsyncMsgType, String)>
+}
+
+impl RsyncMessages {
+    pub const fn new() -> Self {
+        Self {
+            messages: vec![],
+            stats: vec![],
+            errors: vec![]
+        }
+    }
+
+    pub fn messages(&self) -> &[(RsyncMsgType, String)] {
+        &self.messages
+    }
+
+    pub fn stats(&self) -> &[(RsyncMsgType, String)] {
+        &self.stats
+    }
+
+    pub fn errors(&self) -> &[(RsyncMsgType, String)] {
+        &self.errors
+    }
+
+    pub fn push_message(&mut self, flag: RsyncMsgType, msg: String) {
+        self.messages.push((flag, msg));
+    }
+
+    pub fn push_stat(&mut self, msg: String) {
+        self.stats.push((RsyncMsgType::Stat, msg));
+    }
+
+    pub fn push_error(&mut self, msg: String) {
+        self.errors.push((RsyncMsgType::Error, msg));
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -114,9 +187,7 @@ mod imp {
                     Signal::builder("exit")
                         .param_types([
                             i32::static_type(),
-                            Vec::<String>::static_type(),
-                            Vec::<String>::static_type(),
-                            Vec::<String>::static_type()
+                            RsyncMessages::static_type(),
                         ])
                         .build()
                 ]
@@ -148,6 +219,14 @@ impl RsyncProcess {
     //---------------------------------------
     async fn parse_output(process: &mut Child, sender: &Sender::<RsyncSend>) -> Result<ExitStatus, io::Error> {
         const BUFFER_SIZE: usize = 16384;
+
+        let flag_map: HashMap<&str, RsyncMsgType> = HashMap::from([
+            ("f", RsyncMsgType::File),
+            ("d", RsyncMsgType::Dir),
+            ("L", RsyncMsgType::Link),
+            ("D", RsyncMsgType::Special),
+            ("S", RsyncMsgType::Special),
+        ]);
 
         // Get handles to read rsync stdout and stderr
         let mut stdout = process.stdout.take()
@@ -249,16 +328,25 @@ impl RsyncProcess {
                                 .expect("Failed to split rsync message");
 
                             if first.starts_with('*') {
-                                ("info", format!("{} {}", first.trim_start_matches('*'), last))
+                                (
+                                    RsyncMsgType::Info,
+                                    format!("{} {}", first.trim_start_matches('*'), last)
+                                )
                             } else {
-                                (first.get(1..2).unwrap_or_default(), last.to_owned())
+                                (
+                                    first.get(1..2)
+                                        .and_then(|s| flag_map.get(s))
+                                        .copied()
+                                        .unwrap_or_default(),
+                                    last.to_owned()
+                                )
                             }
                         } else {
-                            ("info", line.to_owned())
+                            (RsyncMsgType::Info, line.to_owned())
                         };
 
                         sender_out
-                            .send(RsyncSend::Message(tag.into(), msg))
+                            .send(RsyncSend::Message(tag, msg))
                             .await
                             .expect("Could not send through channel");
                     }
@@ -343,9 +431,7 @@ impl RsyncProcess {
             async move {
                 let imp = process.imp();
 
-                let mut messages: Vec<String> = vec![];
-                let mut stats: Vec<String> = vec![];
-                let mut errors: Vec<String> = vec![];
+                let mut messages: RsyncMessages = RsyncMessages::new();
 
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
@@ -356,10 +442,10 @@ impl RsyncProcess {
                             process.emit_by_name::<()>("start", &[]);
                         }
 
-                        RsyncSend::Message(msg_flag, msg) => {
+                        RsyncSend::Message(flag, msg) => {
                             process.emit_by_name::<()>("message", &[&msg]);
 
-                            messages.push(format!("{msg_flag}|{msg}"));
+                            messages.push_message(flag, msg);
                         }
 
                         RsyncSend::Recurse(message) => {
@@ -375,11 +461,11 @@ impl RsyncProcess {
                         }
 
                         RsyncSend::Stats(stat) => {
-                            stats.push(stat);
+                            messages.push_stat(stat);
                         }
 
                         RsyncSend::Error(error) => {
-                            errors.push(error);
+                            messages.push_error(error);
                         }
 
                         RsyncSend::Exit(code) => {
@@ -389,9 +475,7 @@ impl RsyncProcess {
 
                             process.emit_by_name::<()>("exit", &[
                                 &code,
-                                &messages,
-                                &stats,
-                                &errors
+                                &messages
                             ]);
                         }
                     }
@@ -454,7 +538,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Stats function
     //---------------------------------------
-    pub fn stats(stats: &[String]) -> Option<RsyncStats> {
+    pub fn stats(stats: &[(RsyncMsgType, String)]) -> Option<RsyncStats> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
                 Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
@@ -475,7 +559,11 @@ impl RsyncProcess {
             .expect("Failed to compile Regex")
         });
 
-        EXPR.captures(&stats.join("\n"))
+        let stats_msgs: Vec<&str> = stats.iter()
+            .map(|(_, msg)| msg.as_str())
+            .collect();
+
+        EXPR.captures(&stats_msgs.join("\n"))
             .map(|caps| {
                 let regex_match = |caps: &Captures, m: &str| -> String {
                     caps.name(m)
@@ -512,7 +600,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Error function
     //---------------------------------------
-    pub fn error(code: i32, errors: &[String]) -> Option<String> {
+    pub fn error(code: i32, errors: &[(RsyncMsgType, String)]) -> Option<String> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"^(?P<err>[^(]*).*")
                 .expect("Failed to compile Regex")
@@ -522,8 +610,8 @@ impl RsyncProcess {
         let (err_detail, err_main) = (errors.first()?, errors.last()?);
 
         // Helper closure to extract error
-        let extract_error = |s: &str| -> Option<String> {
-            EXPR.captures(s)?
+        let extract_error = |(_, msg): &(RsyncMsgType, String)| -> Option<String> {
+            EXPR.captures(msg)?
                 .name("err")
                 .map(|m| {
                     m.as_str().trim()
