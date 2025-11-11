@@ -1,13 +1,12 @@
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::iter;
-use std::time::Duration;
 use std::io::{self, Write};
 use std::fs;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::{clone, closure_local, Variant, VariantTy};
+use glib::{clone, Variant, VariantTy};
 
 use itertools::Itertools;
 use serde_json::{to_string_pretty, from_reader, Value as JsonValue};
@@ -17,7 +16,7 @@ use crate::profile_object::ProfileObject;
 use crate::options_page::OptionsPage;
 use crate::advanced_page::AdvancedPage;
 use crate::rsync_page::RsyncPage;
-use crate::rsync_process::{ITEMIZE_TAG, RsyncProcess};
+use crate::rsync_process::ITEMIZE_TAG;
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow
@@ -28,8 +27,7 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::AppWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/Syncer/ui/window.ui")]
     pub struct AppWindow {
         #[template_child]
@@ -50,9 +48,6 @@ mod imp {
         pub(super) advanced_page: TemplateChild<AdvancedPage>,
         #[template_child]
         pub(super) rsync_page: TemplateChild<RsyncPage>,
-
-        #[property(get)]
-        rsync_process: RefCell<RsyncProcess>,
 
         pub(super) close_request: Cell<bool>,
     }
@@ -83,7 +78,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         //---------------------------------------
         // Constructor
@@ -106,7 +100,7 @@ mod imp {
         fn close_request(&self) -> glib::Propagation {
             let window = &*self.obj();
 
-            if window.rsync_process().running() {
+            if self.rsync_page.rsync_process().running() {
                 gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
                     .expect("Could not activate action 'rsync.pause'");
 
@@ -323,22 +317,22 @@ mod imp {
                     .collect();
 
                 // Start rsync
-                window.rsync_process().start(args);
+                imp.rsync_page.rsync_process().start(args);
             });
 
             // Rsync terminate action
             klass.install_action("rsync.terminate", None, |window, _, _| {
-                window.rsync_process().terminate();
+                window.imp().rsync_page.rsync_process().terminate();
             });
 
             // Rsync pause action
             klass.install_action("rsync.pause", None, |window, _, _| {
-                window.rsync_process().pause();
+                window.imp().rsync_page.rsync_process().pause();
             });
 
             // Rsync resume action
             klass.install_action("rsync.resume", None, |window, _, _| {
-                window.rsync_process().resume();
+                window.imp().rsync_page.rsync_process().resume();
             });
 
             // Rsync show cmdline action
@@ -472,66 +466,21 @@ impl AppWindow {
         ));
 
         // Rsync process running property notify signal
-        let rsync_process = self.rsync_process();
-
-        rsync_process.connect_running_notify(clone!(
-            #[weak] imp,
-            move |process| {
-                if !process.running() && imp.navigation_view.visible_page_tag()
-                    .is_some_and(|tag| tag == "rsync")
-                {
-                    imp.back_button.set_visible(true);
-                }
-            }
-        ));
-
-        // Rsync process paused property notify signal
-        rsync_process.connect_paused_notify(clone!(
-            #[weak] imp,
-            move |process| {
-                imp.rsync_page.set_pause_button_state(process.paused());
-            }
-        ));
-
-        // Rsync process status signals
-        rsync_process.connect_closure("start", false, closure_local!(
-            #[weak] imp,
-            #[weak] rsync_process,
-            move |_: RsyncProcess| {
-                glib::timeout_add_local_once(Duration::from_millis(150), clone!(
-                    #[weak] imp,
-                    #[weak] rsync_process,
-                    move || {
-                        if rsync_process.running() {
-                            imp.rsync_page.set_start();
-                        }
-                    }
-                ));
-            }
-        ));
-
-        rsync_process.connect_closure("message", false, closure_local!(
-            #[weak] imp,
-            move |_: RsyncProcess, message: String| {
-                imp.rsync_page.set_message(&message);
-            }
-        ));
-
-        rsync_process.connect_closure("progress", false, closure_local!(
-            #[weak] imp,
-            move |_: RsyncProcess, size: String, speed: String, progress: f64| {
-                imp.rsync_page.set_status(&size, &speed, progress);
-            }
-        ));
-
-        rsync_process.connect_closure("exit", false, closure_local!(
+        imp.rsync_page.rsync_process().connect_running_notify(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] imp,
-            move |_: RsyncProcess, code: i32, messages: Vec<String>, stats_msgs: Vec<String>, error_msgs: Vec<String>| {
-                if imp.close_request.get() {
-                    window.close();
-                } else {
-                    imp.rsync_page.set_exit_status(code, &messages, &stats_msgs, &error_msgs);
+            move |process| {
+                if !process.running() {
+                    let imp = window.imp();
+
+                    if imp.close_request.get() {
+                        window.close();
+                    }
+
+                    if imp.navigation_view.visible_page_tag()
+                        .is_some_and(|tag| tag == "rsync")
+                    {
+                        imp.back_button.set_visible(true);
+                    }
                 }
             }
         ));

@@ -1,9 +1,10 @@
 use std::cell::RefCell;
+use std::time::Duration;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::clone;
+use glib::{clone, closure_local};
 
 use crate::profile_object::ProfileObject;
 use crate::stats_table::StatsTable;
@@ -61,6 +62,8 @@ mod imp {
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
+        #[property(get)]
+        rsync_process: RefCell<RsyncProcess>,
 
         pub(super) messages: RefCell<Vec<String>>,
         pub(super) stats_msgs: RefCell<Vec<String>>,
@@ -150,6 +153,69 @@ impl RsyncPage {
             }
         });
 
+        // Rsync process paused property notify signal
+        let rsync_process = self.rsync_process();
+
+        rsync_process.connect_paused_notify(clone!(
+            #[weak] imp,
+            move |process| {
+                if process.paused() {
+                    imp.pause_content.set_icon_name("rsync-start-symbolic");
+                    imp.pause_content.set_label("_Resume");
+                    imp.pause_button.set_action_name(Some("rsync.resume"));
+                } else {
+                    imp.pause_content.set_icon_name("rsync-pause-symbolic");
+                    imp.pause_content.set_label("_Pause");
+                    imp.pause_button.set_action_name(Some("rsync.pause"));
+                }
+            }
+        ));
+
+        // Rsync process start signal
+        rsync_process.connect_closure("start", false, closure_local!(
+            #[weak] imp,
+            move |process: RsyncProcess| {
+                glib::timeout_add_local_once(Duration::from_millis(150), clone!(
+                    #[weak] imp,
+                    move || {
+                        if process.running() {
+                            if imp.button_stack.visible_child_name() == Some("empty".into()) {
+                                imp.button_stack.set_visible_child_name("buttons");
+                            }
+                        }
+                    }
+                ));
+            }
+        ));
+
+        // Rsync process message signal
+        rsync_process.connect_closure("message", false, closure_local!(
+            #[weak] imp,
+            move |_: RsyncProcess, message: String| {
+                imp.message_label.set_label(&message);
+            }
+        ));
+
+        // Rsync process progress signal
+        rsync_process.connect_closure("progress", false, closure_local!(
+            #[weak] imp,
+            move |_: RsyncProcess, size: String, speed: String, progress: f64| {
+                imp.transferred_label.set_label(&format!("{size}B"));
+                imp.speed_label.set_label(&speed);
+
+                imp.progress_label.set_label(&format!("{progress}%"));
+                imp.progress_bar.set_fraction(progress/100.0);
+            }
+        ));
+
+        // Rsync process exit signal
+        rsync_process.connect_closure("exit", false, closure_local!(
+            #[weak(rename_to = page)] self,
+            move |_: RsyncProcess, code: i32, messages: Vec<String>, stats_msgs: Vec<String>, error_msgs: Vec<String>| {
+                page.set_exit_status(code, messages, stats_msgs, error_msgs);
+            }
+        ));
+
         // Log button clicked signal
         imp.log_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
@@ -197,59 +263,9 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Set pause button state function
-    //---------------------------------------
-    pub fn set_pause_button_state(&self, paused: bool) {
-        let imp = self.imp();
-
-        if paused {
-            imp.pause_content.set_icon_name("rsync-start-symbolic");
-            imp.pause_content.set_label("_Resume");
-            imp.pause_button.set_action_name(Some("rsync.resume"));
-        } else {
-            imp.pause_content.set_icon_name("rsync-pause-symbolic");
-            imp.pause_content.set_label("_Pause");
-            imp.pause_button.set_action_name(Some("rsync.pause"));
-        }
-    }
-
-    //---------------------------------------
-    // Set start function
-    //---------------------------------------
-    pub fn set_start(&self) {
-        let imp = self.imp();
-
-        if imp.button_stack.visible_child_name() == Some("empty".into()) {
-            imp.button_stack.set_visible_child_name("buttons");
-        }
-    }
-
-    //---------------------------------------
-    // Set message function
-    //---------------------------------------
-    pub fn set_message(&self, message: &str) {
-        let imp = self.imp();
-
-        imp.message_label.set_label(message);
-    }
-
-    //---------------------------------------
-    // Set status function
-    //---------------------------------------
-    pub fn set_status(&self, size: &str, speed: &str, progress: f64) {
-        let imp = self.imp();
-
-        imp.progress_label.set_label(&format!("{progress}%"));
-        imp.progress_bar.set_fraction(progress/100.0);
-
-        imp.transferred_label.set_label(&format!("{size}B"));
-        imp.speed_label.set_label(speed);
-    }
-
-    //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, messages: &[String], stats_msgs: &[String], error_msgs: &[String]) {
+    pub fn set_exit_status(&self, code: i32, messages: Vec<String>, stats_msgs: Vec<String>, error_msgs: Vec<String>) {
         let imp = self.imp();
 
         // Ensure progress bar at 100% if success
@@ -259,8 +275,8 @@ impl RsyncPage {
         }
 
         // Show exit status in message label
-        let stats = RsyncProcess::stats(stats_msgs);
-        let error = RsyncProcess::error(code, error_msgs);
+        let stats = RsyncProcess::stats(&stats_msgs);
+        let error = RsyncProcess::error(code, &error_msgs);
 
         match (code, &stats) {
             (0, Some(stats)) => {
@@ -306,9 +322,9 @@ impl RsyncPage {
         if messages.is_empty() && stats_msgs.is_empty() {
             imp.button_stack.set_visible_child_name("empty");
         } else {
-            imp.messages.replace(messages.to_vec());
-            imp.stats_msgs.replace(stats_msgs.to_vec());
-            imp.error_msgs.replace(error_msgs.to_vec());
+            imp.messages.replace(messages);
+            imp.stats_msgs.replace(stats_msgs);
+            imp.error_msgs.replace(error_msgs);
 
             imp.button_stack.set_visible_child_name("log");
         }
