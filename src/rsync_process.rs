@@ -25,13 +25,11 @@ use crate::utils::convert;
 pub const ITEMIZE_TAG: &str = "[ITEMIZE]";
 
 //------------------------------------------------------------------------------
-// ENUM: RsyncMsg
+// ENUM: RsyncSend
 //------------------------------------------------------------------------------
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, PartialEq)]
 #[repr(u32)]
-enum RsyncMsg {
-    #[default]
-    None,
+enum RsyncSend {
     Start(Option<i32>),
     Message(String, String),
     Recurse(String),
@@ -148,7 +146,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Parse output async function
     //---------------------------------------
-    async fn parse_output(process: &mut Child, sender: &Sender::<RsyncMsg>) -> Result<ExitStatus, io::Error> {
+    async fn parse_output(process: &mut Child, sender: &Sender::<RsyncSend>) -> Result<ExitStatus, io::Error> {
         const BUFFER_SIZE: usize = 16384;
 
         // Get handles to read rsync stdout and stderr
@@ -211,7 +209,7 @@ impl RsyncProcess {
                                 })
                             ) {
                                 sender_out
-                                    .send(RsyncMsg::Progress(
+                                    .send(RsyncSend::Progress(
                                         size.into(),
                                         speed.into(),
                                         progress
@@ -224,7 +222,7 @@ impl RsyncProcess {
                         // Recursion line
                         for chunk in line.split_terminator('\r') {
                             sender_out
-                                .send(RsyncMsg::Recurse(chunk.into()))
+                                .send(RsyncSend::Recurse(chunk.into()))
                                 .await
                                 .expect("Could not send through channel");
                         }
@@ -233,7 +231,7 @@ impl RsyncProcess {
                         stats_mode = true;
 
                         sender_out
-                            .send(RsyncMsg::Stats(line.into()))
+                            .send(RsyncSend::Stats(line.into()))
                             .await
                             .expect("Could not send through channel");
                     } else if line.contains("building file list ...") {
@@ -260,7 +258,7 @@ impl RsyncProcess {
                         };
 
                         sender_out
-                            .send(RsyncMsg::Message(tag.into(), msg))
+                            .send(RsyncSend::Message(tag.into(), msg))
                             .await
                             .expect("Could not send through channel");
                     }
@@ -286,7 +284,7 @@ impl RsyncProcess {
                 for line in error.split_terminator('\n') {
                     if !line.is_empty() {
                         sender_err
-                            .send(RsyncMsg::Error(line.into()))
+                            .send(RsyncSend::Error(line.into()))
                             .await
                             .expect("Could not send through channel");
                     }
@@ -322,7 +320,7 @@ impl RsyncProcess {
 
                 // Send rsync process id
                 sender
-                    .send(RsyncMsg::Start(rsync_process.id().map(|id| id as i32)))
+                    .send(RsyncSend::Start(rsync_process.id().map(|id| id as i32)))
                     .await
                     .expect("Could not send through channel");
 
@@ -331,7 +329,7 @@ impl RsyncProcess {
 
                 // Send rsync exit code
                 sender
-                    .send(RsyncMsg::Exit(status?.code().unwrap_or(1)))
+                    .send(RsyncSend::Exit(status?.code().unwrap_or(1)))
                     .await
                     .expect("Could not send through channel");
 
@@ -351,24 +349,24 @@ impl RsyncProcess {
 
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
-                        RsyncMsg::Start(id) => {
+                        RsyncSend::Start(id) => {
                             imp.id.set(id);
                             process.set_running(true);
 
                             process.emit_by_name::<()>("start", &[]);
                         }
 
-                        RsyncMsg::Message(msg_flag, msg) => {
+                        RsyncSend::Message(msg_flag, msg) => {
                             process.emit_by_name::<()>("message", &[&msg]);
 
                             messages.push(format!("{msg_flag}|{msg}"));
                         }
 
-                        RsyncMsg::Recurse(message) => {
+                        RsyncSend::Recurse(message) => {
                             process.emit_by_name::<()>("message", &[&message]);
                         }
 
-                        RsyncMsg::Progress(size, speed, progress) => {
+                        RsyncSend::Progress(size, speed, progress) => {
                             process.emit_by_name::<()>("progress", &[
                                 &size,
                                 &speed,
@@ -376,15 +374,15 @@ impl RsyncProcess {
                             ]);
                         }
 
-                        RsyncMsg::Stats(stat) => {
+                        RsyncSend::Stats(stat) => {
                             stats.push(stat);
                         }
 
-                        RsyncMsg::Error(error) => {
+                        RsyncSend::Error(error) => {
                             errors.push(error);
                         }
 
-                        RsyncMsg::Exit(code) => {
+                        RsyncSend::Exit(code) => {
                             process.set_running(false);
                             process.set_paused(false);
                             imp.id.set(None);
@@ -396,8 +394,6 @@ impl RsyncProcess {
                                 &errors
                             ]);
                         }
-
-                        RsyncMsg::None => {}
                     }
                 }
             }
