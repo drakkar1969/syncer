@@ -204,7 +204,6 @@
                     <property name="spacing">24</property>
                     <child>
                       <object class="GtkButton" id="pause_button">
-                        <property name="action-name">rsync.pause</property>
                         <property name="child">
                           <object class="AdwButtonContent" id="pause_content">
                             <property name="icon-name">rsync-pause-symbolic</property>
@@ -219,7 +218,6 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="stop_button">
-                        <property name="action-name">rsync.terminate</property>
                         <property name="child">
                           <object class="AdwButtonContent">
                             <property name="icon-name">rsync-stop-symbolic</property>

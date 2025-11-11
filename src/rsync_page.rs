@@ -58,6 +58,8 @@ mod imp {
         #[template_child]
         pub(super) pause_content: TemplateChild<adw::ButtonContent>,
         #[template_child]
+        pub(super) stop_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) log_button: TemplateChild<gtk::Button>,
 
         #[property(get, set, nullable)]
@@ -162,11 +164,9 @@ impl RsyncPage {
                 if process.paused() {
                     imp.pause_content.set_icon_name("rsync-start-symbolic");
                     imp.pause_content.set_label("_Resume");
-                    imp.pause_button.set_action_name(Some("rsync.resume"));
                 } else {
                     imp.pause_content.set_icon_name("rsync-pause-symbolic");
                     imp.pause_content.set_label("_Pause");
-                    imp.pause_button.set_action_name(Some("rsync.pause"));
                 }
             }
         ));
@@ -213,6 +213,28 @@ impl RsyncPage {
             #[weak(rename_to = page)] self,
             move |_: RsyncProcess, code: i32, messages: Vec<String>, stats_msgs: Vec<String>, error_msgs: Vec<String>| {
                 page.set_exit_status(code, messages, stats_msgs, error_msgs);
+            }
+        ));
+
+        // Pause button clicked signal
+        imp.pause_button.connect_clicked(clone!(
+            #[weak(rename_to = page)] self,
+            move|_| {
+                let process = page.rsync_process();
+
+                if process.paused() {
+                    process.resume();
+                } else {
+                    process.pause();
+                }
+            }
+        ));
+
+        // Stop button clicked signal
+        imp.stop_button.connect_clicked(clone!(
+            #[weak(rename_to = page)] self,
+            move|_| {
+                page.rsync_process().terminate();
             }
         ));
 

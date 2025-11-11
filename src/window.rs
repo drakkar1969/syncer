@@ -100,9 +100,10 @@ mod imp {
         fn close_request(&self) -> glib::Propagation {
             let window = &*self.obj();
 
-            if self.rsync_page.rsync_process().running() {
-                gtk::prelude::WidgetExt::activate_action(window, "rsync.pause", None)
-                    .expect("Could not activate action 'rsync.pause'");
+            let rsync_process = self.rsync_page.rsync_process();
+
+            if rsync_process.running() {
+                rsync_process.pause();
 
                 let dialog = adw::AlertDialog::builder()
                     .heading("Exit Syncer?")
@@ -114,13 +115,11 @@ mod imp {
                 dialog.set_response_appearance("exit", adw::ResponseAppearance::Destructive);
 
                 dialog.connect_response(Some("exit"), clone!(
-                    #[weak] window,
                     #[weak(rename_to = imp)] self,
                     move |_, _| {
                         imp.close_request.set(true);
 
-                        gtk::prelude::WidgetExt::activate_action(&window, "rsync.terminate", None)
-                            .expect("Could not activate action 'rsync.terminate'");
+                        rsync_process.terminate();
                     }
                 ));
 
@@ -318,21 +317,6 @@ mod imp {
 
                 // Start rsync
                 imp.rsync_page.rsync_process().start(args);
-            });
-
-            // Rsync terminate action
-            klass.install_action("rsync.terminate", None, |window, _, _| {
-                window.imp().rsync_page.rsync_process().terminate();
-            });
-
-            // Rsync pause action
-            klass.install_action("rsync.pause", None, |window, _, _| {
-                window.imp().rsync_page.rsync_process().pause();
-            });
-
-            // Rsync resume action
-            klass.install_action("rsync.resume", None, |window, _, _| {
-                window.imp().rsync_page.rsync_process().resume();
             });
 
             // Rsync show cmdline action
