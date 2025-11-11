@@ -1,4 +1,5 @@
 use std::cell::Cell;
+use std::time::Duration;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -178,6 +179,22 @@ impl LogWindow {
             .build()
     }
 
+    fn show_spinner(&self, show: bool) {
+        let imp = self.imp();
+
+        if show {
+            glib::timeout_add_local_once(Duration::from_millis(100), clone!(
+                #[weak] imp,
+                move || {
+                    if imp.filter_model.pending() != 0 {
+                        imp.spinner.set_visible(true);
+                    }
+                }
+            ));
+        } else {
+            imp.spinner.set_visible(false);
+        }
+    }
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -188,7 +205,7 @@ impl LogWindow {
         self.connect_filter_type_notify(|window| {
             let imp = window.imp();
 
-            imp.spinner.set_visible(true);
+            window.show_spinner(true);
 
             imp.filter.changed(gtk::FilterChange::Different);
 
@@ -238,11 +255,11 @@ impl LogWindow {
 
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |_| {
-                imp.spinner.set_visible(true);
+                window.show_spinner(true);
 
-                imp.filter.changed(gtk::FilterChange::Different);
+                window.imp().filter.changed(gtk::FilterChange::Different);
             }
         ));
 
@@ -258,10 +275,10 @@ impl LogWindow {
 
         // Filter model pending property notify signal
         imp.filter_model.connect_pending_notify(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |model| {
                 if model.pending() == 0 {
-                    imp.spinner.set_visible(false);
+                    window.show_spinner(false);
                 }
             }
         ));
