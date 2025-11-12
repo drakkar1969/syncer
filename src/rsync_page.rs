@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{RefCell, OnceCell};
 use std::time::Duration;
 
 use gtk::glib;
@@ -67,7 +67,7 @@ mod imp {
         #[property(get)]
         rsync_process: RefCell<RsyncProcess>,
 
-        pub(super) messages: RefCell<RsyncMessages>,
+        pub(super) log_window: OnceCell<LogWindow>
     }
 
     //---------------------------------------
@@ -99,6 +99,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -238,17 +239,20 @@ impl RsyncPage {
         imp.log_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
             move|_| {
-                let imp = page.imp();
-
                 let parent = page.root()
                     .and_downcast::<gtk::Window>()
                     .expect("Could not downcast to 'GtkWindow'");
 
-                let window = LogWindow::new(&parent);
-
-                window.display(&imp.messages.borrow());
+                page.imp().log_window.get().unwrap().display(&parent);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        self.imp().log_window.set(LogWindow::default()).unwrap();
     }
 
     //---------------------------------------
@@ -258,8 +262,6 @@ impl RsyncPage {
         let imp = self.imp();
 
         self.set_can_pop(false);
-
-        imp.messages.replace(RsyncMessages::new());
 
         imp.progress_label.set_label("0%");
         imp.progress_bar.set_fraction(0.0);
@@ -273,6 +275,8 @@ impl RsyncPage {
 
         imp.stats_stack.set_visible_child_name("empty");
         imp.button_stack.set_visible_child_name("empty");
+
+        imp.log_window.get().unwrap().clear_messages();
     }
 
     //---------------------------------------
@@ -335,9 +339,10 @@ impl RsyncPage {
         if messages.messages().is_empty() && messages.stats().is_empty() {
             imp.button_stack.set_visible_child_name("empty");
         } else {
-            imp.messages.replace(messages);
-
             imp.button_stack.set_visible_child_name("log");
+
+            // Populate log window
+            imp.log_window.get().unwrap().load_messages(&messages);
         }
 
         self.set_can_pop(true);

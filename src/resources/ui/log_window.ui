@@ -5,6 +5,7 @@
     <property name="default-width">800</property>
     <property name="default-height">660</property>
     <property name="modal">true</property>
+    <property name="hide-on-close">true</property>
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView">

@@ -171,14 +171,8 @@ glib::wrapper! {
 
 impl LogWindow {
     //---------------------------------------
-    // New function
+    // Show spinner function
     //---------------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
-        glib::Object::builder()
-            .property("transient-for", parent)
-            .build()
-    }
-
     fn show_spinner(&self, show: bool) {
         let imp = self.imp();
 
@@ -360,12 +354,10 @@ impl LogWindow {
     }
 
     //---------------------------------------
-    // Display function
+    // Load messages function
     //---------------------------------------
-    pub fn display(&self, messages: &RsyncMessages) {
+    pub fn load_messages(&self, messages: &RsyncMessages) {
         let imp = self.imp();
-
-        self.present();
 
         // Add errors to model
         let errors: Vec<BoxedAnyObject> = messages.errors().iter()
@@ -422,5 +414,30 @@ impl LogWindow {
                 imp.view.grab_focus();
             }
         ));
+    }
+
+    //---------------------------------------
+    // Clear messages function
+    //---------------------------------------
+    pub fn clear_messages(&self) {
+        self.imp().model.remove_all();
+    }
+
+    //---------------------------------------
+    // Display function
+    //---------------------------------------
+    pub fn display(&self, window: &gtk::Window) {
+        self.set_transient_for(Some(window));
+
+        self.present();
+    }
+}
+
+impl Default for LogWindow {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
     }
 }
