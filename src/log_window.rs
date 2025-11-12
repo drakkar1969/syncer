@@ -375,7 +375,7 @@ impl LogWindow {
         imp.model.splice(0, 0, &errors);
 
         if !messages.errors().is_empty() && !messages.stats().is_empty() {
-            imp.model.append(&BoxedAnyObject::new(LogObject::new(RsyncMsgType::None, "")));
+            imp.model.append(&BoxedAnyObject::new(LogObject::default()));
         }
 
         // Add stats to model
@@ -387,7 +387,7 @@ impl LogWindow {
 
         if (!messages.errors().is_empty() || !messages.stats().is_empty())
             && !messages.messages().is_empty() {
-            imp.model.append(&BoxedAnyObject::new(LogObject::new(RsyncMsgType::None, "")));
+            imp.model.append(&BoxedAnyObject::new(LogObject::default()));
         }
 
         // Spawn task to process messages
