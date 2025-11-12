@@ -66,7 +66,6 @@ mod imp {
             klass.bind_template();
 
             Self::install_profile_actions(klass);
-            Self::install_navigation_actions(klass);
             Self::install_rsync_actions(klass);
 
             Self::bind_shortcuts(klass);
@@ -263,25 +262,6 @@ mod imp {
         }
 
         //---------------------------------------
-        // Install navigation actions
-        //---------------------------------------
-        fn install_navigation_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Navigation pop action
-            klass.install_action("navigation.pop", None, |window, _, _| {
-                window.imp().navigation_view.pop();
-            });
-
-            // Navigation push advanced action
-            klass.install_action("navigation.push-advanced", None, |window, _, _| {
-                let imp = window.imp();
-
-                imp.navigation_view.push_by_tag("advanced");
-                imp.back_button.set_visible(true);
-            });
-
-        }
-
-        //---------------------------------------
         // Install rsync actions
         //---------------------------------------
         fn install_rsync_actions(klass: &mut <Self as ObjectSubclass>::Class) {
@@ -398,7 +378,15 @@ impl AppWindow {
             }
         ));
 
-        // Profile model n_items property notify signal
+        // Back button clicked signal
+        imp.back_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.navigation_view.pop();
+            }
+        ));
+
+        // Profile model changed signal
         imp.profile_model.connect_items_changed(clone!(
             #[weak] imp,
             move |model, _, _, _| {
@@ -412,7 +400,16 @@ impl AppWindow {
             }
         ));
 
-        // Navigation view popped signal
+        // Navigation view pushed/popped signals
+        imp.navigation_view.connect_pushed(clone!(
+            #[weak] imp,
+            move |view| {
+                if view.visible_page().is_some_and(|page| page.can_pop()) {
+                    imp.back_button.set_visible(true);
+                }
+            }
+        ));
+
         imp.navigation_view.connect_popped(clone!(
             #[weak] imp,
             move |view, _| {
