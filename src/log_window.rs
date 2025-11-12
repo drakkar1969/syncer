@@ -102,8 +102,8 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            Self::setup_actions(klass);
-            Self::setup_shortcuts(klass);
+            Self::install_actions(klass);
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -132,17 +132,17 @@ mod imp {
 
     impl LogWindow {
         //---------------------------------------
-        // Setup actions
+        // Install actions
         //---------------------------------------
-        fn setup_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Filter type property action
             klass.install_property_action("filter.type", "filter-type");
         }
 
         //---------------------------------------
-        // Setup shortcuts
+        // Bind shortcuts
         //---------------------------------------
-        fn setup_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Search key binding
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();

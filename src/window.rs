@@ -65,11 +65,11 @@ mod imp {
 
             klass.bind_template();
 
-            Self::setup_profile_actions(klass);
-            Self::setup_navigation_actions(klass);
-            Self::setup_rsync_actions(klass);
+            Self::install_profile_actions(klass);
+            Self::install_navigation_actions(klass);
+            Self::install_rsync_actions(klass);
 
-            Self::setup_shortcuts(klass);
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -137,9 +137,9 @@ mod imp {
 
     impl AppWindow {
         //---------------------------------------
-        // Setup profile actions
+        // Install profile actions
         //---------------------------------------
-        fn setup_profile_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn install_profile_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // New profile action
             klass.install_action("profile.new", None, |window, _, _| {
                 let imp = window.imp();
@@ -263,9 +263,9 @@ mod imp {
         }
 
         //---------------------------------------
-        // Setup navigation actions
+        // Install navigation actions
         //---------------------------------------
-        fn setup_navigation_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn install_navigation_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Navigation pop action
             klass.install_action("navigation.pop", None, |window, _, _| {
                 window.imp().navigation_view.pop();
@@ -282,9 +282,9 @@ mod imp {
         }
 
         //---------------------------------------
-        // Setup rsync actions
+        // Install rsync actions
         //---------------------------------------
-        fn setup_rsync_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn install_rsync_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Rsync start action
             klass.install_action("rsync.start", Some(VariantTy::BOOLEAN), |window, _, parameter| {
                 let imp = window.imp();
@@ -354,9 +354,9 @@ mod imp {
         }
 
         //---------------------------------------
-        // Setup shortcuts
+        // Bind shortcuts
         //---------------------------------------
-        fn setup_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // New profile key binding
             klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "profile.new");
         }
