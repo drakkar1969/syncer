@@ -431,7 +431,7 @@ impl RsyncProcess {
             async move {
                 let imp = process.imp();
 
-                let mut messages: RsyncMessages = RsyncMessages::new();
+                let mut messages = RsyncMessages::new();
 
                 while let Ok(msg) = receiver.recv().await {
                     match msg {

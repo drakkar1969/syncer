@@ -94,7 +94,7 @@ impl LogItem {
             RsyncMsgType::Dir => imp.image.set_icon_name(Some("stats-dir-symbolic")),
             RsyncMsgType::Link => imp.image.set_icon_name(Some("stats-link-symbolic")),
             RsyncMsgType::Special => imp.image.set_icon_name(Some("stats-special-symbolic")),
-            _ => {}
+            RsyncMsgType::None => {}
         }
     }
 }

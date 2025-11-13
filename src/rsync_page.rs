@@ -209,7 +209,7 @@ impl RsyncPage {
         rsync_process.connect_closure("exit", false, closure_local!(
             #[weak(rename_to = page)] self,
             move |_: RsyncProcess, code: i32, messages: RsyncMessages| {
-                page.set_exit_status(code, messages);
+                page.set_exit_status(code, &messages);
             }
         ));
 
@@ -282,7 +282,7 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, messages: RsyncMessages) {
+    pub fn set_exit_status(&self, code: i32, messages: &RsyncMessages) {
         let imp = self.imp();
 
         // Ensure progress bar at 100% if success
@@ -342,7 +342,7 @@ impl RsyncPage {
             imp.button_stack.set_visible_child_name("log");
 
             // Populate log window
-            imp.log_window.get().unwrap().load_messages(&messages);
+            imp.log_window.get().unwrap().load_messages(messages);
         }
 
         self.set_can_pop(true);
