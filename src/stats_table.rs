@@ -132,12 +132,3 @@ impl StatsTable {
         }
     }
 }
-
-impl Default for StatsTable {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder().build()
-    }
-}

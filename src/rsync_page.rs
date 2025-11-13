@@ -350,12 +350,3 @@ impl RsyncPage {
         self.set_can_pop(true);
     }
 }
-
-impl Default for RsyncPage {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder().build()
-    }
-}

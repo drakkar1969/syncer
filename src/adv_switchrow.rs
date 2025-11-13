@@ -86,12 +86,3 @@ impl AdvSwitchRow {
             .build();
     }
 }
-
-impl Default for AdvSwitchRow {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder().build()
-    }
-}
