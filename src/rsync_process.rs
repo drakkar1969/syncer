@@ -80,12 +80,8 @@ pub struct RsyncMessages {
 }
 
 impl RsyncMessages {
-    pub const fn new() -> Self {
-        Self {
-            messages: vec![],
-            stats: vec![],
-            errors: vec![]
-        }
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn messages(&self) -> &[(RsyncMsgType, String)] {
