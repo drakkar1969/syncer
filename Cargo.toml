@@ -11,7 +11,7 @@ indexmap = "2"
 itertools = "0.14"
 nix = { version = "0.30", features = ["signal"] }
 regex = "1"
-serde_json = "1.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
 strum = { version = "0.27", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "process", "io-util", "macros"] }
 xdg = "3"

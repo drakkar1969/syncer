@@ -8,7 +8,7 @@ use adw::prelude::*;
 use glib::{clone, Variant, VariantTy};
 
 use itertools::Itertools;
-use serde_json::{to_string_pretty, from_reader, Value as JsonValue};
+use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
 use crate::Application;
 use crate::profile_object::ProfileObject;
@@ -505,14 +505,12 @@ impl AppWindow {
             .find_config_file("Syncer/config.json")
             .ok_or_else(|| io::Error::other("Config file not found"))?;
 
-        let file = fs::File::open(config_path)?;
+        let json_str = fs::read_to_string(config_path)?;
 
-        let reader = io::BufReader::new(file);
+        let json_object: JsonMap<String, JsonValue> = from_str(&json_str)?;
 
-        let json: Vec<JsonValue> = from_reader(reader)?;
-
-        let profiles: Vec<ProfileObject> = json.iter()
-            .filter_map(ProfileObject::from_json)
+        let profiles: Vec<ProfileObject> = json_object.iter()
+            .filter_map(|(name, value)| ProfileObject::from_json(name, value))
             .collect();
 
         // Add profiles to model
@@ -525,19 +523,20 @@ impl AppWindow {
     // Save config function
     //---------------------------------------
     pub fn save_config(&self) -> io::Result<()> {
-        let profiles: Vec<JsonValue> = self.imp().profile_model.iter::<ProfileObject>()
+        let json_object: JsonMap<String, JsonValue> = self.imp().profile_model
+            .iter::<ProfileObject>()
             .flatten()
-            .map(|obj| obj.to_json())
+            .map(|profile| profile.to_json())
             .collect();
-
-        let json = to_string_pretty(&profiles)?;
 
         let config_path = xdg::BaseDirectories::new()
             .place_config_file("Syncer/config.json")?;
 
+        let json_str = to_string_pretty(&json_object)?;
+
         let mut file = fs::File::create(config_path)?;
 
-        file.write_all(json.as_bytes())
+        file.write_all(json_str.as_bytes())
     }
 
     //---------------------------------------

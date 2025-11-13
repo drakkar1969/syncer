@@ -164,8 +164,8 @@ impl ProfileObject {
     //---------------------------------------
     // From json function
     //---------------------------------------
-    pub fn from_json(json_value: &JsonValue) -> Option<Self> {
-        let obj: Self = glib::Object::builder().build();
+    pub fn from_json(name: &str, json_value: &JsonValue) -> Option<Self> {
+        let obj = Self::new(name);
 
         let json_map = json_value.as_object()?;
 
@@ -191,6 +191,35 @@ impl ProfileObject {
         }
 
         Some(obj)
+    }
+
+    //---------------------------------------
+    // To json function
+    //---------------------------------------
+    pub fn to_json(&self) -> (String, JsonValue) {
+        let mut json_map: JsonMap<String, JsonValue> = self.list_properties()
+            .iter()
+            .filter(|prop| prop.nick() != "name")
+            .map(|prop| {
+                let value = self.property_value(prop.nick());
+
+                let json_value = if let Ok(s) = value.get::<String>() {
+                    json!(s)
+                } else if let Ok(b) = value.get::<bool>() {
+                    json!(b)
+                } else if let Ok(mode) = value.get::<CheckMode>() {
+                    json!(mode.value())
+                } else {
+                    json!(null)
+                };
+
+                (prop.name().to_owned(), json_value)
+            })
+            .collect();
+
+        json_map.sort_keys();
+
+        (self.name(), JsonValue::Object(json_map))
     }
 
     //---------------------------------------
@@ -223,31 +252,6 @@ impl ProfileObject {
                 self.set_property_from_value(nick, property.default_value());
             }
         }
-    }
-
-    //---------------------------------------
-    // To json function
-    //---------------------------------------
-    pub fn to_json(&self) -> JsonValue {
-        let mut json_map = JsonMap::new();
-
-        for prop in self.list_properties() {
-            let value = self.property_value(prop.nick());
-
-            let json_value = if let Ok(s) = value.get::<String>() {
-                json!(s)
-            } else if let Ok(b) = value.get::<bool>() {
-                json!(b)
-            } else if let Ok(mode) = value.get::<CheckMode>() {
-                json!(mode.value())
-            } else {
-                json!(null)
-            };
-
-            json_map.insert(prop.name().to_owned(), json_value);
-        }
-
-        JsonValue::Object(json_map)
     }
 
     //---------------------------------------
