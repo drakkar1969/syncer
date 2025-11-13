@@ -11,6 +11,7 @@ use glib::clone;
 use glib::value::ToValue;
 use glib::subclass::Signal;
 
+use strum::EnumString;
 use async_channel::Sender;
 use tokio::runtime::Runtime;
 use tokio::process::{Command, ChildStdout, ChildStderr};
@@ -45,7 +46,7 @@ enum RsyncSend {
 //------------------------------------------------------------------------------
 // ENUM: RsyncMsgType
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, glib::Enum, strum::EnumString)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, glib::Enum, EnumString)]
 #[repr(u32)]
 #[enum_type(name = "RsyncMsgType")]
 pub enum RsyncMsgType {
