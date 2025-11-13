@@ -1,23 +1,28 @@
-use std::cell::Cell;
-use std::collections::HashMap;
-use std::sync::{OnceLock, LazyLock};
-use std::io;
-use std::process::Stdio;
+use std::{
+    cell::Cell,
+    collections::HashMap,
+    sync::{OnceLock, LazyLock},
+    io,
+    process::Stdio
+};
 
-use gtk::glib;
-use gtk::subclass::prelude::*;
-use gtk::prelude::{ObjectExt, StaticType};
-use glib::clone;
-use glib::value::ToValue;
-use glib::subclass::Signal;
+use gtk::{
+    prelude::{ObjectExt, StaticType},
+    subclass::prelude::*,
+    glib::{self, clone, value::ToValue, subclass::Signal}
+};
 
 use strum::EnumString;
 use async_channel::Sender;
-use tokio::runtime::Runtime;
-use tokio::process::{Command, ChildStdout, ChildStderr};
-use tokio::io::AsyncReadExt as _;
-use nix::sys::signal as nix_signal;
-use nix::unistd::Pid as NixPid;
+use tokio::{
+    runtime::Runtime,
+    process::{Command, ChildStdout, ChildStderr},
+    io::AsyncReadExt as _
+};
+use nix::{
+    sys::signal as nix_signal,
+    unistd::Pid as NixPid
+};
 use regex::{Regex, Captures};
 
 use crate::utils::convert;

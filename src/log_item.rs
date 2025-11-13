@@ -1,9 +1,10 @@
-use gtk::prelude::WidgetExt;
 use adw::subclass::prelude::*;
-use gtk::glib;
+use gtk::{prelude::WidgetExt, glib};
 
-use crate::log_window::LogObject;
-use crate::rsync_process::RsyncMsgType;
+use crate::{
+    log_window::LogObject,
+    rsync_process::RsyncMsgType
+};
 
 //------------------------------------------------------------------------------
 // MODULE: LogItem

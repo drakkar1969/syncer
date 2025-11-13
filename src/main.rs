@@ -11,8 +11,7 @@ mod log_item;
 mod rsync_process;
 mod utils;
 
-use gtk::{glib, gio};
-use gtk::prelude::*;
+use gtk::{prelude::*, gio, glib};
 
 use app::Application;
 

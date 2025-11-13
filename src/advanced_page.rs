@@ -1,11 +1,12 @@
 use std::cell::RefCell;
 
+use adw::{prelude::*, subclass::prelude::*};
 use gtk::glib;
-use adw::subclass::prelude::*;
-use adw::prelude::*;
 
-use crate::profile_object::ProfileObject;
-use crate::adv_switchrow::AdvSwitchRow;
+use crate::{
+    profile_object::ProfileObject,
+    adv_switchrow::AdvSwitchRow
+};
 
 //------------------------------------------------------------------------------
 // MODULE: AdvancedPage

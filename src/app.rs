@@ -1,7 +1,5 @@
-use gtk::{gio, glib};
-use gtk::prelude::*;
-use adw::subclass::prelude::*;
-use adw::prelude::AdwDialogExt;
+use adw::{prelude::AdwDialogExt, subclass::prelude::*};
+use gtk::{prelude::*, gio, glib};
 
 use crate::window::AppWindow;
 

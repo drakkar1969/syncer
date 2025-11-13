@@ -1,15 +1,17 @@
-use std::cell::{RefCell, OnceCell};
-use std::time::Duration;
+use std::{
+    cell::{RefCell, OnceCell},
+    time::Duration
+};
 
-use gtk::glib;
-use adw::subclass::prelude::*;
-use adw::prelude::*;
-use glib::{clone, closure_local};
+use adw::{prelude::*, subclass::prelude::*};
+use gtk::glib::{self, clone, closure_local};
 
-use crate::profile_object::ProfileObject;
-use crate::stats_table::StatsTable;
-use crate::log_window::LogWindow;
-use crate::rsync_process::{RsyncProcess, RsyncMessages};
+use crate::{
+    profile_object::ProfileObject,
+    stats_table::StatsTable,
+    log_window::LogWindow,
+    rsync_process::{RsyncProcess, RsyncMessages}
+};
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage

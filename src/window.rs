@@ -1,21 +1,26 @@
-use std::cell::Cell;
-use std::io::{self, Write};
-use std::fs;
+use std::{
+    cell::Cell,
+    io::{self, Write},
+    fs
+};
 
-use gtk::{gio, glib, gdk};
-use adw::subclass::prelude::*;
-use adw::prelude::*;
-use glib::{clone, Variant, VariantTy};
+use adw::{prelude::*, subclass::prelude::*};
+use gtk::{
+    gio, gdk,
+    glib::{self, clone, Variant, VariantTy}
+};
 
 use itertools::Itertools;
 use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
-use crate::Application;
-use crate::profile_object::ProfileObject;
-use crate::options_page::OptionsPage;
-use crate::advanced_page::AdvancedPage;
-use crate::rsync_page::RsyncPage;
-use crate::rsync_process::ITEMIZE_TAG;
+use crate::{
+    Application,
+    profile_object::ProfileObject,
+    options_page::OptionsPage,
+    advanced_page::AdvancedPage,
+    rsync_page::RsyncPage,
+    rsync_process::ITEMIZE_TAG
+};
 
 //------------------------------------------------------------------------------
 // MODULE: AppWindow

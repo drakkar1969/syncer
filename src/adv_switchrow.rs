@@ -1,8 +1,7 @@
 use std::cell::{Cell, RefCell};
 
+use adw::{prelude::*, subclass::prelude::*};
 use gtk::glib;
-use adw::subclass::prelude::*;
-use adw::prelude::*;
 
 //------------------------------------------------------------------------------
 // MODULE: AdvSwitchRow

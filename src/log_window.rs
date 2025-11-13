@@ -1,15 +1,20 @@
-use std::cell::Cell;
-use std::time::Duration;
+use std::{
+    cell::Cell,
+    time::Duration
+};
 
-use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
-use glib::{clone, BoxedAnyObject};
+use gtk::{
+    prelude::*, gio, gdk,
+    glib::{self, clone, BoxedAnyObject}
+};
 
 use itertools::Itertools;
 
-use crate::log_item::LogItem;
-use crate::rsync_process::{RsyncMsgType, RsyncMessages};
+use crate::{
+    log_item::LogItem,
+    rsync_process::{RsyncMsgType, RsyncMessages}
+};
 
 //------------------------------------------------------------------------------
 // STRUCT: LogObject
