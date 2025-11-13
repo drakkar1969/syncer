@@ -420,7 +420,13 @@ impl LogWindow {
     // Clear messages function
     //---------------------------------------
     pub fn clear_messages(&self) {
-        self.imp().model.remove_all();
+        let imp = self.imp();
+
+        imp.model.remove_all();
+
+        imp.search_entry.set_text("");
+
+        self.set_filter_type(FilterType::default());
     }
 
     //---------------------------------------
