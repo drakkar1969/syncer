@@ -223,7 +223,7 @@
                         <property name="child">
                           <object class="AdwButtonContent">
                             <property name="icon-name">rsync-stop-symbolic</property>
-                            <property name="label">_Stop</property>
+                            <property name="label">_Terminate</property>
                             <property name="use-underline">true</property>
                           </object>
                         </property>
