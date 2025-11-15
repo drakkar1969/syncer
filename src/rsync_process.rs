@@ -1,15 +1,15 @@
 use std::{
     cell::Cell,
-    collections::HashMap,
     sync::{OnceLock, LazyLock},
     io,
-    process::Stdio
+    process::Stdio,
+    str::FromStr
 };
 
 use gtk::{
     prelude::{ObjectExt, StaticType},
     subclass::prelude::*,
-    glib::{self, clone, value::ToValue, subclass::Signal}
+    glib::{self, clone, subclass::Signal}
 };
 
 use strum::EnumString;
@@ -51,6 +51,7 @@ enum RsyncSend {
 //------------------------------------------------------------------------------
 // ENUM: RsyncMsgType
 //------------------------------------------------------------------------------
+#[allow(non_camel_case_types)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, glib::Enum, EnumString)]
 #[repr(u32)]
 #[enum_type(name = "RsyncMsgType")]
@@ -58,20 +59,13 @@ pub enum RsyncMsgType {
     Stat,
     Error,
     Info,
-    File,
-    Dir,
-    Link,
-    Special,
+    f,
+    d,
+    L,
+    D,
+    S,
     #[default]
     None
-}
-
-impl RsyncMsgType {
-    pub fn nick(self) -> String {
-        glib::EnumValue::from_value(&self.to_value())
-            .map(|(_, enum_value)| enum_value.nick().to_owned())
-            .expect("Failed to get 'EnumValue'")
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -221,14 +215,6 @@ impl RsyncProcess {
     // Parse stdout async function
     //---------------------------------------
     async fn parse_stdout(mut stdout: ChildStdout, sender: Sender::<RsyncSend>) {
-        let flag_map: HashMap<&str, RsyncMsgType> = HashMap::from([
-            ("f", RsyncMsgType::File),
-            ("d", RsyncMsgType::Dir),
-            ("L", RsyncMsgType::Link),
-            ("D", RsyncMsgType::Special),
-            ("S", RsyncMsgType::Special),
-        ]);
-
         let mut buffer = [0u8; BUFFER_SIZE];
         let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
 
@@ -325,8 +311,7 @@ impl RsyncProcess {
                         } else {
                             (
                                 first.get(1..2)
-                                    .and_then(|s| flag_map.get(s))
-                                    .copied()
+                                    .and_then(|s| RsyncMsgType::from_str(s).ok())
                                     .unwrap_or_default(),
                                 last.to_owned()
                             )

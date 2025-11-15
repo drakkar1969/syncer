@@ -91,10 +91,10 @@ impl LogItem {
                     imp.image.set_icon_name(Some("stats-info-symbolic"));
                 }
             }
-            RsyncMsgType::File => imp.image.set_icon_name(Some("stats-file-symbolic")),
-            RsyncMsgType::Dir => imp.image.set_icon_name(Some("stats-dir-symbolic")),
-            RsyncMsgType::Link => imp.image.set_icon_name(Some("stats-link-symbolic")),
-            RsyncMsgType::Special => imp.image.set_icon_name(Some("stats-special-symbolic")),
+            RsyncMsgType::f => imp.image.set_icon_name(Some("stats-file-symbolic")),
+            RsyncMsgType::d => imp.image.set_icon_name(Some("stats-dir-symbolic")),
+            RsyncMsgType::L => imp.image.set_icon_name(Some("stats-link-symbolic")),
+            RsyncMsgType::D | RsyncMsgType::S => imp.image.set_icon_name(Some("stats-special-symbolic")),
             RsyncMsgType::None => {}
         }
     }
