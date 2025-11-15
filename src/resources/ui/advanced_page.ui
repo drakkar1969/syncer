@@ -164,17 +164,6 @@
                 </child>
               </object>
             </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Secluded Args</property>
-                    <property name="subtitle">Protect remote arguments from shell expansion [ -s ]</property>
-                    <property name="prop-name">secluded-args</property>
-                  </object>
-                </child>
-              </object>
-            </child>
           </object>
         </property>
       </object>
