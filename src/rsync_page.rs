@@ -119,8 +119,13 @@ mod imp {
         fn showing(&self) {
             let obj = self.obj();
 
-            let source = obj.profile().map(|profile| profile.source()).unwrap_or_default();
-            let destination = obj.profile().map(|profile| profile.destination()).unwrap_or_default();
+            let source = obj.profile()
+                .map(|profile| profile.source())
+                .unwrap_or_default();
+
+            let destination = obj.profile()
+                .map(|profile| profile.destination())
+                .unwrap_or_default();
 
             self.source_box.set_visible(!source.is_empty() && !destination.is_empty());
             self.source_label.set_label(&source);
