@@ -384,7 +384,7 @@ impl AppWindow {
             }
         ));
 
-        // Profile model changed signal
+        // Profile model items changed signal
         imp.profile_model.connect_items_changed(clone!(
             #[weak] imp,
             move |model, _, _, _| {
