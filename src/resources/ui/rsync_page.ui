@@ -12,7 +12,7 @@
         <property name="margin-end">48</property>
         <property name="margin-top">36</property>
         <property name="margin-bottom">36</property>
-        <property name="spacing">24</property>
+        <property name="spacing">30</property>
         <child>
           <object class="GtkBox" id="status_box">
             <style>
@@ -183,6 +183,7 @@
         </child>
         <child>
           <object class="GtkStack" id="button_stack">
+            <property name="vexpand">true</property>
             <property name="vhomogeneous">true</property>
             <property name="transition-type">crossfade</property>
             <property name="transition-duration">100</property>
@@ -201,7 +202,8 @@
                   <object class="GtkBox" id="button_box">
                     <property name="halign">center</property>
                     <property name="valign">end</property>
-                    <property name="spacing">24</property>
+                    <property name="homogeneous">true</property>
+                    <property name="spacing">36</property>
                     <child>
                       <object class="GtkButton" id="pause_button">
                         <property name="child">
@@ -241,6 +243,7 @@
                 <property name="child">
                   <object class="GtkButton" id="log_button">
                     <property name="halign">center</property>
+                    <property name="valign">end</property>
                     <property name="child">
                       <object class="AdwButtonContent">
                         <property name="icon-name">document-edit-symbolic</property>

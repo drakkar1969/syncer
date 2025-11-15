@@ -91,6 +91,7 @@
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Options</property>
+            <property name="vexpand">true</property>
             <child>
               <object class="AdwComboRow" id="check_mode_combo">
                 <property name="title">File _Check</property>
