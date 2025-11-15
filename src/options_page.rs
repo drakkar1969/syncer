@@ -90,7 +90,7 @@ impl OptionsPage {
     //---------------------------------------
     // Select folder helper function
     //---------------------------------------
-    fn select_folder(&self, row: &adw::ActionRow, add_trailing: bool) {
+    fn select_folder(row: &adw::ActionRow, add_trailing: bool) {
         let dialog = gtk::FileDialog::builder()
             .title(format!("Select {}", row.title().replace('_', "")))
             .modal(true)
@@ -211,21 +211,18 @@ impl OptionsPage {
 
         // Source row activated signal
         imp.source_row.connect_activated(clone!(
-            #[weak(rename_to = page)] self,
+            #[weak] imp,
             move |row| {
-                let add_trailing = !page.imp().copy_by_name_button.is_active();
+                let add_trailing = !imp.copy_by_name_button.is_active();
 
-                page.select_folder(row, add_trailing);
+                Self::select_folder(row, add_trailing);
             }
         ));
 
         // Destination row activated signal
-        imp.destination_row.connect_activated(clone!(
-            #[weak(rename_to = page)] self,
-            move |row| {
-                page.select_folder(row, false);
-            }
-        ));
+        imp.destination_row.connect_activated(|row| {
+            Self::select_folder(row, false);
+        });
     }
 
     //---------------------------------------
