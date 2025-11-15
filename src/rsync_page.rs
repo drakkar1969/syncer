@@ -1,5 +1,5 @@
 use std::{
-    cell::{RefCell, OnceCell},
+    cell::RefCell,
     time::Duration
 };
 
@@ -69,7 +69,7 @@ mod imp {
         #[property(get)]
         rsync_process: RefCell<RsyncProcess>,
 
-        pub(super) log_window: OnceCell<LogWindow>
+        pub(super) log_window: RefCell<LogWindow>
     }
 
     //---------------------------------------
@@ -101,7 +101,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
-            obj.setup_widgets();
         }
     }
 
@@ -245,16 +244,9 @@ impl RsyncPage {
                     .and_downcast::<gtk::Window>()
                     .expect("Could not downcast to 'GtkWindow'");
 
-                page.imp().log_window.get().unwrap().display(&parent);
+                page.imp().log_window.borrow().display(&parent);
             }
         ));
-    }
-
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        self.imp().log_window.set(LogWindow::default()).unwrap();
     }
 
     //---------------------------------------
@@ -278,7 +270,7 @@ impl RsyncPage {
         imp.stats_stack.set_visible_child_name("empty");
         imp.button_stack.set_visible_child_name("empty");
 
-        imp.log_window.get().unwrap().clear_messages();
+        imp.log_window.borrow().clear_messages();
     }
 
     //---------------------------------------
@@ -344,7 +336,7 @@ impl RsyncPage {
             imp.button_stack.set_visible_child_name("log");
 
             // Populate log window
-            imp.log_window.get().unwrap().load_messages(messages);
+            imp.log_window.borrow().load_messages(messages);
         }
 
         self.set_can_pop(true);
