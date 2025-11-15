@@ -121,7 +121,7 @@
         <attribute name="action">profile.rename</attribute>
       </item>
       <item>
-        <attribute name="label">Delete Profile</attribute>
+        <attribute name="label">Delete Profile…</attribute>
         <attribute name="action">profile.delete</attribute>
       </item>
       <item>
@@ -131,7 +131,7 @@
     </section>
     <section>
       <item>
-        <attribute name="label">Reset Profile to Default</attribute>
+        <attribute name="label">Reset Profile to Default…</attribute>
         <attribute name="action">profile.reset</attribute>
       </item>
     </section>
