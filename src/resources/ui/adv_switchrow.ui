@@ -6,6 +6,7 @@
     <child>
       <object class="GtkSwitch" id="switch">
         <property name="valign">center</property>
+        <property name="can-focus">false</property>
       </object>
     </child>
   </template>
