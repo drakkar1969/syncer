@@ -316,9 +316,6 @@ mod imp {
                 let label: gtk::Label = builder.object("label")
                     .expect("Could not get object from resource");
 
-                let copy_button: gtk::Button = builder.object("copy_button")
-                    .expect("Could not get object from resource");
-
                 // Get profile
                 let profile = imp.profile_dropdown.selected_item()
                     .and_downcast::<ProfileObject>()
@@ -326,13 +323,6 @@ mod imp {
 
                 // Init command line dialog
                 label.set_label(&format!("rsync {}", profile.to_args(true).join(" ")));
-
-                copy_button.connect_clicked(clone!(
-                    #[weak] window,
-                    move |_| {
-                        window.clipboard().set_text(&label.label());
-                    }
-                ));
 
                 dialog.present(Some(window));
             });
@@ -344,6 +334,9 @@ mod imp {
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // New profile key binding
             klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "profile.new");
+
+            // Rsync show cmdline key binding
+            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
         }
     }
 }

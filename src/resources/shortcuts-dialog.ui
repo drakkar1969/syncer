@@ -12,6 +12,12 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;R</property>
+            <property name="title">Show Rsync Command Line</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;question</property>
             <property name="title">Show Keyboard Shortcuts</property>
           </object>
