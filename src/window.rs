@@ -261,10 +261,8 @@ impl AppWindow {
         imp.rsync_page.rsync_process().connect_running_notify(clone!(
             #[weak(rename_to = window)] self,
             move |process| {
-                if !process.running() {
-                    if window.imp().close_request.get() {
-                        window.close();
-                    }
+                if !process.running() && window.imp().close_request.get() {
+                    window.close();
                 }
             }
         ));
