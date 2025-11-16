@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 
-use adw::{prelude::*, subclass::prelude::*};
+use adw::subclass::prelude::*;
+use adw::prelude::*;
 use gtk::glib;
 
 //------------------------------------------------------------------------------

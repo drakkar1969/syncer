@@ -1,13 +1,10 @@
-use std::{
-    cell::Cell,
-    time::Duration
-};
+use std::cell::Cell;
+use std::time::Duration;
 
 use adw::subclass::prelude::*;
-use gtk::{
-    prelude::*, gio, gdk,
-    glib::{self, clone, BoxedAnyObject}
-};
+use gtk::prelude::*;
+use gtk::{gio, glib, gdk};
+use glib::{clone, BoxedAnyObject};
 
 use itertools::Itertools;
 

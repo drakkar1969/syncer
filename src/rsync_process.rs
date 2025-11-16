@@ -1,16 +1,13 @@
-use std::{
-    cell::Cell,
-    sync::{OnceLock, LazyLock},
-    io,
-    process::Stdio,
-    str::FromStr
-};
+use std::cell::Cell;
+use std::sync::{OnceLock, LazyLock};
+use std::io;
+use std::process::Stdio;
+use std::str::FromStr;
 
-use gtk::{
-    prelude::{ObjectExt, StaticType},
-    subclass::prelude::*,
-    glib::{self, clone, subclass::Signal}
-};
+use gtk::subclass::prelude::*;
+use gtk::prelude::{ObjectExt, StaticType};
+use gtk::glib;
+use glib::{clone, subclass::Signal};
 
 use strum::EnumString;
 use async_channel::Sender;

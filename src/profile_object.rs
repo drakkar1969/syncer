@@ -1,9 +1,9 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::{
-    prelude::ObjectExt, subclass::prelude::*,
-    glib::{self, translate::IntoGlib}
-};
+use gtk::subclass::prelude::*;
+use gtk::prelude::ObjectExt;
+use gtk::glib;
+use glib::translate::IntoGlib;
 
 use strum::{EnumProperty, FromRepr};
 use indexmap::IndexMap;

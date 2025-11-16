@@ -1,5 +1,6 @@
 use adw::subclass::prelude::*;
-use gtk::{prelude::WidgetExt, glib};
+use gtk::prelude::WidgetExt;
+use gtk::glib;
 
 use crate::rsync_process::RsyncStats;
 

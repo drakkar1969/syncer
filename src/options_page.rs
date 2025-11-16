@@ -1,10 +1,9 @@
 use std::cell::RefCell;
 
-use adw::{prelude::*, subclass::prelude::*};
-use gtk::{
-    gio,
-    glib::{self, clone}
-};
+use adw::subclass::prelude::*;
+use adw::prelude::*;
+use gtk::{gio, glib};
+use glib::clone;
 
 use crate::profile_object::{CheckMode, ProfileObject};
 

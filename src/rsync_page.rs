@@ -1,10 +1,10 @@
-use std::{
-    cell::RefCell,
-    time::Duration
-};
+use std::cell::RefCell;
+use std::time::Duration;
 
-use adw::{prelude::*, subclass::prelude::*};
-use gtk::glib::{self, clone, closure_local};
+use adw::subclass::prelude::*;
+use adw::prelude::*;
+use gtk::glib;
+use glib::{clone, closure_local};
 
 use crate::{
     profile_object::ProfileObject,

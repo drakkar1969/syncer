@@ -1,14 +1,12 @@
-use std::{
-    cell::Cell,
-    io::{self, Write},
-    fs
-};
+use std::cell::Cell;
+use std::io;
+use std::io::Write as _;
+use std::fs;
 
-use adw::{prelude::*, subclass::prelude::*};
-use gtk::{
-    gio, gdk,
-    glib::{self, clone, Variant, VariantTy}
-};
+use adw::subclass::prelude::*;
+use adw::prelude::*;
+use gtk::{gio, gdk, glib};
+use glib::{ clone, Variant, VariantTy};
 
 use itertools::Itertools;
 use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
