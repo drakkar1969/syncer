@@ -194,7 +194,7 @@ mod imp {
             klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
-                if imp.navigation_view.visible_page_tag() == Some("options".into()) {
+                if imp.status_stack.visible_child_name() == Some("status".into()) {
                     imp.options_page.activate_action("profile.new", None)
                         .expect("Could not activate action 'new-profile'");
                 }

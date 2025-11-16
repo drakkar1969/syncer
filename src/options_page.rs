@@ -5,7 +5,7 @@ use std::fs;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk};
 use glib::clone;
 
 use itertools::Itertools;
@@ -65,6 +65,8 @@ mod imp {
             klass.bind_template();
 
             Self::install_profile_actions(klass);
+
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -218,6 +220,14 @@ mod imp {
 
                 dialog.present(Some(page));
             });
+        }
+
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // New profile key binding
+            klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "profile.new");
         }
     }
 }
