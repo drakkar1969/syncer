@@ -220,6 +220,29 @@ mod imp {
 
                 dialog.present(Some(page));
             });
+
+            // Delete all profiles action
+            klass.install_action("profile.delete-all", None, |page, _, _| {
+                let imp = page.imp();
+
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Delete All Profiles?")
+                    .body(format!("Permamenently delete all profiles."))
+                    .default_response("delete")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("delete", "_Delete")]);
+                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("delete"), clone!(
+                    #[weak] imp,
+                    move |_, _| {
+                        imp.profile_model.remove_all();
+                    })
+                );
+
+                dialog.present(Some(page));
+            });
         }
 
         //---------------------------------------

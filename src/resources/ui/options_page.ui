@@ -265,6 +265,12 @@
     </section>
     <section>
       <item>
+        <attribute name="label">Delete All Profiles…</attribute>
+        <attribute name="action">profile.delete-all</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="label">Rsync Command Line</attribute>
         <attribute name="action">rsync.show-cmdline</attribute>
       </item>
