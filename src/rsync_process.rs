@@ -17,8 +17,8 @@ use tokio::{
     io::AsyncReadExt as _
 };
 use nix::{
-    sys::signal as nix_signal,
-    unistd::Pid as NixPid
+    sys::signal::{kill as nix_kill, Signal as NixSignal},
+    unistd::Pid
 };
 use regex::{Regex, Captures};
 
@@ -145,7 +145,7 @@ mod imp {
         #[property(get, set)]
         paused: Cell<bool>,
 
-        pub(super) id: Cell<Option<i32>>,
+        pub(super) pid: Cell<Option<Pid>>,
     }
 
     //---------------------------------------
@@ -420,7 +420,7 @@ impl RsyncProcess {
                 while let Ok(msg) = receiver.recv().await {
                     match msg {
                         RsyncSend::Start(id) => {
-                            imp.id.set(id);
+                            imp.pid.set(id.map(Pid::from_raw));
                             process.set_running(true);
 
                             process.emit_by_name::<()>("start", &[]);
@@ -455,7 +455,7 @@ impl RsyncProcess {
                         RsyncSend::Exit(code) => {
                             process.set_running(false);
                             process.set_paused(false);
-                            imp.id.set(None);
+                            imp.pid.set(None);
 
                             process.emit_by_name::<()>("exit", &[
                                 &code,
@@ -474,16 +474,14 @@ impl RsyncProcess {
     pub fn terminate(&self) {
         let imp = self.imp();
 
-        if let Some(id) = imp.id.get() {
-            let pid = NixPid::from_raw(id);
-
+        if let Some(pid) = imp.pid.get() {
             // Resume rsync if paused
-            if self.paused() && nix_signal::kill(pid, nix_signal::Signal::SIGCONT).is_ok() {
+            if self.paused() && nix_kill(pid, NixSignal::SIGCONT).is_ok() {
                 self.set_paused(false);
             }
 
             // Terminate rsync
-            let _ = nix_signal::kill(pid, nix_signal::Signal::SIGTERM);
+            let _ = nix_kill(pid, NixSignal::SIGTERM);
         }
     }
 
@@ -494,10 +492,8 @@ impl RsyncProcess {
         let imp = self.imp();
 
         // Pause rsync if not paused
-        if !self.paused() && let Some(id) = imp.id.get() {
-            let pid = NixPid::from_raw(id);
-
-            if nix_signal::kill(pid, nix_signal::Signal::SIGSTOP).is_ok() {
+        if !self.paused() && let Some(pid) = imp.pid.get() {
+            if nix_kill(pid, NixSignal::SIGSTOP).is_ok() {
                 self.set_paused(true);
             }
         }
@@ -510,10 +506,8 @@ impl RsyncProcess {
         let imp = self.imp();
 
         // Resume rsync if paused
-        if self.paused() && let Some(id) = imp.id.get() {
-            let pid = NixPid::from_raw(id);
-
-            if nix_signal::kill(pid, nix_signal::Signal::SIGCONT).is_ok() {
+        if self.paused() && let Some(pid) = imp.pid.get() {
+            if nix_kill(pid, NixSignal::SIGCONT).is_ok() {
                 self.set_paused(false);
             }
         }
