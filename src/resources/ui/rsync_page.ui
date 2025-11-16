@@ -166,8 +166,6 @@
             <child>
               <object class="GtkStack" id="stats_stack">
                 <property name="vhomogeneous">true</property>
-                <property name="transition-type">crossfade</property>
-                <property name="transition-duration">100</property>
                 <child>
                   <object class="GtkStackPage">
                     <property name="name">empty</property>
@@ -190,8 +188,6 @@
               <object class="GtkStack" id="button_stack">
                 <property name="vexpand">true</property>
                 <property name="vhomogeneous">true</property>
-                <property name="transition-type">crossfade</property>
-                <property name="transition-duration">100</property>
                 <child>
                   <object class="GtkStackPage">
                     <property name="name">empty</property>
@@ -202,7 +198,7 @@
                 </child>
                 <child>
                   <object class="GtkStackPage">
-                    <property name="name">buttons</property>
+                    <property name="name">rsync</property>
                     <property name="child">
                       <object class="GtkBox" id="button_box">
                         <property name="halign">center</property>
