@@ -21,12 +21,12 @@
                 </property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/Syncer/ui/window/profile_item.ui</property>
+                    <property name="resource">/com/github/Syncer/ui/options_page/profile_item.ui</property>
                   </object>
                 </property>
                 <property name="list-factory">
                   <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/Syncer/ui/window/profile_list_item.ui</property>
+                    <property name="resource">/com/github/Syncer/ui/options_page/profile_list_item.ui</property>
                   </object>
                 </property>
               </object>
