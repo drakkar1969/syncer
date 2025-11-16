@@ -6,8 +6,6 @@ use gtk::prelude::*;
 use gtk::{gio, glib, gdk};
 use glib::{clone, BoxedAnyObject};
 
-use itertools::Itertools;
-
 use crate::{
     log_item::LogItem,
     rsync_process::{RsyncMsgType, RsyncMessages}
@@ -391,9 +389,9 @@ impl LogWindow {
 
         gio::spawn_blocking(
             move || {
-                for chunk in &messages.into_iter().chunks(500) {
+                for chunk in messages.chunks(500) {
                     sender
-                        .send_blocking(chunk.collect::<Vec<(RsyncMsgType, String)>>())
+                        .send_blocking(chunk.to_vec())
                         .expect("The channel needs to be open.");
                 }
             }

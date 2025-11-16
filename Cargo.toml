@@ -8,7 +8,6 @@ adw = { version = "0.8", package = "libadwaita", features = ["v1_8"] }
 async-channel = "2"
 gtk = { version = "0.10", package = "gtk4", features = ["v4_20"] }
 indexmap = "2"
-itertools = "0.14"
 nix = { version = "0.30", features = ["signal"] }
 regex = "1"
 serde_json = { version = "1.0", features = ["preserve_order"] }
