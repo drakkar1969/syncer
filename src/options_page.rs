@@ -1,9 +1,15 @@
 use std::cell::RefCell;
+use std::io;
+use std::io::Write as _;
+use std::fs;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::{gio, glib};
 use glib::clone;
+
+use itertools::Itertools;
+use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
 use crate::profile_object::{CheckMode, ProfileObject};
 
@@ -20,6 +26,13 @@ mod imp {
     #[properties(wrapper_type = super::OptionsPage)]
     #[template(resource = "/com/github/Syncer/ui/options_page.ui")]
     pub struct OptionsPage {
+        #[property(get)]
+        #[template_child]
+        pub(super) profile_dropdown: TemplateChild<gtk::DropDown>,
+        #[property(get)]
+        #[template_child]
+        pub(super) profile_model: TemplateChild<gio::ListStore>,
+
         #[template_child]
         pub(super) copy_by_name_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
@@ -50,6 +63,8 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            Self::install_profile_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -74,6 +89,137 @@ mod imp {
 
     impl WidgetImpl for OptionsPage {}
     impl NavigationPageImpl for OptionsPage {}
+
+    impl OptionsPage {
+        //---------------------------------------
+        // Install profile actions
+        //---------------------------------------
+        fn install_profile_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // New profile action
+            klass.install_action("profile.new", None, |page, _, _| {
+                let imp = page.imp();
+
+                page.profile_name_dialog("New", None, clone!(
+                    #[weak] imp,
+                    move |name| {
+                        imp.profile_model.append(&ProfileObject::new(name));
+
+                        imp.profile_dropdown.set_selected(imp.profile_model.n_items() - 1);
+                    }
+                ));
+            });
+
+            // Rename profile action
+            klass.install_action("profile.rename", None, |page, _, _| {
+                let imp = page.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                if let Some(obj) = imp.profile_model.iter::<ProfileObject>().flatten()
+                    .find(|obj| obj.name() == name)
+                {
+                    page.profile_name_dialog("Rename", Some(&name), move |new_name| {
+                        obj.set_name(new_name);
+                    });
+                }
+            });
+
+            // Delete profile action
+            klass.install_action("profile.delete", None, |page, _, _| {
+                let imp = page.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Delete Profile?")
+                    .body(format!("Permamenently delete the \"{name}\" profile."))
+                    .default_response("delete")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("delete", "_Delete")]);
+                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("delete"), clone!(
+                    #[weak] imp,
+                    move |_, _| {
+                        if let Some(pos) = imp.profile_model.iter::<ProfileObject>()
+                            .flatten()
+                            .position(|obj| obj.name() == name)
+                        {
+                            imp.profile_model.remove(pos as u32);
+                        }
+                    })
+                );
+
+                dialog.present(Some(page));
+            });
+
+            // Duplicate profile action
+            klass.install_action("profile.duplicate", None, |page, _, _| {
+                let imp = page.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                if let Some((pos, obj)) = imp.profile_model.iter::<ProfileObject>()
+                    .flatten()
+                    .find_position(|obj| obj.name() == name)
+                {
+                    page.profile_name_dialog("Duplicate", Some(&name), clone!(
+                        #[weak] imp,
+                        move |new_name| {
+                            let dup_obj = obj.duplicate(new_name);
+
+                            imp.profile_model.insert(pos as u32 + 1, &dup_obj);
+
+                            imp.profile_dropdown.set_selected(pos as u32 + 1);
+                        }
+                    ));
+                }
+            });
+
+            // Reset profile action
+            klass.install_action("profile.reset", None, |page, _, _| {
+                let imp = page.imp();
+
+                let name = imp.profile_dropdown.selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'")
+                    .name();
+
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Reset Profile?")
+                    .body(format!("Reset the \"{name}\" profile to default values."))
+                    .default_response("delete")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+                dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("reset"), clone!(
+                    #[weak] imp,
+                    move |_, _| {
+                        if let Some(obj) = imp.profile_model.iter::<ProfileObject>()
+                            .flatten()
+                            .find(|obj| obj.name() == name)
+                        {
+                            obj.reset();
+                        }
+                    }
+                ));
+
+                dialog.present(Some(page));
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -241,5 +387,84 @@ impl OptionsPage {
             })
             .sync_create()
             .build();
+    }
+
+    //---------------------------------------
+    // Profile name dialog function
+    //---------------------------------------
+    fn profile_name_dialog<F>(&self, response: &str, default: Option<&str>, f: F)
+    where F: Fn(&str) + 'static {
+        let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_name_dialog.ui");
+
+        let dialog: adw::AlertDialog = builder.object("dialog")
+            .expect("Could not get object from resource");
+
+        dialog.set_heading(Some(&format!("{response} Profile")));
+        dialog.set_response_label("add", response);
+
+        let entry: adw::EntryRow = builder.object("entry")
+            .expect("Could not get object from resource");
+
+        entry.connect_changed(clone!(
+            #[weak] dialog,
+            move |entry| {
+                dialog.set_response_enabled("add", !entry.text().is_empty());
+            }
+        ));
+
+        if let Some(text) = default {
+            entry.set_text(text);
+        }
+
+        dialog.connect_response(Some("add"), move |_, _| {
+            f(&entry.text());
+        });
+
+        dialog.present(Some(self));
+    }
+
+    //---------------------------------------
+    // Load config function
+    //---------------------------------------
+    pub fn load_config(&self) -> io::Result<()> {
+        let imp = self.imp();
+
+        // Load profiles from config file
+        let config_path = xdg::BaseDirectories::new()
+            .find_config_file("Syncer/config.json")
+            .ok_or_else(|| io::Error::other("Config file not found"))?;
+
+        let json_str = fs::read_to_string(config_path)?;
+
+        let json_object: JsonMap<String, JsonValue> = from_str(&json_str)?;
+
+        let profiles: Vec<ProfileObject> = json_object.iter()
+            .filter_map(|(name, value)| ProfileObject::from_json(name, value))
+            .collect();
+
+        // Add profiles to model
+        imp.profile_model.splice(0, 0, &profiles);
+
+        Ok(())
+    }
+
+    //---------------------------------------
+    // Save config function
+    //---------------------------------------
+    pub fn save_config(&self) -> io::Result<()> {
+        let json_object: JsonMap<String, JsonValue> = self.imp().profile_model
+            .iter::<ProfileObject>()
+            .flatten()
+            .map(|profile| profile.to_json())
+            .collect();
+
+        let config_path = xdg::BaseDirectories::new()
+            .place_config_file("Syncer/config.json")?;
+
+        let json_str = to_string_pretty(&json_object)?;
+
+        let mut file = fs::File::create(config_path)?;
+
+        file.write_all(json_str.as_bytes())
     }
 }

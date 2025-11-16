@@ -156,7 +156,7 @@ impl RsyncPage {
         self.connect_profile_notify(|page| {
             if let Some(profile) = page.profile() {
                 // Set page title
-                page.set_title(&format!("Profile | {}", profile.name()));
+                page.set_title(&profile.name());
             }
         });
 

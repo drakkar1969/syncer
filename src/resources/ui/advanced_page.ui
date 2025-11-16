@@ -5,165 +5,172 @@
     <property name="title">Advanced Options</property>
     <property name="tag">advanced</property>
     <property name="child">
-      <object class="GtkScrolledWindow">
-        <property name="margin-top">24</property>
-        <property name="margin-bottom">36</property>
-        <property name="hexpand">true</property>
-        <property name="vexpand">true</property>
-        <property name="child">
-          <object class="GtkBox" id="switches_box">
-            <property name="orientation">vertical</property>
-            <property name="margin-start">48</property>
-            <property name="margin-end">48</property>
-            <property name="spacing">24</property>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <property name="title">Advanced Options</property>
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="GtkScrolledWindow">
+            <property name="margin-top">24</property>
+            <property name="margin-bottom">36</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="child">
+              <object class="GtkBox" id="switches_box">
+                <property name="orientation">vertical</property>
+                <property name="margin-start">48</property>
+                <property name="margin-end">48</property>
+                <property name="spacing">24</property>
                 <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Recursive</property>
-                    <property name="subtitle">Recurse into directories [ -r ]</property>
-                    <property name="prop-name">recursive</property>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Advanced Options</property>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Recursive</property>
+                        <property name="subtitle">Recurse into directories [ -r ]</property>
+                        <property name="prop-name">recursive</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Incremental Recursion</property>
+                        <property name="subtitle">Enable incremental recursion when scanning for files [ --i-r ]</property>
+                        <property name="prop-name">incremental-recursion</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Incremental Recursion</property>
-                    <property name="subtitle">Enable incremental recursion when scanning for files [ --i-r ]</property>
-                    <property name="prop-name">incremental-recursion</property>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Preserve Time</property>
+                        <property name="subtitle">Preserve modification times [ -t ]</property>
+                        <property name="prop-name">preserve-time</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Preserve Permissions</property>
+                        <property name="subtitle">Preserve permissions [ -p ]</property>
+                        <property name="prop-name">preserve-permissions</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Preserve Owner</property>
+                        <property name="subtitle">Preserve owner [ -o ]</property>
+                        <property name="prop-name">preserve-owner</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Preserve Group</property>
+                        <property name="subtitle">Preserve group [ -g ]</property>
+                        <property name="prop-name">preserve-group</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Keep Numeric IDs</property>
+                        <property name="subtitle">Do not map numeric uid/gid to user and group names [ --numeric-ids ]</property>
+                        <property name="prop-name">numeric-ids</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Preserve Symlinks</property>
+                        <property name="subtitle">Copy symlinks as symlinks [ -l ]</property>
+                        <property name="prop-name">preserve-symlinks</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Preserve Hardlinks</property>
+                        <property name="subtitle">Copy hardlinks as hardlinks [ -H ]</property>
+                        <property name="prop-name">preserve-hardlinks</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Preserve Devices</property>
+                        <property name="subtitle">Preserve device and special files [ -D ]</property>
+                        <property name="prop-name">preserve-devices</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Do Not Leave Filesystem</property>
+                        <property name="subtitle">Do not cross filesystem boundaries [ -x ]</property>
+                        <property name="prop-name">one-filesystem</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Delete on Destination</property>
+                        <property name="subtitle">Delete extraneous files on destination [ --delete ]</property>
+                        <property name="prop-name">delete-destination</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Existing Only</property>
+                        <property name="subtitle">Skip creating new files and directories on destination [ --existing ]</property>
+                        <property name="prop-name">existing</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Ignore Existing</property>
+                        <property name="subtitle">Skip files (not directories) that exist on destination [ --ignore-existing ]</property>
+                        <property name="prop-name">ignore-existing</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Skip Newer</property>
+                        <property name="subtitle">Skip files that are newer on destination [ -u ]</property>
+                        <property name="prop-name">skip-newer</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Partial Transfers</property>
+                        <property name="subtitle">Keep partially transferred files on destination [ --partial ]</property>
+                        <property name="prop-name">partial</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdvSwitchRow">
+                        <property name="title">Backup Files</property>
+                        <property name="subtitle">Make backups of existing files on destination [ -b ]</property>
+                        <property name="prop-name">backup</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Preserve Time</property>
-                    <property name="subtitle">Preserve modification times [ -t ]</property>
-                    <property name="prop-name">preserve-time</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Preserve Permissions</property>
-                    <property name="subtitle">Preserve permissions [ -p ]</property>
-                    <property name="prop-name">preserve-permissions</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Preserve Owner</property>
-                    <property name="subtitle">Preserve owner [ -o ]</property>
-                    <property name="prop-name">preserve-owner</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Preserve Group</property>
-                    <property name="subtitle">Preserve group [ -g ]</property>
-                    <property name="prop-name">preserve-group</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Keep Numeric IDs</property>
-                    <property name="subtitle">Do not map numeric uid/gid to user and group names [ --numeric-ids ]</property>
-                    <property name="prop-name">numeric-ids</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Preserve Symlinks</property>
-                    <property name="subtitle">Copy symlinks as symlinks [ -l ]</property>
-                    <property name="prop-name">preserve-symlinks</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Preserve Hardlinks</property>
-                    <property name="subtitle">Copy hardlinks as hardlinks [ -H ]</property>
-                    <property name="prop-name">preserve-hardlinks</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Preserve Devices</property>
-                    <property name="subtitle">Preserve device and special files [ -D ]</property>
-                    <property name="prop-name">preserve-devices</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Do Not Leave Filesystem</property>
-                    <property name="subtitle">Do not cross filesystem boundaries [ -x ]</property>
-                    <property name="prop-name">one-filesystem</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Delete on Destination</property>
-                    <property name="subtitle">Delete extraneous files on destination [ --delete ]</property>
-                    <property name="prop-name">delete-destination</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Existing Only</property>
-                    <property name="subtitle">Skip creating new files and directories on destination [ --existing ]</property>
-                    <property name="prop-name">existing</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Ignore Existing</property>
-                    <property name="subtitle">Skip files (not directories) that exist on destination [ --ignore-existing ]</property>
-                    <property name="prop-name">ignore-existing</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Skip Newer</property>
-                    <property name="subtitle">Skip files that are newer on destination [ -u ]</property>
-                    <property name="prop-name">skip-newer</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Partial Transfers</property>
-                    <property name="subtitle">Keep partially transferred files on destination [ --partial ]</property>
-                    <property name="prop-name">partial</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdvSwitchRow">
-                    <property name="title">Backup Files</property>
-                    <property name="subtitle">Make backups of existing files on destination [ -b ]</property>
-                    <property name="prop-name">backup</property>
-                  </object>
-                </child>
-              </object>
-            </child>
+            </property>
           </object>
         </property>
       </object>
