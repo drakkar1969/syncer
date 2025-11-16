@@ -22,7 +22,7 @@ use nix::{
 };
 use regex::{Regex, Captures};
 
-use crate::utils::convert;
+use crate::utils::{convert, case};
 
 //------------------------------------------------------------------------------
 // CONST Variables
@@ -303,7 +303,9 @@ impl RsyncProcess {
                         if first.starts_with('*') {
                             (
                                 RsyncMsgType::Info,
-                                format!("{} {}", first.trim_start_matches('*'), last)
+                                format!("{} {}",
+                                    case::capitalize_first(first.trim_start_matches('*')),
+                                    last)
                             )
                         } else {
                             (
@@ -314,7 +316,7 @@ impl RsyncProcess {
                             )
                         }
                     } else {
-                        (RsyncMsgType::Info, line.to_owned())
+                        (RsyncMsgType::Info, case::capitalize_first(line))
                     };
 
                     sender
@@ -344,7 +346,7 @@ impl RsyncProcess {
             for line in error.split_terminator('\n') {
                 if !line.is_empty() {
                     sender
-                        .send(RsyncSend::Error(line.into()))
+                        .send(RsyncSend::Error(case::capitalize_first(line)))
                         .await
                         .expect("Could not send through channel");
                 }
@@ -596,17 +598,12 @@ impl RsyncProcess {
             EXPR.captures(msg)?
                 .name("err")
                 .map(|m| {
-                    m.as_str().trim()
+                    let s = m.as_str().trim()
                         .trim_end_matches('.')
-                        .replace("rsync error: ", "")
-                        .replace("rsync warning: ", "")
-                })
-                .map(|mut s| {
-                    if let Some(first) = s.get_mut(0..1) {
-                        first.make_ascii_uppercase();
-                    }
+                        .replace("Rsync error: ", "")
+                        .replace("Rsync warning: ", "");
 
-                    s
+                    case::capitalize_first(&s)
                 })
         };
 
