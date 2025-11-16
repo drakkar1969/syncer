@@ -69,7 +69,9 @@ mod imp {
         #[property(get)]
         rsync_process: RefCell<RsyncProcess>,
 
-        pub(super) log_window: RefCell<LogWindow>
+        pub(super) log_window: RefCell<LogWindow>,
+
+        pub(super) binding: RefCell<Option<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -154,9 +156,20 @@ impl RsyncPage {
 
         // Profile property notify signal
         self.connect_profile_notify(|page| {
+            let imp = page.imp();
+
+            // Unbind stored binding
+            if let Some(binding) = imp.binding.take() {
+                binding.unbind();
+            }
+
+            // Bind profile property to page title
             if let Some(profile) = page.profile() {
-                // Set page title
-                page.set_title(&profile.name());
+                imp.binding.replace(Some(
+                    profile.bind_property("name", page, "title")
+                        .sync_create()
+                        .build()
+                ));
             }
         });
 

@@ -8,7 +8,6 @@ use adw::prelude::*;
 use gtk::{gio, glib, gdk};
 use glib::clone;
 
-use itertools::Itertools;
 use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
 use crate::profile_object::{CheckMode, ProfileObject};
@@ -101,7 +100,7 @@ mod imp {
             klass.install_action("profile.new", None, |page, _, _| {
                 let imp = page.imp();
 
-                page.profile_name_dialog("New", None, clone!(
+                page.profile_dialog("New", None, clone!(
                     #[weak] imp,
                     move |name| {
                         imp.profile_model.append(&ProfileObject::new(name));
@@ -113,112 +112,80 @@ mod imp {
 
             // Rename profile action
             klass.install_action("profile.rename", None, |page, _, _| {
-                let imp = page.imp();
-
-                let name = imp.profile_dropdown.selected_item()
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'")
-                    .name();
-
-                if let Some(obj) = imp.profile_model.iter::<ProfileObject>().flatten()
-                    .find(|obj| obj.name() == name)
-                {
-                    page.profile_name_dialog("Rename", Some(&name), move |new_name| {
-                        obj.set_name(new_name);
+                if let Some(profile) = page.profile() {
+                    page.profile_dialog("Rename", Some(&profile.name()), move |new_name| {
+                        profile.set_name(new_name);
                     });
                 }
             });
 
             // Delete profile action
             klass.install_action("profile.delete", None, |page, _, _| {
-                let imp = page.imp();
+                if let Some(profile) = page.profile() {
+                    let imp = page.imp();
 
-                let name = imp.profile_dropdown.selected_item()
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'")
-                    .name();
+                    let dialog = adw::AlertDialog::builder()
+                        .heading("Delete Profile?")
+                        .body(format!("Permamenently delete the \"{}\" profile.",
+                            profile.name()))
+                        .default_response("delete")
+                        .build();
 
-                let dialog = adw::AlertDialog::builder()
-                    .heading("Delete Profile?")
-                    .body(format!("Permamenently delete the \"{name}\" profile."))
-                    .default_response("delete")
-                    .build();
+                    dialog.add_responses(&[("cancel", "_Cancel"), ("delete", "_Delete")]);
+                    dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
 
-                dialog.add_responses(&[("cancel", "_Cancel"), ("delete", "_Delete")]);
-                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+                    dialog.connect_response(Some("delete"), clone!(
+                        #[weak] imp,
+                        move |_, _| {
+                            if let Some(pos) = imp.profile_model.find(&profile) {
+                                imp.profile_model.remove(pos);
+                            }
+                        })
+                    );
 
-                dialog.connect_response(Some("delete"), clone!(
-                    #[weak] imp,
-                    move |_, _| {
-                        if let Some(pos) = imp.profile_model.iter::<ProfileObject>()
-                            .flatten()
-                            .position(|obj| obj.name() == name)
-                        {
-                            imp.profile_model.remove(pos as u32);
-                        }
-                    })
-                );
-
-                dialog.present(Some(page));
+                    dialog.present(Some(page));
+                }
             });
 
             // Duplicate profile action
             klass.install_action("profile.duplicate", None, |page, _, _| {
-                let imp = page.imp();
+                if let Some(profile) = page.profile() {
+                    let imp = page.imp();
 
-                let name = imp.profile_dropdown.selected_item()
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'")
-                    .name();
+                    if let Some(pos) = imp.profile_model.find(&profile) {
+                        page.profile_dialog("Duplicate", Some(&profile.name()), clone!(
+                            #[weak] imp,
+                            move |new_name| {
+                                let duplicate = profile.duplicate(new_name);
 
-                if let Some((pos, obj)) = imp.profile_model.iter::<ProfileObject>()
-                    .flatten()
-                    .find_position(|obj| obj.name() == name)
-                {
-                    page.profile_name_dialog("Duplicate", Some(&name), clone!(
-                        #[weak] imp,
-                        move |new_name| {
-                            let dup_obj = obj.duplicate(new_name);
+                                imp.profile_model.insert(pos + 1, &duplicate);
 
-                            imp.profile_model.insert(pos as u32 + 1, &dup_obj);
-
-                            imp.profile_dropdown.set_selected(pos as u32 + 1);
-                        }
-                    ));
+                                imp.profile_dropdown.set_selected(pos + 1);
+                            }
+                        ));
+                    }
                 }
             });
 
             // Reset profile action
             klass.install_action("profile.reset", None, |page, _, _| {
-                let imp = page.imp();
+                if let Some(profile) = page.profile() {
+                    let dialog = adw::AlertDialog::builder()
+                        .heading("Reset Profile?")
+                        .body(format!("Reset the \"{}\" profile to default values.",
+                            profile.name()))
+                        .default_response("delete")
+                        .build();
 
-                let name = imp.profile_dropdown.selected_item()
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'")
-                    .name();
+                    dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+                    dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
-                let dialog = adw::AlertDialog::builder()
-                    .heading("Reset Profile?")
-                    .body(format!("Reset the \"{name}\" profile to default values."))
-                    .default_response("delete")
-                    .build();
+                    dialog.connect_response(Some("reset"), move |_, _| {
+                        profile.reset();
+                    });
 
-                dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
-                dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
-
-                dialog.connect_response(Some("reset"), clone!(
-                    #[weak] imp,
-                    move |_, _| {
-                        if let Some(obj) = imp.profile_model.iter::<ProfileObject>()
-                            .flatten()
-                            .find(|obj| obj.name() == name)
-                        {
-                            obj.reset();
-                        }
-                    }
-                ));
-
-                dialog.present(Some(page));
+                    dialog.present(Some(page));
+                }
             });
 
             // Delete all profiles action
@@ -227,7 +194,7 @@ mod imp {
 
                 let dialog = adw::AlertDialog::builder()
                     .heading("Delete All Profiles?")
-                    .body(format!("Permamenently delete all profiles."))
+                    .body("Permamenently delete all profiles.")
                     .default_response("delete")
                     .build();
 
@@ -423,11 +390,11 @@ impl OptionsPage {
     }
 
     //---------------------------------------
-    // Profile name dialog function
+    // Profile dialog function
     //---------------------------------------
-    fn profile_name_dialog<F>(&self, response: &str, default: Option<&str>, f: F)
+    fn profile_dialog<F>(&self, response: &str, default: Option<&str>, f: F)
     where F: Fn(&str) + 'static {
-        let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_name_dialog.ui");
+        let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
             .expect("Could not get object from resource");

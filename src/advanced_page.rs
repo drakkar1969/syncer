@@ -28,7 +28,7 @@ mod imp {
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
 
-        pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>
+        pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>,
     }
 
     //---------------------------------------
@@ -121,7 +121,7 @@ impl AdvancedPage {
 
             if let Some(profile) = page.profile() {
                 // Bind profile property to widgets
-                let bindings: Vec<glib::Binding> = page.switches().iter()
+                let mut bindings: Vec<glib::Binding> = page.switches().iter()
                     .map(|switch| {
                         profile.bind_property(&switch.prop_name(), switch, "active")
                             .bidirectional()
@@ -130,11 +130,15 @@ impl AdvancedPage {
                     })
                     .collect();
 
+                // Bind profile property to page title
+                bindings.push(
+                    profile.bind_property("name", page, "title")
+                        .sync_create()
+                        .build()
+                );
+
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
-
-                // Set page title
-                page.set_title(&profile.name());
             }
         });
     }
