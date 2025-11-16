@@ -260,6 +260,11 @@ impl ProfileObject {
         // Advanced options
         let mut args: Vec<String> = adv_args_map.iter()
             .filter_map(|(&nick, &(arg, off_arg))| {
+                // Remove incremental recursion switches if not recursive
+                if !self.recursive() && nick == "incremental-recursion" {
+                    return None;
+                }
+
                 let value = self.property_value(nick)
                     .get::<bool>()
                     .ok()?;

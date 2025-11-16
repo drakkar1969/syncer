@@ -24,6 +24,10 @@ mod imp {
     pub struct AdvancedPage {
         #[template_child]
         pub(super) switches_box: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub(super) recursive_switch: TemplateChild<AdvSwitchRow>,
+        #[template_child]
+        pub(super) incremental_switch: TemplateChild<AdvSwitchRow>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -62,6 +66,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -141,5 +146,17 @@ impl AdvancedPage {
                 imp.bindings.replace(Some(bindings));
             }
         });
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind recursive switch state to incremental recursion switch sensitive state
+        imp.recursive_switch.bind_property("active", &imp.incremental_switch.get(), "sensitive")
+            .sync_create()
+            .build();
     }
 }
