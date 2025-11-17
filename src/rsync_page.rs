@@ -238,11 +238,11 @@ impl RsyncPage {
             move|_| {
                 let process = page.rsync_process();
 
-                if process.paused() {
-                    process.resume();
+                let _ = if process.paused() {
+                    process.resume()
                 } else {
-                    process.pause();
-                }
+                    process.pause()
+                };
             }
         ));
 
@@ -250,7 +250,7 @@ impl RsyncPage {
         imp.stop_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
             move|_| {
-                page.rsync_process().terminate();
+                let _ = page.rsync_process().terminate();
             }
         ));
 

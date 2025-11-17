@@ -7,7 +7,7 @@ use std::str::FromStr;
 use gtk::subclass::prelude::*;
 use gtk::prelude::{ObjectExt, StaticType};
 use gtk::glib;
-use glib::{clone, subclass::Signal};
+use glib::subclass::Signal;
 
 use strum::EnumString;
 use async_channel::Sender;
@@ -17,6 +17,7 @@ use tokio::{
     io::AsyncReadExt as _
 };
 use nix::{
+    errno::Errno,
     sys::signal::{kill as nix_kill, Signal as NixSignal},
     unistd::Pid
 };
@@ -211,7 +212,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Handle progress async function
     //---------------------------------------
-    async fn handle_progress(line: &str, sender: &Sender::<RsyncSend>) {
+    async fn handle_progress(line: &str, sender: &Sender::<RsyncSend>) -> io::Result<()> {
         for chunk in line.split_terminator('\r') {
             let parts: Vec<&str> = chunk
                 .split_whitespace()
@@ -234,12 +235,14 @@ impl RsyncProcess {
                     .expect("Could not send through channel");
             }
         }
+
+        Ok(())
     }
 
     //---------------------------------------
     // Handle message async function
     //---------------------------------------
-    async fn handle_message(line: &str, sender: &Sender::<RsyncSend>) {
+    async fn handle_message(line: &str, sender: &Sender::<RsyncSend>) -> io::Result<()> {
         let (tag, msg) = if line.starts_with(ITEMIZE_TAG) {
             let (changes, msg) = line
                 .trim_start_matches(ITEMIZE_TAG)
@@ -269,12 +272,14 @@ impl RsyncProcess {
         sender.send(RsyncSend::Message(tag, msg))
             .await
             .expect("Could not send through channel");
+
+        Ok(())
     }
 
     //---------------------------------------
     // Parse stdout async function
     //---------------------------------------
-    async fn parse_stdout(mut stdout: ChildStdout, sender: Sender::<RsyncSend>) {
+    async fn parse_stdout(mut stdout: ChildStdout, sender: Sender::<RsyncSend>) -> io::Result<()> {
         let mut buffer = [0u8; BUFFER_SIZE];
         let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
 
@@ -311,7 +316,7 @@ impl RsyncProcess {
 
                 // Progress line
                 if line.starts_with('\r') {
-                    Self::handle_progress(line, &sender).await;
+                    Self::handle_progress(line, &sender).await?;
 
                     continue;
                 }
@@ -349,15 +354,17 @@ impl RsyncProcess {
                 }
 
                 // Message line
-                Self::handle_message(line, &sender).await;
+                Self::handle_message(line, &sender).await?;
             }
         }
+
+        Ok(())
     }
 
     //---------------------------------------
     // Parse stderr async function
     //---------------------------------------
-    async fn parse_stderr(mut stderr: ChildStderr, sender: Sender::<RsyncSend>) {
+    async fn parse_stderr(mut stderr: ChildStderr, sender: Sender::<RsyncSend>) -> io::Result<()> {
         let mut buffer = [0u8; BUFFER_SIZE];
 
         while let Ok(bytes) = stderr.read(&mut buffer).await {
@@ -377,16 +384,18 @@ impl RsyncProcess {
                 }
             }
         }
+
+        Ok(())
     }
 
     //---------------------------------------
     // Start function
     //---------------------------------------
-    pub fn start(&self, args: Vec<String>) {
+    pub async fn start(&self, args: Vec<String>) -> io::Result<()> {
         // Spawn tokio task to run rsync
         let (sender, receiver) = async_channel::bounded(1);
 
-        Self::runtime().spawn(
+        let rsync_task = Self::runtime().spawn(
             async move {
                 // Start rsync
                 let mut rsync_process = Command::new("rsync")
@@ -407,7 +416,7 @@ impl RsyncProcess {
 
                 let sender_out = sender.clone();
 
-                let stdout_result = tokio::spawn(Self::parse_stdout(stdout, sender_out));
+                let stdout_task = tokio::spawn(Self::parse_stdout(stdout, sender_out));
 
                 // Spawn task to read stderr
                 let stderr = rsync_process.stderr.take()
@@ -415,18 +424,20 @@ impl RsyncProcess {
 
                 let sender_err = sender.clone();
 
-                let stderr_result = tokio::spawn(Self::parse_stderr(stderr, sender_err));
+                let stderr_task = tokio::spawn(Self::parse_stderr(stderr, sender_err));
 
                 // Wait for stdout, stderr and process
-                let (_, _, status) = tokio::join!(
-                    stdout_result,
-                    stderr_result,
+                let (stdout_res, stderr_res, status_res) = tokio::join!(
+                    stdout_task,
+                    stderr_task,
                     rsync_process.wait()
                 );
 
+                let (_, _, status) = (stdout_res?, stderr_res?, status_res?);
+
                 // Send rsync exit code
                 sender
-                    .send(RsyncSend::Exit(status?.code().unwrap_or(1)))
+                    .send(RsyncSend::Exit(status.code().unwrap_or(1)))
                     .await
                     .expect("Could not send through channel");
 
@@ -435,105 +446,112 @@ impl RsyncProcess {
         );
 
         // Attach receiver for tokio task
-        glib::spawn_future_local(clone!(
-            #[weak(rename_to = process)] self,
-            async move {
-                let imp = process.imp();
+        let imp = self.imp();
 
-                let mut messages = RsyncMessages::new();
+        let mut messages = RsyncMessages::new();
 
-                while let Ok(msg) = receiver.recv().await {
-                    match msg {
-                        RsyncSend::Start(id) => {
-                            imp.pid.set(id.map(Pid::from_raw));
-                            process.set_running(true);
+        while let Ok(msg) = receiver.recv().await {
+            match msg {
+                RsyncSend::Start(id) => {
+                    imp.pid.set(id.map(Pid::from_raw));
+                    self.set_running(true);
 
-                            process.emit_by_name::<()>("start", &[]);
-                        }
+                    self.emit_by_name::<()>("start", &[]);
+                }
 
-                        RsyncSend::Message(flag, msg) => {
-                            process.emit_by_name::<()>("message", &[&msg]);
+                RsyncSend::Message(flag, msg) => {
+                    self.emit_by_name::<()>("message", &[&msg]);
 
-                            messages.push_message(flag, msg);
-                        }
+                    messages.push_message(flag, msg);
+                }
 
-                        RsyncSend::Recurse(message) => {
-                            process.emit_by_name::<()>("message", &[&message]);
-                        }
+                RsyncSend::Recurse(message) => {
+                    self.emit_by_name::<()>("message", &[&message]);
+                }
 
-                        RsyncSend::Progress(size, speed, progress) => {
-                            process.emit_by_name::<()>("progress", &[
-                                &size,
-                                &speed,
-                                &progress
-                            ]);
-                        }
+                RsyncSend::Progress(size, speed, progress) => {
+                    self.emit_by_name::<()>("progress", &[
+                        &size,
+                        &speed,
+                        &progress
+                    ]);
+                }
 
-                        RsyncSend::Stats(stat) => {
-                            messages.push_stat(stat);
-                        }
+                RsyncSend::Stats(stat) => {
+                    messages.push_stat(stat);
+                }
 
-                        RsyncSend::Error(error) => {
-                            messages.push_error(error);
-                        }
+                RsyncSend::Error(error) => {
+                    messages.push_error(error);
+                }
 
-                        RsyncSend::Exit(code) => {
-                            process.set_running(false);
-                            process.set_paused(false);
-                            imp.pid.set(None);
+                RsyncSend::Exit(code) => {
+                    self.set_running(false);
+                    self.set_paused(false);
+                    imp.pid.set(None);
 
-                            process.emit_by_name::<()>("exit", &[
-                                &code,
-                                &messages
-                            ]);
-                        }
-                    }
+                    self.emit_by_name::<()>("exit", &[
+                        &code,
+                        &messages
+                    ]);
                 }
             }
-        ));
+        }
+
+        rsync_task.await?
     }
 
     //---------------------------------------
     // Terminate function
     //---------------------------------------
-    pub fn terminate(&self) {
+    pub fn terminate(&self) -> Result<(), Errno> {
         let imp = self.imp();
 
         if let Some(pid) = imp.pid.get() {
             // Resume rsync if paused
-            if self.paused() && nix_kill(pid, NixSignal::SIGCONT).is_ok() {
+            if self.paused() {
+                nix_kill(pid, NixSignal::SIGCONT)?;
+
                 self.set_paused(false);
             }
 
             // Terminate rsync
-            let _ = nix_kill(pid, NixSignal::SIGTERM);
+            nix_kill(pid, NixSignal::SIGTERM)?;
         }
+
+        Ok(())
     }
 
     //---------------------------------------
     // Pause function
     //---------------------------------------
-    pub fn pause(&self) {
+    pub fn pause(&self) -> Result<(), Errno> {
         let imp = self.imp();
 
         // Pause rsync if not paused
-        if !self.paused() && let Some(pid) = imp.pid.get()
-            && nix_kill(pid, NixSignal::SIGSTOP).is_ok() {
-                self.set_paused(true);
-            }
+        if !self.paused() && let Some(pid) = imp.pid.get() {
+            nix_kill(pid, NixSignal::SIGSTOP)?;
+
+            self.set_paused(true);
+        }
+
+        Ok(())
     }
 
     //---------------------------------------
     // Resume function
     //---------------------------------------
-    pub fn resume(&self) {
+    pub fn resume(&self) -> Result<(), Errno> {
         let imp = self.imp();
 
         // Resume rsync if paused
-        if self.paused() && let Some(pid) = imp.pid.get()
-            && nix_kill(pid, NixSignal::SIGCONT).is_ok() {
-                self.set_paused(false);
-            }
+        if self.paused() && let Some(pid) = imp.pid.get() {
+            nix_kill(pid, NixSignal::SIGCONT)?;
+
+            self.set_paused(false);
+        }
+
+        Ok(())
     }
 
     //---------------------------------------

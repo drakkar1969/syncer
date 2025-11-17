@@ -3,7 +3,7 @@ use std::cell::Cell;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::{gio, gdk, glib};
-use glib::{ clone, Variant, VariantTy};
+use glib::{ clone, VariantTy};
 
 use crate::{
     Application,
@@ -90,7 +90,7 @@ mod imp {
             let rsync_process = self.rsync_page.rsync_process();
 
             if rsync_process.running() {
-                rsync_process.pause();
+                let _ = rsync_process.pause();
 
                 let dialog = adw::AlertDialog::builder()
                     .heading("Exit Syncer?")
@@ -106,7 +106,7 @@ mod imp {
                     move |_, _| {
                         imp.close_request.set(true);
 
-                        rsync_process.terminate();
+                        let _ = rsync_process.terminate();
                     }
                 ));
 
@@ -129,37 +129,39 @@ mod imp {
         //---------------------------------------
         fn install_rsync_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Rsync start action
-            klass.install_action("rsync.start", Some(VariantTy::BOOLEAN), |window, _, parameter| {
-                let imp = window.imp();
+            klass.install_action_async("rsync.start", Some(VariantTy::BOOLEAN),
+                async |window, _, param| {
+                    let imp = window.imp();
 
-                // Get dry run
-                let dry_run = parameter
-                    .and_then(Variant::get::<bool>)
-                    .expect("Could not get bool from variant");
+                    // Get dry run
+                    let dry_run = param
+                        .and_then(|param| param.get::<bool>())
+                        .expect("Could not get bool from variant");
 
-                // Show rsync page
-                imp.navigation_view.push_by_tag("rsync");
+                    // Show rsync page
+                    imp.navigation_view.push_by_tag("rsync");
 
-                // Get profile
-                let profile = imp.options_page.profile_dropdown().selected_item()
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'");
+                    // Get profile
+                    let profile = imp.options_page.profile_dropdown().selected_item()
+                        .and_downcast::<ProfileObject>()
+                        .expect("Could not downcast to 'ProfileObject'");
 
-                // Get args
-                let args = [
-                        "--human-readable",
-                        &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
-                        "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2"
-                    ]
-                    .into_iter()
-                    .chain(dry_run.then_some("--dry-run"))
-                    .map(ToOwned::to_owned)
-                    .chain(profile.to_args(false))
-                    .collect();
+                    // Get args
+                    let args = [
+                            "--human-readable",
+                            &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
+                            "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2"
+                        ]
+                        .into_iter()
+                        .chain(dry_run.then_some("--dry-run"))
+                        .map(ToOwned::to_owned)
+                        .chain(profile.to_args(false))
+                        .collect();
 
-                // Start rsync
-                imp.rsync_page.rsync_process().start(args);
-            });
+                    // Start rsync
+                    let _ = imp.rsync_page.rsync_process().start(args).await;
+                }
+            );
 
             // Rsync show cmdline action
             klass.install_action("rsync.show-cmdline", None, |window, _, _| {
