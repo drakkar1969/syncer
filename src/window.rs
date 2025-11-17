@@ -243,6 +243,19 @@ impl AppWindow {
             }
         ));
 
+        // Navigation view get next page signal
+        imp.navigation_view.connect_get_next_page(clone!(
+            #[weak] imp,
+            #[upgrade_or] None,
+            move |view| {
+                if view.visible_page_tag() == Some("options".into()) {
+                    Some(imp.advanced_page.get().into())
+                } else {
+                    None
+                }
+            }
+        ));
+
         // Profile model items changed signal
         imp.options_page.profile_model().connect_items_changed(clone!(
             #[weak] imp,
