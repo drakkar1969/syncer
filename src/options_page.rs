@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::io;
-use std::io::Write as _;
 use std::fs;
 
 use adw::subclass::prelude::*;
@@ -463,8 +462,6 @@ impl OptionsPage {
 
         let json_str = to_string_pretty(&json_object)?;
 
-        let mut file = fs::File::create(config_path)?;
-
-        file.write_all(json_str.as_bytes())
+        fs::write(config_path, json_str.as_bytes())
     }
 }
