@@ -67,6 +67,9 @@
                           <object class="GtkLabel" id="message_label">
                             <property name="xalign">0</property>
                             <property name="ellipsize">start</property>
+                            <style>
+                              <class name="numeric"/>
+                            </style>
                           </object>
                         </child>
                       </object>
@@ -86,6 +89,9 @@
                             <child>
                               <object class="GtkLabel" id="transferred_label">
                                 <property name="label">0B</property>
+                                <style>
+                                  <class name="numeric"/>
+                                </style>
                               </object>
                             </child>
                           </object>
@@ -102,6 +108,9 @@
                             <child>
                               <object class="GtkLabel" id="speed_label">
                                 <property name="label">0B/s</property>
+                                <style>
+                                  <class name="numeric"/>
+                                </style>
                               </object>
                             </child>
                           </object>
@@ -113,6 +122,9 @@
                             <child>
                               <object class="GtkLabel" id="progress_label">
                                 <property name="label">0%</property>
+                                <style>
+                                  <class name="numeric"/>
+                                </style>
                               </object>
                             </child>
                           </object>
