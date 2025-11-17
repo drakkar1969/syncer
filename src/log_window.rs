@@ -379,8 +379,8 @@ impl LogWindow {
 
         if (!messages.errors().is_empty() || !messages.stats().is_empty())
             && !messages.messages().is_empty() {
-            imp.model.append(&BoxedAnyObject::new(LogObject::default()));
-        }
+                imp.model.append(&BoxedAnyObject::new(LogObject::default()));
+            }
 
         // Spawn task to process messages
         let (sender, receiver) = async_channel::bounded(10);

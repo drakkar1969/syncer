@@ -317,7 +317,6 @@ impl RsyncProcess {
                 // Progress line
                 if line.starts_with('\r') {
                     Self::handle_progress(line, &sender).await?;
-
                     continue;
                 }
 
