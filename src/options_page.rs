@@ -302,7 +302,9 @@ impl OptionsPage {
 
                     profile.bind_property("check-mode", &imp.check_mode_combo.get(), "selected")
                         .transform_to(|_, mode: CheckMode| Some(mode.value()))
-                        .transform_from(|_, index: u32| CheckMode::from_repr(index))
+                        .transform_from(|_, index: u32| {
+                            Some(CheckMode::from_repr(index).unwrap_or_default())
+                        })
                         .bidirectional()
                         .sync_create()
                         .build(),
