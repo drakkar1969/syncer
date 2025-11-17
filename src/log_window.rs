@@ -361,7 +361,7 @@ impl LogWindow {
 
         // Add errors to model
         let errors: Vec<BoxedAnyObject> = messages.errors().iter()
-            .map(|(flag, msg)| BoxedAnyObject::new(LogObject::new(*flag, msg)))
+            .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Error, msg)))
             .collect();
 
         imp.model.splice(0, 0, &errors);
@@ -372,7 +372,7 @@ impl LogWindow {
 
         // Add stats to model
         let stats: Vec<BoxedAnyObject> = messages.stats().iter()
-            .map(|(flag, msg)| BoxedAnyObject::new(LogObject::new(*flag, msg)))
+            .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Stat, msg)))
             .collect();
 
         imp.model.splice(imp.model.n_items(), 0, &stats);

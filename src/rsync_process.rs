@@ -20,7 +20,7 @@ use nix::{
     sys::signal::{kill as nix_kill, Signal as NixSignal},
     unistd::Pid
 };
-use regex::{Regex, Captures};
+use regex::Regex;
 
 use crate::utils::{convert, case};
 
@@ -72,8 +72,8 @@ pub enum RsyncMsgType {
 #[boxed_type(name = "RsyncMessages")]
 pub struct RsyncMessages {
     messages: Vec<(RsyncMsgType, String)>,
-    stats: Vec<(RsyncMsgType, String)>,
-    errors: Vec<(RsyncMsgType, String)>
+    stats: Vec<String>,
+    errors: Vec<String>
 }
 
 impl RsyncMessages {
@@ -85,11 +85,11 @@ impl RsyncMessages {
         &self.messages
     }
 
-    pub fn stats(&self) -> &[(RsyncMsgType, String)] {
+    pub fn stats(&self) -> &[String] {
         &self.stats
     }
 
-    pub fn errors(&self) -> &[(RsyncMsgType, String)] {
+    pub fn errors(&self) -> &[String] {
         &self.errors
     }
 
@@ -98,11 +98,11 @@ impl RsyncMessages {
     }
 
     pub fn push_stat(&mut self, msg: String) {
-        self.stats.push((RsyncMsgType::Stat, msg));
+        self.stats.push(msg);
     }
 
     pub fn push_error(&mut self, msg: String) {
-        self.errors.push((RsyncMsgType::Error, msg));
+        self.errors.push(msg);
     }
 }
 
@@ -517,11 +517,10 @@ impl RsyncProcess {
         let imp = self.imp();
 
         // Pause rsync if not paused
-        if !self.paused() && let Some(pid) = imp.pid.get() {
-            if nix_kill(pid, NixSignal::SIGSTOP).is_ok() {
+        if !self.paused() && let Some(pid) = imp.pid.get()
+            && nix_kill(pid, NixSignal::SIGSTOP).is_ok() {
                 self.set_paused(true);
             }
-        }
     }
 
     //---------------------------------------
@@ -531,17 +530,16 @@ impl RsyncProcess {
         let imp = self.imp();
 
         // Resume rsync if paused
-        if self.paused() && let Some(pid) = imp.pid.get() {
-            if nix_kill(pid, NixSignal::SIGCONT).is_ok() {
+        if self.paused() && let Some(pid) = imp.pid.get()
+            && nix_kill(pid, NixSignal::SIGCONT).is_ok() {
                 self.set_paused(false);
             }
-        }
     }
 
     //---------------------------------------
     // Stats function
     //---------------------------------------
-    pub fn stats(stats: &[(RsyncMsgType, String)]) -> Option<RsyncStats> {
+    pub fn stats(stats: &[String]) -> Option<RsyncStats> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
                 Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
@@ -562,40 +560,36 @@ impl RsyncProcess {
             .expect("Failed to compile Regex")
         });
 
-        let stats_msgs: Vec<&str> = stats.iter()
-            .map(|(_, msg)| msg.as_str())
-            .collect();
-
-        EXPR.captures(&stats_msgs.join("\n"))
+        EXPR.captures(&stats.join("\n"))
             .map(|caps| {
-                let regex_match = |caps: &Captures, m: &str| -> String {
+                let regex_match = |m: &str| -> String {
                     caps.name(m)
                         .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
                         .to_owned()
                 };
 
-                let d_total = regex_match(&caps, "dt");
-                let d_files = regex_match(&caps, "df");
-                let d_transf = regex_match(&caps, "tt");
+                let d_total = regex_match("dt");
+                let d_files = regex_match("df");
+                let d_transf = regex_match("tt");
 
                 let dest_total = convert::max_str::<u32>(&d_total, &d_transf);
                 let dest_files = convert::max_str::<u32>(&d_files, &d_transf);
 
                 RsyncStats {
-                    source_total: regex_match(&caps, "st"),
-                    source_files: regex_match(&caps, "sf"),
-                    source_dirs: regex_match(&caps, "sd"),
-                    source_links: regex_match(&caps, "sl"),
-                    source_specials: regex_match(&caps, "ss"),
+                    source_total: regex_match("st"),
+                    source_files: regex_match("sf"),
+                    source_dirs: regex_match("sd"),
+                    source_links: regex_match("sl"),
+                    source_specials: regex_match("ss"),
                     destination_total: dest_total,
                     destination_files: dest_files,
-                    destination_dirs: regex_match(&caps, "dd"),
-                    destination_links: regex_match(&caps, "dl"),
-                    destination_specials: regex_match(&caps, "ds"),
-                    destination_deleted: regex_match(&caps, "dr"),
-                    bytes_source: regex_match(&caps, "bs"),
-                    bytes_transferred: regex_match(&caps, "bt"),
-                    speed: regex_match(&caps, "ts")
+                    destination_dirs: regex_match("dd"),
+                    destination_links: regex_match("dl"),
+                    destination_specials: regex_match("ds"),
+                    destination_deleted: regex_match("dr"),
+                    bytes_source: regex_match("bs"),
+                    bytes_transferred: regex_match("bt"),
+                    speed: regex_match("ts")
                 }
             })
     }
@@ -603,7 +597,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Error function
     //---------------------------------------
-    pub fn error(code: i32, errors: &[(RsyncMsgType, String)]) -> Option<String> {
+    pub fn error(code: i32, errors: &[String]) -> Option<String> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"^(?P<err>[^(]*).*")
                 .expect("Failed to compile Regex")
@@ -613,7 +607,7 @@ impl RsyncProcess {
         let (err_detail, err_main) = (errors.first()?, errors.last()?);
 
         // Helper closure to extract error
-        let extract_error = |(_, msg): &(RsyncMsgType, String)| -> Option<String> {
+        let extract_error = |msg: &str| -> Option<String> {
             EXPR.captures(msg)?
                 .name("err")
                 .map(|m| {
