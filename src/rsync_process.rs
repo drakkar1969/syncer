@@ -209,6 +209,69 @@ impl RsyncProcess {
     }
 
     //---------------------------------------
+    // Handle progress async function
+    //---------------------------------------
+    async fn handle_progress(line: &str, sender: &Sender::<RsyncSend>) {
+        for chunk in line.split_terminator('\r') {
+            let parts: Vec<&str> = chunk
+                .split_whitespace()
+                .collect();
+
+            if let (Some(&size), Some(&speed), Some(progress)) = (
+                parts.first(),
+                parts.get(2),
+                parts.get(1).and_then(|s| {
+                    s.trim_end_matches('%').parse::<f64>().ok()
+                })
+            ) {
+                sender
+                    .send(RsyncSend::Progress(
+                        size.into(),
+                        speed.into(),
+                        progress
+                    ))
+                    .await
+                    .expect("Could not send through channel");
+            }
+        }
+    }
+
+    //---------------------------------------
+    // Handle message async function
+    //---------------------------------------
+    async fn handle_message(line: &str, sender: &Sender::<RsyncSend>) {
+        let (tag, msg) = if line.starts_with(ITEMIZE_TAG) {
+            let (changes, msg) = line
+                .trim_start_matches(ITEMIZE_TAG)
+                .split_once(' ')
+                .unwrap_or(("", line));
+
+            if changes.starts_with('*') {
+                (
+                    RsyncMsgType::Info,
+                    format!("{} {}",
+                        case::capitalize_first(changes.trim_start_matches('*')),
+                        msg
+                    )
+                )
+            } else {
+                (
+                    changes.get(1..2)
+                        .and_then(|c| RsyncMsgType::from_str(c).ok())
+                        .unwrap_or_default(),
+                    msg.to_owned()
+                )
+            }
+        } else {
+            (RsyncMsgType::Info, case::capitalize_first(line))
+        };
+
+        sender.send(RsyncSend::Message(tag, msg))
+            .await
+            .expect("Could not send through channel");
+    }
+
+    //---------------------------------------
     // Parse stdout async function
     //---------------------------------------
     async fn parse_stdout(mut stdout: ChildStdout, sender: Sender::<RsyncSend>) {
@@ -246,84 +309,47 @@ impl RsyncProcess {
                     continue;
                 }
 
+                // Progress line
                 if line.starts_with('\r') {
-                    // Progress line
-                    for chunk in line.split_terminator('\r') {
-                        let parts: Vec<&str> = chunk
-                            .split_whitespace()
-                            .collect();
+                    Self::handle_progress(line, &sender).await;
 
-                        if let (Some(&size), Some(&speed), Some(progress)) = (
-                            parts.first(),
-                            parts.get(2),
-                            parts.get(1).and_then(|s| {
-                                s.trim_end_matches('%').parse::<f64>().ok()
-                            })
-                        ) {
-                            sender
-                                .send(RsyncSend::Progress(
-                                    size.into(),
-                                    speed.into(),
-                                    progress
-                                ))
-                                .await
-                                .expect("Could not send through channel");
-                        }
-                    }
-                } else if recurse_mode && line.ends_with('\r') {
-                    // Recursion line
+                    continue;
+                }
+
+                // Recursion line
+                if recurse_mode && line.ends_with('\r') {
                     for chunk in line.split_terminator('\r') {
-                        sender
-                            .send(RsyncSend::Recurse(chunk.into()))
+                        sender.send(RsyncSend::Recurse(chunk.into()))
                             .await
                             .expect("Could not send through channel");
                     }
-                } else if line.starts_with("Number of files:") || stats_mode {
-                    // Stats line
-                    stats_mode = true;
 
-                    sender
-                        .send(RsyncSend::Stats(line.into()))
-                        .await
-                        .expect("Could not send through channel");
-                } else if line.contains("building file list ...") {
-                    // Start of recursion
-                    recurse_mode = true;
-                } else if line.ends_with("to consider") {
-                    // End of recursion
-                    recurse_mode = false;
-                } else {
-                    // Message line
-                    let (tag, msg) = if line.starts_with(ITEMIZE_TAG) {
-                        let (first, last) = line
-                            .trim_start_matches(ITEMIZE_TAG)
-                            .split_once(' ')
-                            .expect("Failed to split rsync message");
-
-                        if first.starts_with('*') {
-                            (
-                                RsyncMsgType::Info,
-                                format!("{} {}",
-                                    case::capitalize_first(first.trim_start_matches('*')),
-                                    last)
-                            )
-                        } else {
-                            (
-                                first.get(1..2)
-                                    .and_then(|s| RsyncMsgType::from_str(s).ok())
-                                    .unwrap_or_default(),
-                                last.to_owned()
-                            )
-                        }
-                    } else {
-                        (RsyncMsgType::Info, case::capitalize_first(line))
-                    };
-
-                    sender
-                        .send(RsyncSend::Message(tag, msg))
-                        .await
-                        .expect("Could not send through channel");
+                    continue;
                 }
+
+                // Stats line
+                if stats_mode || line.starts_with("Number of files:") {
+                    stats_mode = true;
+                    sender.send(RsyncSend::Stats(line.into()))
+                        .await
+                        .expect("Could not send through channel");
+
+                    continue;
+                }
+
+                // Recursion toggle lines
+                if line.contains("building file list ...") {
+                    recurse_mode = true;
+                    continue;
+                }
+
+                if line.ends_with("to consider") {
+                    recurse_mode = false;
+                    continue;
+                }
+
+                // Message line
+                Self::handle_message(line, &sender).await;
             }
         }
     }
@@ -345,8 +371,7 @@ impl RsyncProcess {
 
             for line in error.split_terminator('\n') {
                 if !line.is_empty() {
-                    sender
-                        .send(RsyncSend::Error(case::capitalize_first(line)))
+                    sender.send(RsyncSend::Error(case::capitalize_first(line)))
                         .await
                         .expect("Could not send through channel");
                 }
