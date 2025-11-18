@@ -414,7 +414,7 @@ impl RsyncProcess {
                     rsync_process.wait()
                 );
 
-                let (_, _, status) = (stdout_res?, stderr_res?, status_res?);
+                let ((), (), status) = (stdout_res?, stderr_res?, status_res?);
 
                 // Send rsync exit code
                 sender
