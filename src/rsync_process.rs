@@ -17,9 +17,9 @@ use tokio::{
     io::AsyncReadExt as _
 };
 use nix::{
-    errno::Errno,
+    errno::Errno as NixErrno,
     sys::signal::{kill as nix_kill, Signal as NixSignal},
-    unistd::Pid
+    unistd::Pid as NixPid
 };
 use regex::Regex;
 
@@ -146,7 +146,7 @@ mod imp {
         #[property(get, set)]
         paused: Cell<bool>,
 
-        pub(super) pid: Cell<Option<Pid>>,
+        pub(super) pid: Cell<Option<NixPid>>,
     }
 
     //---------------------------------------
@@ -434,7 +434,7 @@ impl RsyncProcess {
         while let Ok(msg) = receiver.recv().await {
             match msg {
                 RsyncSend::Start(id) => {
-                    imp.pid.set(id.map(Pid::from_raw));
+                    imp.pid.set(id.map(NixPid::from_raw));
                     self.set_running(true);
 
                     self.emit_by_name::<()>("start", &[]);
@@ -485,7 +485,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Terminate function
     //---------------------------------------
-    pub fn terminate(&self) -> Result<(), Errno> {
+    pub fn terminate(&self) -> Result<(), NixErrno> {
         let imp = self.imp();
 
         if let Some(pid) = imp.pid.get() {
@@ -506,7 +506,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Pause function
     //---------------------------------------
-    pub fn pause(&self) -> Result<(), Errno> {
+    pub fn pause(&self) -> Result<(), NixErrno> {
         let imp = self.imp();
 
         // Pause rsync if not paused
@@ -522,7 +522,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Resume function
     //---------------------------------------
-    pub fn resume(&self) -> Result<(), Errno> {
+    pub fn resume(&self) -> Result<(), NixErrno> {
         let imp = self.imp();
 
         // Resume rsync if paused
