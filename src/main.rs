@@ -8,6 +8,7 @@ mod rsync_page;
 mod stats_table;
 mod log_window;
 mod log_item;
+mod log_header;
 mod rsync_process;
 mod utils;
 

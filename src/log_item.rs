@@ -66,19 +66,18 @@ impl LogItem {
     pub fn bind(&self, obj: &LogObject) {
         let imp = self.imp();
 
-        let msg = obj.msg();
+        let msg = &obj.msg;
 
         imp.box_.set_css_classes(&[""]);
         imp.image.set_icon_name(None);
         imp.label.set_label(msg);
 
-        match obj.tag() {
+        match obj.tag {
             RsyncMsgType::Error => {
                 imp.box_.set_css_classes(&["error"]);
                 imp.image.set_icon_name(Some("rsync-error-symbolic"));
             }
             RsyncMsgType::Stat => {
-                imp.box_.set_css_classes(&["heading"]);
                 imp.image.set_icon_name(Some("stats-symbolic"));
             }
             RsyncMsgType::Info => {

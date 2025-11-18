@@ -8,6 +8,7 @@ use glib::{clone, BoxedAnyObject};
 
 use crate::{
     log_item::LogItem,
+    log_header::LogHeader,
     rsync_process::{RsyncMsgType, RsyncMessages}
 };
 
@@ -16,8 +17,8 @@ use crate::{
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
 pub struct LogObject {
-    tag: RsyncMsgType,
-    msg: String
+    pub tag: RsyncMsgType,
+    pub msg: String
 }
 
 impl LogObject {
@@ -26,14 +27,6 @@ impl LogObject {
             tag,
             msg: msg.to_owned()
         }
-    }
-
-    pub fn tag(&self) -> RsyncMsgType {
-        self.tag
-    }
-
-    pub fn msg(&self) -> &str {
-        &self.msg
     }
 }
 
@@ -74,17 +67,25 @@ mod imp {
         #[template_child]
         pub(super) filter_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
+        pub(super) scroll_window: TemplateChild<gtk::ScrolledWindow>,
+        #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
-        pub(super) model: TemplateChild<gio::ListStore>,
+        pub(super) error_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) stat_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) message_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
-        pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
+        pub(super) item_factory: TemplateChild<gtk::SignalListItemFactory>,
+        #[template_child]
+        pub(super) header_factory: TemplateChild<gtk::SignalListItemFactory>,
 
         #[property(get, set, builder(FilterType::default()))]
         filter_type: Cell<FilterType>,
@@ -214,8 +215,8 @@ impl LogWindow {
             imp.filter_button.set_icon_name(icon);
         });
 
-        // Factory setup signal
-        imp.factory.connect_setup(|_, obj| {
+        // Item factory setup signal
+        imp.item_factory.connect_setup(|_, obj| {
             let item = obj
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Could not downcast to 'GtkLIstItem'");
@@ -223,8 +224,8 @@ impl LogWindow {
             item.set_child(Some(&LogItem::default()));
         });
 
-        // Factory bind signal
-        imp.factory.connect_bind(|_, obj| {
+        // Item factory bind signal
+        imp.item_factory.connect_bind(|_, obj| {
             let item = obj
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Could not downcast to 'GtkListItem'");
@@ -234,6 +235,32 @@ impl LogWindow {
                 .expect("Could not downcast to 'LogItem'");
 
             let log_object = item.item()
+                .and_downcast::<BoxedAnyObject>()
+                .expect("Could not downcast to 'BoxedAnyObject'");
+
+            child.bind(&log_object.borrow());
+        });
+
+        // Header factory setup signal
+        imp.header_factory.connect_setup(|_, obj| {
+            let header = obj
+                .downcast_ref::<gtk::ListHeader>()
+                .expect("Could not downcast to 'GtkLIstHeader'");
+
+            header.set_child(Some(&LogHeader::default()));
+        });
+
+        // Header factory bind signal
+        imp.header_factory.connect_bind(|_, obj| {
+            let header = obj
+                .downcast_ref::<gtk::ListHeader>()
+                .expect("Could not downcast to 'GtkListHeader'");
+
+            let child = header.child()
+                .and_downcast::<LogHeader>()
+                .expect("Could not downcast to 'LogHeader'");
+
+            let log_object = header.item()
                 .and_downcast::<BoxedAnyObject>()
                 .expect("Could not downcast to 'BoxedAnyObject'");
 
@@ -298,8 +325,8 @@ impl LogWindow {
                     .expect("Could not downcast to 'BoxedAnyObject'")
                     .borrow::<LogObject>();
 
-                let msg = log_object.msg();
-                let tag = log_object.tag();
+                let tag = log_object.tag;
+                let msg = &log_object.msg;
 
                 let search = imp.search_entry.text();
 
@@ -364,23 +391,14 @@ impl LogWindow {
             .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Error, msg)))
             .collect();
 
-        imp.model.splice(0, 0, &errors);
-
-        if !messages.errors().is_empty() && !messages.stats().is_empty() {
-            imp.model.append(&BoxedAnyObject::new(LogObject::default()));
-        }
+        imp.error_model.splice(0, 0, &errors);
 
         // Add stats to model
         let stats: Vec<BoxedAnyObject> = messages.stats().iter()
             .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Stat, msg)))
             .collect();
 
-        imp.model.splice(imp.model.n_items(), 0, &stats);
-
-        if (!messages.errors().is_empty() || !messages.stats().is_empty())
-            && !messages.messages().is_empty() {
-                imp.model.append(&BoxedAnyObject::new(LogObject::default()));
-            }
+        imp.stat_model.splice(0, 0, &stats);
 
         // Spawn task to process messages
         let (sender, receiver) = async_channel::bounded(10);
@@ -407,7 +425,7 @@ impl LogWindow {
                         .map(|(flag, msg)| BoxedAnyObject::new(LogObject::new(*flag, msg)))
                         .collect();
 
-                    imp.model.splice(imp.model.n_items(), 0, &messages);
+                    imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
                 }
 
                 // Set initial focus on view
@@ -422,7 +440,9 @@ impl LogWindow {
     pub fn clear_messages(&self) {
         let imp = self.imp();
 
-        imp.model.remove_all();
+        imp.error_model.remove_all();
+        imp.stat_model.remove_all();
+        imp.message_model.remove_all();
 
         imp.search_entry.set_text("");
 
@@ -433,9 +453,23 @@ impl LogWindow {
     // Display function
     //---------------------------------------
     pub fn display(&self, window: &gtk::Window) {
+        let imp = self.imp();
+
         self.set_transient_for(Some(window));
 
         self.present();
+
+        // Scroll to start
+        glib::idle_add_local(clone!(
+            #[weak] imp,
+            #[upgrade_or] glib::ControlFlow::Break,
+            move || {
+                let v_adjust = imp.scroll_window.vadjustment();
+                v_adjust.set_value(v_adjust.lower());
+
+                glib::ControlFlow::Break
+            }
+        ));
     }
 }
 

@@ -104,7 +104,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkScrolledWindow">
+              <object class="GtkScrolledWindow" id="scroll_window">
                 <property name="hexpand">true</property>
                 <property name="vexpand">true</property>
                 <property name="margin-bottom">6</property>
@@ -124,7 +124,21 @@
                           <object class="GtkFilterListModel" id="filter_model">
                             <property name="incremental">true</property>
                             <property name="model">
-                              <object class="GListStore" id="model"/>
+                              <object class="GtkFlattenListModel">
+                                <property name="model">
+                                  <object class="GListStore">
+                                    <child>
+                                      <object class="GListStore" id="error_model"/>
+                                    </child>
+                                    <child>
+                                      <object class="GListStore" id="stat_model"/>
+                                    </child>
+                                    <child>
+                                      <object class="GListStore" id="message_model"/>
+                                    </child>
+                                  </object>
+                                </property>
+                              </object>
                             </property>
                             <property name="filter">
                               <object class="GtkCustomFilter" id="filter"/>
@@ -134,7 +148,10 @@
                       </object>
                     </property>
                     <property name="factory">
-                      <object class="GtkSignalListItemFactory" id="factory"/>
+                      <object class="GtkSignalListItemFactory" id="item_factory"/>
+                    </property>
+                    <property name="header-factory">
+                      <object class="GtkSignalListItemFactory" id="header_factory"/>
                     </property>
                   </object>
                 </property>
