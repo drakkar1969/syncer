@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// LogItem template //-->
-  <template class="LogItem" parent="AdwBin">
-    <property name="child">
-      <object class="GtkBox" id="box_">
-        <property name="spacing">8</property>
-        <child>
-          <object class="GtkImage" id="image">
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label">
-            <property name="xalign">0</property>
-          </object>
-        </child>
+  <template class="LogItem" parent="GtkBox">
+    <property name="spacing">8</property>
+    <child>
+      <object class="GtkImage" id="image">
       </object>
-    </property>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label">
+        <property name="xalign">0</property>
+      </object>
+    </child>
   </template>
 </interface>

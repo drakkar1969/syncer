@@ -1,4 +1,4 @@
-use adw::subclass::prelude::*;
+use gtk::subclass::prelude::*;
 use gtk::prelude::WidgetExt;
 use gtk::glib;
 
@@ -20,8 +20,6 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/log_item.ui")]
     pub struct LogItem {
         #[template_child]
-        pub(super) box_: TemplateChild<gtk::Box>,
-        #[template_child]
         pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) label: TemplateChild<gtk::Label>,
@@ -34,7 +32,7 @@ mod imp {
     impl ObjectSubclass for LogItem {
         const NAME: &'static str = "LogItem";
         type Type = super::LogItem;
-        type ParentType = adw::Bin;
+        type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -47,7 +45,7 @@ mod imp {
 
     impl ObjectImpl for LogItem {}
     impl WidgetImpl for LogItem {}
-    impl BinImpl for LogItem {}
+    impl BoxImpl for LogItem {}
 }
 
 //------------------------------------------------------------------------------
@@ -55,8 +53,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct LogItem(ObjectSubclass<imp::LogItem>)
-        @extends adw::Bin, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+        @extends gtk::Box, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
 impl LogItem {
@@ -68,20 +66,20 @@ impl LogItem {
 
         let msg = &obj.msg;
 
-        imp.box_.set_css_classes(&[""]);
+        self.set_css_classes(&[""]);
         imp.image.set_icon_name(None);
         imp.label.set_label(msg);
 
         match obj.tag {
             RsyncMsgType::Error => {
-                imp.box_.set_css_classes(&["error"]);
+                self.set_css_classes(&["error"]);
                 imp.image.set_icon_name(Some("rsync-error-symbolic"));
             }
             RsyncMsgType::Stat => {
                 imp.image.set_icon_name(Some("stats-symbolic"));
             }
             RsyncMsgType::Info => {
-                imp.box_.set_css_classes(&["warning"]);
+                self.set_css_classes(&["warning"]);
 
                 if msg.starts_with("deleting") {
                     imp.image.set_icon_name(Some("stats-deleted-symbolic"));

@@ -1,4 +1,4 @@
-use adw::subclass::prelude::*;
+use gtk::subclass::prelude::*;
 use gtk::glib;
 
 use crate::{
@@ -29,7 +29,7 @@ mod imp {
     impl ObjectSubclass for LogHeader {
         const NAME: &'static str = "LogHeader";
         type Type = super::LogHeader;
-        type ParentType = adw::Bin;
+        type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -42,7 +42,7 @@ mod imp {
 
     impl ObjectImpl for LogHeader {}
     impl WidgetImpl for LogHeader {}
-    impl BinImpl for LogHeader {}
+    impl BoxImpl for LogHeader {}
 }
 
 //------------------------------------------------------------------------------
@@ -50,8 +50,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct LogHeader(ObjectSubclass<imp::LogHeader>)
-        @extends adw::Bin, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+        @extends gtk::Box, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
 impl LogHeader {

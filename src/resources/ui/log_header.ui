@@ -1,32 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// LogHeader template //-->
-  <template class="LogHeader" parent="AdwBin">
-    <property name="child">
-      <object class="GtkBox" id="box_">
-        <property name="orientation">vertical</property>
-        <property name="spacing">8</property>
-        <child>
-          <object class="GtkSeparator">
-            <property name="margin-top">8</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label">
-            <property name="margin-start">2</property>
-            <property name="xalign">0</property>
-            <style>
-              <class name="title-4"/>
-              <class name="dimmed"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkSeparator">
-            <property name="margin-bottom">4</property>
-          </object>
-        </child>
+  <template class="LogHeader" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="spacing">8</property>
+    <child>
+      <object class="GtkSeparator">
+        <property name="margin-top">8</property>
       </object>
-    </property>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label">
+        <property name="margin-start">2</property>
+        <property name="xalign">0</property>
+        <style>
+          <class name="title-4"/>
+          <class name="dimmed"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparator">
+        <property name="margin-bottom">4</property>
+      </object>
+    </child>
   </template>
 </interface>

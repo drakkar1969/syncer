@@ -1,4 +1,4 @@
-use adw::subclass::prelude::*;
+use gtk::subclass::prelude::*;
 use gtk::prelude::WidgetExt;
 use gtk::glib;
 
@@ -68,7 +68,7 @@ mod imp {
     impl ObjectSubclass for StatsTable {
         const NAME: &'static str = "StatsTable";
         type Type = super::StatsTable;
-        type ParentType = adw::Bin;
+        type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -81,7 +81,7 @@ mod imp {
 
     impl ObjectImpl for StatsTable {}
     impl WidgetImpl for StatsTable {}
-    impl BinImpl for StatsTable {}
+    impl BoxImpl for StatsTable {}
 }
 
 //------------------------------------------------------------------------------
@@ -89,8 +89,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct StatsTable(ObjectSubclass<imp::StatsTable>)
-        @extends adw::Bin, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+        @extends gtk::Box, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
 impl StatsTable {
