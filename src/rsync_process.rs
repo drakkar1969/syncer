@@ -212,7 +212,7 @@ impl RsyncProcess {
     //---------------------------------------
     // Handle progress async function
     //---------------------------------------
-    async fn handle_progress(line: &str, sender: &Sender::<RsyncSend>) -> io::Result<()> {
+    async fn handle_progress(line: &str, sender: &Sender::<RsyncSend>) {
         for chunk in line.split_terminator('\r') {
             let parts: Vec<&str> = chunk
                 .split_whitespace()
@@ -235,14 +235,12 @@ impl RsyncProcess {
                     .expect("Could not send through channel");
             }
         }
-
-        Ok(())
     }
 
     //---------------------------------------
     // Handle message async function
     //---------------------------------------
-    async fn handle_message(line: &str, sender: &Sender::<RsyncSend>) -> io::Result<()> {
+    async fn handle_message(line: &str, sender: &Sender::<RsyncSend>) {
         let (tag, msg) = if line.starts_with(ITEMIZE_TAG) {
             let (changes, msg) = line
                 .trim_start_matches(ITEMIZE_TAG)
@@ -272,51 +270,41 @@ impl RsyncProcess {
         sender.send(RsyncSend::Message(tag, msg))
             .await
             .expect("Could not send through channel");
-
-        Ok(())
     }
 
     //---------------------------------------
     // Parse stdout async function
     //---------------------------------------
-    async fn parse_stdout(mut stdout: ChildStdout, sender: Sender::<RsyncSend>) -> io::Result<()> {
+    async fn parse_stdout(mut stdout: ChildStdout, sender: Sender::<RsyncSend>) {
         let mut buffer = [0u8; BUFFER_SIZE];
-        let mut overflow = String::with_capacity(4 * BUFFER_SIZE);
+        let mut pending = vec![];
 
         let mut stats_mode = false;
         let mut recurse_mode = false;
 
-        while let Ok(bytes) = stdout.read(&mut buffer).await {
+        while let Ok(read) = stdout.read(&mut buffer).await {
             // Break if stdout is empty
-            if bytes == 0 {
+            if read == 0 {
                 break;
             }
 
-            // If buffer overflow, save stdout and continue
-            if bytes >= BUFFER_SIZE {
-                overflow.push_str(&String::from_utf8_lossy(&buffer[..bytes]));
+            // Add buffer to pending
+            pending.extend_from_slice(&buffer[..read]);
+
+            // Continue if buffer is full
+            if read == BUFFER_SIZE {
                 continue;
             }
 
-            // Read stdout
-            let mut text = String::from_utf8_lossy(&buffer[..bytes])
-                .into_owned();
-
-            if !overflow.is_empty() {
-                text.insert_str(0, &overflow);
-
-                overflow.clear();
-            }
+            // Drain pending and convert to string
+            let bytes = std::mem::take(&mut pending);
+            let text = String::from_utf8_lossy(&bytes);
 
             // Process stdout line by line
-            for line in text.split_terminator('\n') {
-                if line.is_empty() {
-                    continue;
-                }
-
+            for line in text.lines().filter(|line| !line.is_empty()) {
                 // Progress line
                 if line.starts_with('\r') {
-                    Self::handle_progress(line, &sender).await?;
+                    Self::handle_progress(line, &sender).await;
                     continue;
                 }
 
@@ -353,38 +341,32 @@ impl RsyncProcess {
                 }
 
                 // Message line
-                Self::handle_message(line, &sender).await?;
+                Self::handle_message(line, &sender).await;
             }
         }
-
-        Ok(())
     }
 
     //---------------------------------------
     // Parse stderr async function
     //---------------------------------------
-    async fn parse_stderr(mut stderr: ChildStderr, sender: Sender::<RsyncSend>) -> io::Result<()> {
+    async fn parse_stderr(mut stderr: ChildStderr, sender: Sender::<RsyncSend>) {
         let mut buffer = [0u8; BUFFER_SIZE];
 
-        while let Ok(bytes) = stderr.read(&mut buffer).await {
+        while let Ok(read) = stderr.read(&mut buffer).await {
             // Break if stderr is empty
-            if bytes == 0 {
+            if read == 0 {
                 break;
             }
 
             // Read stderr and process line by line
-            let error = String::from_utf8_lossy(&buffer[..bytes]);
+            let error = String::from_utf8_lossy(&buffer[..read]);
 
-            for line in error.split_terminator('\n') {
-                if !line.is_empty() {
-                    sender.send(RsyncSend::Error(case::capitalize_first(line)))
-                        .await
-                        .expect("Could not send through channel");
-                }
+            for line in error.lines().filter(|line| !line.is_empty()) {
+                sender.send(RsyncSend::Error(case::capitalize_first(line)))
+                    .await
+                    .expect("Could not send through channel");
             }
         }
-
-        Ok(())
     }
 
     //---------------------------------------
