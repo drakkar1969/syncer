@@ -460,14 +460,11 @@ impl LogWindow {
         self.present();
 
         // Scroll to start
-        glib::idle_add_local(clone!(
+        glib::idle_add_local_once(clone!(
             #[weak] imp,
-            #[upgrade_or] glib::ControlFlow::Break,
             move || {
                 let v_adjust = imp.scroll_window.vadjustment();
                 v_adjust.set_value(v_adjust.lower());
-
-                glib::ControlFlow::Break
             }
         ));
     }
