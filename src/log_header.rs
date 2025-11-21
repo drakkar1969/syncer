@@ -65,7 +65,6 @@ impl LogHeader {
                 RsyncMsgType::Stat => "Statistics",
                 _ => "Log Messages",
             }
-
         );
     }
 }

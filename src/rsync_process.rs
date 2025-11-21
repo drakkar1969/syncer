@@ -451,11 +451,7 @@ impl RsyncProcess {
                 }
 
                 RsyncSend::Progress(size, speed, progress) => {
-                    self.emit_by_name::<()>("progress", &[
-                        &size,
-                        &speed,
-                        &progress
-                    ]);
+                    self.emit_by_name::<()>("progress", &[&size, &speed, &progress]);
                 }
 
                 RsyncSend::Stats(stat) => {
@@ -471,10 +467,7 @@ impl RsyncProcess {
                     self.set_paused(false);
                     imp.pid.set(None);
 
-                    self.emit_by_name::<()>("exit", &[
-                        &code,
-                        &messages
-                    ]);
+                    self.emit_by_name::<()>("exit", &[&code, &messages]);
                 }
             }
         }
