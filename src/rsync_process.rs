@@ -395,6 +395,13 @@ impl RsyncProcess {
                     .stderr(Stdio::piped())
                     .spawn()?;
 
+                // Get sdtout/stderr handles
+                let stdout = rsync_process.stdout.take()
+                    .ok_or_else(|| io::Error::other("Could not get stdout"))?;
+
+                let stderr = rsync_process.stderr.take()
+                    .ok_or_else(|| io::Error::other("Could not get stderr"))?;
+
                 // Send rsync process id
                 sender
                     .send(RsyncSend::Start(rsync_process.id().map(|id| id as i32)))
@@ -402,33 +409,28 @@ impl RsyncProcess {
                     .expect("Could not send through channel");
 
                 // Spawn task to read stdout
-                let stdout = rsync_process.stdout.take()
-                    .ok_or_else(|| io::Error::other("Could not get stdout"))?;
-
                 let sender_out = sender.clone();
 
                 let stdout_task = tokio::spawn(Self::parse_stdout(stdout, sender_out));
 
                 // Spawn task to read stderr
-                let stderr = rsync_process.stderr.take()
-                    .ok_or_else(|| io::Error::other("Could not get stderr"))?;
-
                 let sender_err = sender.clone();
 
                 let stderr_task = tokio::spawn(Self::parse_stderr(stderr, sender_err));
 
                 // Wait for stdout, stderr and process
-                let (stdout_res, stderr_res, status_res) = tokio::join!(
+                let (_, _, status_res) = tokio::join!(
                     stdout_task,
                     stderr_task,
                     rsync_process.wait()
                 );
 
-                let ((), (), status) = (stdout_res?, stderr_res?, status_res?);
+                let code = status_res
+                    .map_or_else(|_| None, |status| status.code());
 
                 // Send rsync exit code
                 sender
-                    .send(RsyncSend::Exit(status.code().unwrap_or(1)))
+                    .send(RsyncSend::Exit(code.unwrap_or(1)))
                     .await
                     .expect("Could not send through channel");
 
