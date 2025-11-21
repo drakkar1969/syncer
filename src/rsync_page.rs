@@ -329,8 +329,7 @@ impl RsyncPage {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
-                let error = RsyncProcess::error(code, messages.errors())
-                    .unwrap_or_else(|| String::from("Unknown error"));
+                let error = RsyncProcess::error(code, messages.errors());
 
                 imp.message_label.set_label(&format!("{error} (code {code})"));
             }

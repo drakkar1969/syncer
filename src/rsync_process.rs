@@ -601,18 +601,18 @@ impl RsyncProcess {
     //---------------------------------------
     // Error function
     //---------------------------------------
-    pub fn error(code: i32, errors: &[String]) -> Option<String> {
+    pub fn error(code: i32, errors: &[String]) -> String {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"^(?P<err>[^(]*).*")
                 .expect("Failed to compile Regex")
         });
 
         // Get first (detailed) and last (main) errors
-        let (err_detail, err_main) = (errors.first()?, errors.last()?);
+        let (err_detail, err_main) = (errors.first(), errors.last());
 
         // Helper closure to extract error
-        let extract_error = |msg: &str| -> Option<String> {
-            EXPR.captures(msg)?
+        let extract_error = |msg: Option<&String>| -> Option<String> {
+            EXPR.captures(msg?)?
                 .name("err")
                 .map(|m| {
                     let s = m.as_str().trim()
@@ -636,6 +636,7 @@ impl RsyncProcess {
             // Other error
             _ => extract_error(err_main)
         }
+        .unwrap_or_else(|| String::from("Unknown error"))
     }
 }
 
