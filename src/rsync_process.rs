@@ -332,11 +332,21 @@ impl RsyncProcess {
                 // Recursion toggle lines
                 if line.contains("building file list ...") {
                     recurse_mode = true;
+
+                    sender.send(RsyncSend::Message(RsyncMsgType::Info, line.into()))
+                        .await
+                        .expect("Could not send through channel");
+
                     continue;
                 }
 
                 if line.ends_with("to consider") {
                     recurse_mode = false;
+
+                    sender.send(RsyncSend::Message(RsyncMsgType::Info, line.into()))
+                        .await
+                        .expect("Could not send through channel");
+
                     continue;
                 }
 
