@@ -25,24 +25,6 @@
                   <object class="AdwPreferencesGroup">
                     <property name="title">Advanced Options</property>
                     <child>
-                      <object class="AdvSwitchRow" id="recursive_switch">
-                        <property name="title">Recursive</property>
-                        <property name="subtitle">Recurse into directories [ -r ]</property>
-                        <property name="prop-name">recursive</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdvSwitchRow" id="incremental_switch">
-                        <property name="title">Incremental Recursion</property>
-                        <property name="subtitle">Enable incremental recursion when scanning for files [ --i-r ]</property>
-                        <property name="prop-name">incremental-recursion</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup">
-                    <child>
                       <object class="AdvSwitchRow">
                         <property name="title">Preserve Time</property>
                         <property name="subtitle">Preserve modification times [ -t ]</property>

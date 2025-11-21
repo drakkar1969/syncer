@@ -43,11 +43,41 @@ impl CheckMode {
 }
 
 //------------------------------------------------------------------------------
+// ENUM: RecurseMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumProperty, FromRepr)]
+#[repr(u32)]
+#[enum_type(name = "RecurseMode")]
+pub enum RecurseMode {
+    #[strum(props(Desc="Recurse into directories incrementally", Switches="-r"))]
+    Incremental,
+    #[default]
+    #[enum_value(name = "Non-Incremental")]
+    #[strum(props(Desc="Recurse into directories (non-incremental)", Switches="-r --no-i-r"))]
+    NonIncremental,
+    #[enum_value(name = "No Recursion")]
+    #[strum(props(Desc="Don't recurse into directories", Switches="-d"))]
+    NoRecursion,
+}
+
+impl RecurseMode {
+    pub fn value(self) -> u32 {
+        self.into_glib() as u32
+    }
+
+    pub fn desc<'a>(self) -> Option<&'a str> {
+        self.get_str("Desc")
+    }
+
+    pub fn switches<'a>(self) -> Option<&'a str> {
+        self.get_str("Switches")
+    }
+}
+
+//------------------------------------------------------------------------------
 // DATA: Advanced Switches
 //------------------------------------------------------------------------------
-const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 17] = [
-    ("recursive", ("-r", Some("-d"))),
-    ("incremental-recursion", ("--i-r", Some("--no-i-r"))),
+const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 15] = [
     ("preserve-time", ("-t", None)),
     ("preserve-permissions", ("-p", None)),
     ("preserve-owner", ("-o", None)),
@@ -89,13 +119,11 @@ mod imp {
 
         #[property(get, set, default = CheckMode::default(), construct, builder(CheckMode::default()))]
         check_mode: Cell<CheckMode>,
+        #[property(get, set, default = RecurseMode::default(), construct, builder(RecurseMode::default()))]
+        recurse_mode: Cell<RecurseMode>,
         #[property(get, set, default = "", construct)]
         extra_options: RefCell<String>,
 
-        #[property(get, set, default = true, construct)]
-        recursive: Cell<bool>,
-        #[property(get, set, default = false, construct)]
-        incremental_recursion: Cell<bool>,
         #[property(get, set, default = true, construct)]
         preserve_time: Cell<bool>,
         #[property(get, set, default = true, construct)]
@@ -173,11 +201,19 @@ impl ProfileObject {
                         obj.set_property(key, s);
                     },
                     JsonValue::Number(i) => {
-                        let mode = i.as_u64()
-                            .and_then(|i| CheckMode::from_repr(i as u32))
-                            .unwrap_or_default();
+                        if key == "check-mode" {
+                            let mode = i.as_u64()
+                                .and_then(|i| CheckMode::from_repr(i as u32))
+                                .unwrap_or_default();
 
-                        obj.set_property(key, mode);
+                            obj.set_property(key, mode);
+                        } else if key == "recurse-mode" {
+                            let mode = i.as_u64()
+                                .and_then(|i| RecurseMode::from_repr(i as u32))
+                                .unwrap_or_default();
+
+                            obj.set_property(key, mode);
+                        }
                     },
                     JsonValue::Bool(b) => {
                         obj.set_property(key, b);
@@ -205,6 +241,8 @@ impl ProfileObject {
                 } else if let Ok(b) = value.get::<bool>() {
                     json!(b)
                 } else if let Ok(mode) = value.get::<CheckMode>() {
+                    json!(mode.value())
+                } else if let Ok(mode) = value.get::<RecurseMode>() {
                     json!(mode.value())
                 } else {
                     json!(null)
@@ -260,12 +298,6 @@ impl ProfileObject {
         // Advanced options
         let mut args: Vec<String> = adv_args_map.iter()
             .filter_map(|(&nick, &(arg, off_arg))| {
-                // Remove incremental recursion switches if not recursive or redundant
-                if nick == "incremental-recursion"
-                    && (!self.recursive() || self.incremental_recursion()) {
-                        return None;
-                    }
-
                 let value = self.property_value(nick)
                     .get::<bool>()
                     .ok()?;
@@ -279,6 +311,15 @@ impl ProfileObject {
         // Check mode
         if let Some(mode) = self.check_mode().switch() {
             args.push(mode.to_owned());
+        }
+
+        // Recurse mode
+        if let Some(mode) = self.recurse_mode().switches() {
+            let switches: Vec<String> = mode.split(' ')
+                .map(ToOwned::to_owned)
+                .collect();
+
+            args.extend_from_slice(&switches);
         }
 
         // Extra options

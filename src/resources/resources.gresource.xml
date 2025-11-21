@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/com/github/Syncer/icons/scalable/actions/">
     <file alias="options-copy-byname-symbolic.svg">icons/options-copy-byname-symbolic.svg</file>
+    <file alias="options-recurse-symbolic.svg">icons/options-recurse-symbolic.svg</file>
     <file alias="options-swap-symbolic.svg">icons/options-swap-symbolic.svg</file>
     <file alias="rsync-start-symbolic.svg">icons/rsync-start-symbolic.svg</file>
     <file alias="rsync-stop-symbolic.svg">icons/rsync-stop-symbolic.svg</file>

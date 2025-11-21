@@ -9,7 +9,7 @@ use glib::clone;
 
 use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
-use crate::profile_object::{CheckMode, ProfileObject};
+use crate::profile_object::{CheckMode, RecurseMode, ProfileObject};
 
 //------------------------------------------------------------------------------
 // MODULE: OptionsPage
@@ -41,6 +41,8 @@ mod imp {
         pub(super) destination_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
+        #[template_child]
+        pub(super) recurse_mode_combo: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) extra_options_row: TemplateChild<adw::EntryRow>,
 
@@ -309,6 +311,15 @@ impl OptionsPage {
                         .sync_create()
                         .build(),
 
+                    profile.bind_property("recurse-mode", &imp.recurse_mode_combo.get(), "selected")
+                        .transform_to(|_, mode: RecurseMode| Some(mode.value()))
+                        .transform_from(|_, index: u32| {
+                            Some(RecurseMode::from_repr(index).unwrap_or_default())
+                        })
+                        .bidirectional()
+                        .sync_create()
+                        .build(),
+
                     profile.bind_property("extra-options", &imp.extra_options_row.get(), "text")
                         .bidirectional()
                         .sync_create()
@@ -383,6 +394,18 @@ impl OptionsPage {
                 let mode = obj
                     .and_downcast::<adw::EnumListItem>()
                     .and_then(|item| CheckMode::from_repr(item.value() as u32))?;
+
+                mode.desc()
+            })
+            .sync_create()
+            .build();
+
+        // Bind recurse mode combo selected item to subtitle
+        imp.recurse_mode_combo.bind_property("selected-item", &imp.recurse_mode_combo.get(), "subtitle")
+            .transform_to(|_, obj: Option<glib::Object>| {
+                let mode = obj
+                    .and_downcast::<adw::EnumListItem>()
+                    .and_then(|item| RecurseMode::from_repr(item.value() as u32))?;
 
                 mode.desc()
             })

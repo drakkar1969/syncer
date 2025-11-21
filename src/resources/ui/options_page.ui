@@ -153,6 +153,29 @@
                   </object>
                 </child>
                 <child>
+                  <object class="AdwComboRow" id="recurse_mode_combo">
+                    <property name="title">Rec_ursion</property>
+                    <property name="use-underline">true</property>
+                    <child type="prefix">
+                      <object class="GtkImage">
+                        <property name="valign">center</property>
+                        <property name="icon-name">options-recurse-symbolic</property>
+                        <style>
+                          <class name="bubble"/>
+                        </style>
+                      </object>
+                    </child>
+                    <property name="model">
+                      <object class="AdwEnumListModel">
+                        <property name="enum-type">RecurseMode</property>
+                      </object>
+                    </property>
+                    <property name="expression">
+                      <lookup type="AdwEnumListItem" name="name"/>
+                    </property>
+                  </object>
+                </child>
+                <child>
                   <object class="AdwActionRow" id="options_row">
                     <property name="activatable">true</property>
                     <property name="title">_Advanced Options</property>
