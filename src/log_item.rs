@@ -66,35 +66,34 @@ impl LogItem {
 
         let msg = &obj.msg;
 
-        self.set_css_classes(&[""]);
-        imp.image.set_icon_name(None);
         imp.label.set_label(msg);
 
-        match obj.tag {
-            RsyncMsgType::Error => {
-                self.set_css_classes(&["error"]);
-                imp.image.set_icon_name(Some("rsync-error-symbolic"));
+        self.set_css_classes(
+            if obj.tag == RsyncMsgType::Error {
+                &["error"]
+            } else {
+                &[]
             }
-            RsyncMsgType::Stat => {
-                imp.image.set_icon_name(Some("stats-symbolic"));
-            }
-            RsyncMsgType::Info => {
-                self.set_css_classes(&["warning"]);
+        );
 
+        imp.image.set_icon_name(match obj.tag {
+            RsyncMsgType::Error => Some("rsync-error-symbolic"),
+            RsyncMsgType::Stat => Some("stats-symbolic"),
+            RsyncMsgType::Info => {
                 if msg.starts_with("deleting") {
-                    imp.image.set_icon_name(Some("stats-deleted-symbolic"));
+                    Some("stats-deleted-symbolic")
                 } else if msg.contains("non-regular") {
-                    imp.image.set_icon_name(Some("stats-skipped-symbolic"));
+                    Some("stats-skipped-symbolic")
                 } else {
-                    imp.image.set_icon_name(Some("stats-info-symbolic"));
+                    Some("stats-info-symbolic")
                 }
             }
-            RsyncMsgType::f => imp.image.set_icon_name(Some("stats-file-symbolic")),
-            RsyncMsgType::d => imp.image.set_icon_name(Some("stats-dir-symbolic")),
-            RsyncMsgType::L => imp.image.set_icon_name(Some("stats-link-symbolic")),
-            RsyncMsgType::D | RsyncMsgType::S => imp.image.set_icon_name(Some("stats-special-symbolic")),
-            RsyncMsgType::None => {}
-        }
+            RsyncMsgType::f => Some("stats-file-symbolic"),
+            RsyncMsgType::d => Some("stats-dir-symbolic"),
+            RsyncMsgType::L => Some("stats-link-symbolic"),
+            RsyncMsgType::D | RsyncMsgType::S => Some("stats-special-symbolic"),
+            RsyncMsgType::None => None
+        });
     }
 }
 
