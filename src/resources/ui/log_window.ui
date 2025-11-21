@@ -174,11 +174,6 @@
     </section>
     <section>
       <item>
-        <attribute name="label">Errors</attribute>
-        <attribute name="action">filter.type</attribute>
-        <attribute name="target">errors</attribute>
-      </item>
-      <item>
         <attribute name="label">Info Messages</attribute>
         <attribute name="action">filter.type</attribute>
         <attribute name="target">info</attribute>

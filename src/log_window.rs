@@ -39,7 +39,6 @@ impl LogObject {
 pub enum FilterType {
     #[default]
     All,
-    Errors,
     Info,
     Deleted,
     Skipped,
@@ -206,7 +205,6 @@ impl LogWindow {
 
             let icon = match window.filter_type() {
                 FilterType::All => "stats-symbolic",
-                FilterType::Errors => "rsync-error-symbolic",
                 FilterType::Info => "stats-info-symbolic",
                 FilterType::Deleted => "stats-deleted-symbolic",
                 FilterType::Skipped => "stats-skipped-symbolic",
@@ -343,7 +341,6 @@ impl LogWindow {
 
                 match window.filter_type() {
                     FilterType::All => true,
-                    FilterType::Errors => tag == RsyncMsgType::Error,
                     FilterType::Info => {
                         tag == RsyncMsgType::Info
                             && !starts_with_ic("deleting")
