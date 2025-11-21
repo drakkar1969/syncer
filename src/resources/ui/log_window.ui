@@ -189,5 +189,27 @@
         <attribute name="target">skipped</attribute>
       </item>
     </section>
+    <section>
+      <item>
+        <attribute name="label">Files</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">files</attribute>
+      </item>
+      <item>
+        <attribute name="label">Dirs</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">dirs</attribute>
+      </item>
+      <item>
+        <attribute name="label">Links</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">links</attribute>
+      </item>
+      <item>
+        <attribute name="label">Devices and Specials</attribute>
+        <attribute name="action">filter.type</attribute>
+        <attribute name="target">specials</attribute>
+      </item>
+    </section>
   </menu>
 </interface>

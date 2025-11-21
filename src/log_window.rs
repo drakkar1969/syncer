@@ -42,6 +42,10 @@ pub enum FilterType {
     Info,
     Deleted,
     Skipped,
+    Files,
+    Dirs,
+    Links,
+    Specials
 }
 
 //------------------------------------------------------------------------------
@@ -208,6 +212,10 @@ impl LogWindow {
                 FilterType::Info => "stats-info-symbolic",
                 FilterType::Deleted => "stats-deleted-symbolic",
                 FilterType::Skipped => "stats-skipped-symbolic",
+                FilterType::Files => "stats-file-symbolic",
+                FilterType::Dirs => "stats-dir-symbolic",
+                FilterType::Links => "stats-link-symbolic",
+                FilterType::Specials => "stats-special-symbolic",
             };
 
             imp.filter_button.set_icon_name(icon);
@@ -351,6 +359,18 @@ impl LogWindow {
                     }
                     FilterType::Skipped => {
                         tag == RsyncMsgType::Info && starts_with_ic("skipping")
+                    }
+                    FilterType::Files => {
+                        tag == RsyncMsgType::f
+                    }
+                    FilterType::Dirs => {
+                        tag == RsyncMsgType::d
+                    }
+                    FilterType::Links => {
+                        tag == RsyncMsgType::L
+                    }
+                    FilterType::Specials => {
+                        tag == RsyncMsgType::D || tag == RsyncMsgType::S
                     }
                 }
             }
