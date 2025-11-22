@@ -420,14 +420,14 @@ impl LogWindow {
         // Spawn task to process messages
         let (sender, receiver) = async_channel::bounded(10);
 
-        let messages = messages.messages.to_vec();
+        let messages = messages.messages.clone();
 
         gio::spawn_blocking(
             move || {
                 for chunk in messages.chunks(500) {
                     sender
                         .send_blocking(chunk.to_vec())
-                        .expect("The channel needs to be open.");
+                        .expect("Could not send through channel");
                 }
             }
         );
