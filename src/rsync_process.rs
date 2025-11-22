@@ -98,8 +98,7 @@ impl RsyncMessages {
 //------------------------------------------------------------------------------
 // STRUCT: RsyncStats
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Clone, glib::Boxed)]
-#[boxed_type(name = "RsyncStats", nullable)]
+#[derive(Default, Debug)]
 pub struct RsyncStats {
     pub source_total: String,
     pub source_files: String,
