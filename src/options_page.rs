@@ -153,18 +153,18 @@ mod imp {
                 if let Some(profile) = page.profile() {
                     let imp = page.imp();
 
-                    if let Some(pos) = imp.profile_model.find(&profile) {
-                        page.profile_dialog("Duplicate", Some(&profile.name()), clone!(
-                            #[weak] imp,
-                            move |new_name| {
+                    page.profile_dialog("Duplicate", Some(&profile.name()), clone!(
+                        #[weak] imp,
+                        move |new_name| {
+                            if let Some(pos) = imp.profile_model.find(&profile) {
                                 let duplicate = profile.duplicate(new_name);
 
                                 imp.profile_model.insert(pos + 1, &duplicate);
 
                                 imp.profile_dropdown.set_selected(pos + 1);
                             }
-                        ));
-                    }
+                        }
+                    ));
                 }
             });
 
