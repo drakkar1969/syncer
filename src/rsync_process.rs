@@ -72,26 +72,14 @@ pub enum RsyncMsgType {
 #[derive(Default, Debug, Clone, glib::Boxed)]
 #[boxed_type(name = "RsyncMessages")]
 pub struct RsyncMessages {
-    messages: Vec<(RsyncMsgType, String)>,
-    stats: Vec<String>,
-    errors: Vec<String>
+    pub messages: Vec<(RsyncMsgType, String)>,
+    pub stats: Vec<String>,
+    pub errors: Vec<String>
 }
 
 impl RsyncMessages {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn messages(&self) -> &[(RsyncMsgType, String)] {
-        &self.messages
-    }
-
-    pub fn stats(&self) -> &[String] {
-        &self.stats
-    }
-
-    pub fn errors(&self) -> &[String] {
-        &self.errors
     }
 
     pub fn push_message(&mut self, flag: RsyncMsgType, msg: String) {

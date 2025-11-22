@@ -404,14 +404,14 @@ impl LogWindow {
         let imp = self.imp();
 
         // Add errors to model
-        let errors: Vec<BoxedAnyObject> = messages.errors().iter()
+        let errors: Vec<BoxedAnyObject> = messages.errors.iter()
             .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Error, msg)))
             .collect();
 
         imp.error_model.splice(0, 0, &errors);
 
         // Add stats to model
-        let stats: Vec<BoxedAnyObject> = messages.stats().iter()
+        let stats: Vec<BoxedAnyObject> = messages.stats.iter()
             .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Stat, msg)))
             .collect();
 
@@ -420,7 +420,7 @@ impl LogWindow {
         // Spawn task to process messages
         let (sender, receiver) = async_channel::bounded(10);
 
-        let messages = messages.messages().to_vec();
+        let messages = messages.messages.to_vec();
 
         gio::spawn_blocking(
             move || {

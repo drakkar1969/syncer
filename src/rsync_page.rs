@@ -304,7 +304,7 @@ impl RsyncPage {
         }
 
         // Show exit status in message label
-        let stats = RsyncProcess::stats(messages.stats());
+        let stats = RsyncProcess::stats(&messages.stats);
 
         match (code, &stats) {
             (0, Some(stats)) => {
@@ -329,7 +329,7 @@ impl RsyncPage {
                 imp.message_box.set_css_classes(&["error", "heading"]);
                 imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
 
-                let error = RsyncProcess::error(code, messages.errors());
+                let error = RsyncProcess::error(code, &messages.errors);
 
                 imp.message_label.set_label(&format!("{error} (code {code})"));
             }
@@ -347,7 +347,7 @@ impl RsyncPage {
         }
 
         // Show details
-        if messages.messages().is_empty() && messages.stats().is_empty() {
+        if messages.messages.is_empty() && messages.stats.is_empty() {
             imp.button_stack.set_visible_child_name("empty");
         } else {
             imp.button_stack.set_visible_child_name("log");
