@@ -232,7 +232,7 @@ impl ProfileObject {
     pub fn to_json(&self) -> (String, JsonValue) {
         let mut json_map: JsonMap<String, JsonValue> = self.list_properties()
             .iter()
-            .filter(|prop| prop.nick() != "name")
+            .filter(|&prop| prop.nick() != "name")
             .map(|prop| {
                 let value = self.property_value(prop.nick());
 

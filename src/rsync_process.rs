@@ -283,7 +283,7 @@ impl RsyncProcess {
             let text = String::from_utf8_lossy(&bytes);
 
             // Process stdout line by line
-            for line in text.lines().filter(|line| !line.is_empty()) {
+            for line in text.lines().filter(|&line| !line.is_empty()) {
                 // Progress line
                 if line.starts_with('\r') {
                     Self::handle_progress(line, &sender).await;
@@ -353,7 +353,7 @@ impl RsyncProcess {
             // Read stderr and process line by line
             let error = String::from_utf8_lossy(&buffer[..read]);
 
-            for line in error.lines().filter(|line| !line.is_empty()) {
+            for line in error.lines().filter(|&line| !line.is_empty()) {
                 sender.send(RsyncSend::Error(case::capitalize_first(line)))
                     .await
                     .expect("Could not send through channel");
