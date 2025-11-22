@@ -201,17 +201,15 @@ impl RsyncProcess {
     // Handle progress async function
     //---------------------------------------
     async fn handle_progress(line: &str, sender: &Sender::<RsyncSend>) {
-        for chunk in line.split_terminator('\r') {
+        for chunk in line.trim_start_matches('\r').split_terminator('\r') {
             let parts: Vec<&str> = chunk
                 .split_whitespace()
                 .collect();
 
-            if let (Some(&size), Some(&speed), Some(progress)) = (
-                parts.first(),
-                parts.get(2),
-                parts.get(1).and_then(|s| {
-                    s.trim_end_matches('%').parse::<f64>().ok()
-                })
+            if parts.len() >= 3 && let (size, speed, Ok(progress)) = (
+                parts[0],
+                parts[2],
+                parts[1].trim_end_matches('%').parse::<f64>()
             ) {
                 sender
                     .send(RsyncSend::Progress(
@@ -229,31 +227,28 @@ impl RsyncProcess {
     // Handle message async function
     //---------------------------------------
     async fn handle_message(line: &str, sender: &Sender::<RsyncSend>) {
-        let (tag, msg) = if line.starts_with(ITEMIZE_TAG) {
-            let (changes, msg) = line
-                .trim_start_matches(ITEMIZE_TAG)
-                .split_once(' ')
-                .unwrap_or(("", line));
-
-            if changes.starts_with('*') {
-                (
-                    RsyncMsgType::Info,
-                    format!("{} {}",
-                        case::capitalize_first(changes.trim_start_matches('*')),
-                        msg
+        let (tag, msg) = if line.starts_with(ITEMIZE_TAG) && let Some((changes, msg)) = line
+            .trim_start_matches(ITEMIZE_TAG)
+            .split_once(' ') {
+                if changes.starts_with('*') {
+                    (
+                        RsyncMsgType::Info,
+                        format!("{} {}",
+                            case::capitalize_first(changes.trim_start_matches('*')),
+                            msg
+                        )
                     )
-                )
+                } else {
+                    (
+                        changes.get(1..2)
+                            .and_then(|c| RsyncMsgType::from_str(c).ok())
+                            .unwrap_or_default(),
+                        msg.to_owned()
+                    )
+                }
             } else {
-                (
-                    changes.get(1..2)
-                        .and_then(|c| RsyncMsgType::from_str(c).ok())
-                        .unwrap_or_default(),
-                    msg.to_owned()
-                )
-            }
-        } else {
-            (RsyncMsgType::Info, case::capitalize_first(line))
-        };
+                (RsyncMsgType::Info, case::capitalize_first(line))
+            };
 
         sender.send(RsyncSend::Message(tag, msg))
             .await
