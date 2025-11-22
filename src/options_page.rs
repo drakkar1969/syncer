@@ -175,7 +175,7 @@ mod imp {
                         .heading("Reset Profile?")
                         .body(format!("Reset the \"{}\" profile to default values.",
                             profile.name()))
-                        .default_response("delete")
+                        .default_response("reset")
                         .build();
 
                     dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
