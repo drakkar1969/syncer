@@ -366,7 +366,7 @@ impl RsyncProcess {
     //---------------------------------------
     pub async fn start(&self, args: Vec<String>) -> io::Result<()> {
         // Spawn tokio task to run rsync
-        let (sender, receiver) = async_channel::bounded(100);
+        let (sender, receiver) = async_channel::bounded(1);
 
         let rsync_task = Self::runtime().spawn(
             async move {
