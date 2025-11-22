@@ -418,6 +418,8 @@ impl OptionsPage {
     //---------------------------------------
     fn profile_dialog<F>(&self, response: &str, default: Option<&str>, f: F)
     where F: Fn(&str) + 'static {
+        let imp = self.imp();
+
         let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
@@ -426,22 +428,42 @@ impl OptionsPage {
         dialog.set_heading(Some(&format!("{response} Profile")));
         dialog.set_response_label("add", response);
 
-        let entry: adw::EntryRow = builder.object("entry")
+        let profile_entry: adw::EntryRow = builder.object("profile_entry")
             .expect("Could not get object from resource");
 
-        entry.connect_changed(clone!(
+        let error_label: gtk::Label = builder.object("error_label")
+            .expect("Could not get object from resource");
+
+        profile_entry.connect_changed(clone!(
+            #[weak] imp,
             #[weak] dialog,
             move |entry| {
-                dialog.set_response_enabled("add", !entry.text().is_empty());
+                let profile_name = entry.text();
+
+                let existing_profile = imp.profile_model.iter::<ProfileObject>()
+                    .flatten()
+                    .map(|profile| profile.name())
+                    .find(|name| name.eq_ignore_ascii_case(&profile_name))
+                    .unwrap_or_default();
+
+                if existing_profile.is_empty() {
+                    error_label.set_label("");
+                } else {
+                    error_label.set_label(&format!("Profile {existing_profile} already exists"));
+                }
+
+                dialog.set_response_enabled("add",
+                    existing_profile.is_empty() && !profile_name.is_empty()
+                );
             }
         ));
 
         if let Some(text) = default {
-            entry.set_text(text);
+            profile_entry.set_text(&format!("{text}-1"));
         }
 
         dialog.connect_response(Some("add"), move |_, _| {
-            f(&entry.text());
+            f(&profile_entry.text());
         });
 
         dialog.present(Some(self));

@@ -2,14 +2,27 @@
   <object class="AdwAlertDialog" id="dialog">
     <property name="default-response">add</property>
     <property name="close-response">cancel</property>
-    <property name="focus-widget">entry</property>
+    <property name="focus-widget">profile_entry</property>
     <property name="extra-child">
-      <object class="AdwPreferencesGroup">
-        <property name="width-request">300</property>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
         <child>
-          <object class="AdwEntryRow" id="entry">
-            <property name="title">Name</property>
-            <property name="activates-default">true</property>
+          <object class="AdwPreferencesGroup">
+            <property name="width-request">300</property>
+            <child>
+              <object class="AdwEntryRow" id="profile_entry">
+                <property name="title">Name</property>
+                <property name="activates-default">true</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="error_label">
+            <style>
+              <class name="error"/>
+            </style>
           </object>
         </child>
       </object>
