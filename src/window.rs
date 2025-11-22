@@ -150,7 +150,8 @@ mod imp {
                     let args = [
                             "--human-readable",
                             &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
-                            "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2"
+                            "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2",
+                            "--debug=filter"
                         ]
                         .into_iter()
                         .chain(dry_run.then_some("--dry-run"))
