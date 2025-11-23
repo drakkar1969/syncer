@@ -262,7 +262,6 @@ impl RsyncProcess {
         let mut pending = vec![];
 
         let mut stats_mode = false;
-        let mut recurse_mode = false;
 
         while let Ok(read) = stdout.read(&mut buffer).await {
             // Break if stdout is empty
@@ -291,7 +290,7 @@ impl RsyncProcess {
                 }
 
                 // Recursion line
-                if recurse_mode && line.ends_with('\r') {
+                if line.ends_with('\r') {
                     for chunk in line.split_terminator('\r') {
                         sender.send(RsyncSend::Recurse(chunk.into()))
                             .await
@@ -311,23 +310,36 @@ impl RsyncProcess {
                     continue;
                 }
 
-                // Recursion toggle lines
-                if line.contains("building file list ...") {
-                    recurse_mode = true;
-
-                    sender.send(RsyncSend::Message(RsyncMsgType::Info, line.into()))
-                        .await
-                        .expect("Could not send through channel");
+                // Recursion start line
+                if line.starts_with("building file list ...") {
+                    for chunk in line.split_terminator('\r') {
+                        if chunk.starts_with("building file list ...") {
+                            sender.send(RsyncSend::Message(RsyncMsgType::Info, chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        } else {
+                            sender.send(RsyncSend::Recurse(chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        }
+                    }
 
                     continue;
                 }
 
+                // Recursion end line
                 if line.ends_with("to consider") {
-                    recurse_mode = false;
-
-                    sender.send(RsyncSend::Message(RsyncMsgType::Info, line.into()))
-                        .await
-                        .expect("Could not send through channel");
+                    for chunk in line.split('\r') {
+                        if chunk.ends_with("to consider") {
+                            sender.send(RsyncSend::Message(RsyncMsgType::Info, chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        } else {
+                            sender.send(RsyncSend::Recurse(chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        }
+                    }
 
                     continue;
                 }
