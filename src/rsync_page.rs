@@ -347,7 +347,7 @@ impl RsyncPage {
         }
 
         // Show details
-        if messages.messages.is_empty() && messages.stats.is_empty() {
+        if messages.messages.is_empty() && messages.stats.is_empty() && messages.errors.is_empty() {
             imp.button_stack.set_visible_child_name("empty");
         } else {
             imp.button_stack.set_visible_child_name("log");
