@@ -99,10 +99,10 @@ impl Application {
 
                 let about_dialog = adw::AboutDialog::builder()
                     .application_name("Syncer")
-                    // .application_icon("pacview")
+                    .application_icon("syncer")
                     .developer_name("draKKar1969")
                     .version(env!("CARGO_PKG_VERSION"))
-                    // .website("https://github.com/drakkar1969/pacview")
+                    .website("https://github.com/drakkar1969/syncer")
                     .developers(["draKKar1969"])
                     .designers(["draKKar1969"])
                     .copyright("© 2025 draKKar1969")
