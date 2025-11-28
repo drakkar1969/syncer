@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Syncer
+GenericName=Backup Tool
+Comment=A graphical frontend for rsync
+Exec=/usr/bin/syncer
+Terminal=false
+Type=Application
+Icon=syncer
+StartupNotify=false
+Categories=GTK;GNOME;System;
