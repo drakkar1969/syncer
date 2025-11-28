@@ -3,23 +3,6 @@
 version = 4
 
 [[package]]
-name = "Syncer"
-version = "0.9.1"
-dependencies = [
- "async-channel",
- "glib-build-tools",
- "gtk4",
- "indexmap",
- "libadwaita",
- "nix",
- "regex",
- "serde_json",
- "strum",
- "tokio",
- "xdg",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -806,6 +789,23 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "syncer"
+version = "0.9.1"
+dependencies = [
+ "async-channel",
+ "glib-build-tools",
+ "gtk4",
+ "indexmap",
+ "libadwaita",
+ "nix",
+ "regex",
+ "serde_json",
+ "strum",
+ "tokio",
+ "xdg",
 ]
 
 [[package]]
