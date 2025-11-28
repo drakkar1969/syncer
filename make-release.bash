@@ -49,12 +49,12 @@ make_release()
 
 		print_item "Building release version"
 		cargo build --release
-		cp "$SCRIPTFOLDER/target/release/pacview" "$SCRIPTFOLDER"
+		cp "$SCRIPTFOLDER/target/release/syncer" "$SCRIPTFOLDER"
 
 		print_item "Committing git changes"
 		git add "$SCRIPTFOLDER/Cargo.toml"
 		git add "$SCRIPTFOLDER/Cargo.lock"
-		git add "$SCRIPTFOLDER/pacview"
+		git add "$SCRIPTFOLDER/syncer"
 		git commit -m "Bump version to ${version}"
 
 		echo ""
