@@ -262,6 +262,7 @@ impl RsyncProcess {
         let mut pending = vec![];
 
         let mut stats_mode = false;
+        let mut recurse_mode = false;
 
         while let Ok(read) = stdout.read(&mut buffer).await {
             // Break if stdout is empty
@@ -312,6 +313,8 @@ impl RsyncProcess {
 
                 // Recursion start line
                 if line.starts_with("building file list ...") {
+                    recurse_mode = true;
+
                     for chunk in line.split_terminator('\r') {
                         if chunk.starts_with("building file list ...") {
                             sender.send(RsyncSend::Message(RsyncMsgType::Info, chunk.into()))
@@ -329,6 +332,8 @@ impl RsyncProcess {
 
                 // Recursion end line
                 if line.ends_with("to consider") {
+                    recurse_mode = false;
+
                     for chunk in line.split('\r') {
                         if chunk.ends_with("to consider") {
                             sender.send(RsyncSend::Message(RsyncMsgType::Info, chunk.into()))
@@ -345,7 +350,9 @@ impl RsyncProcess {
                 }
 
                 // Message line
-                Self::handle_message(line, &sender).await;
+                if !recurse_mode {
+                    Self::handle_message(line, &sender).await;
+                }
             }
         }
     }
