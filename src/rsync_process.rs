@@ -284,33 +284,6 @@ impl RsyncProcess {
 
             // Process stdout line by line
             for line in text.lines().filter(|&line| !line.is_empty()) {
-                // Progress line
-                if line.starts_with('\r') {
-                    Self::handle_progress(line, &sender).await;
-                    continue;
-                }
-
-                // Recursion line
-                if line.ends_with('\r') {
-                    for chunk in line.split_terminator('\r') {
-                        sender.send(RsyncSend::Recurse(chunk.into()))
-                            .await
-                            .expect("Could not send through channel");
-                    }
-
-                    continue;
-                }
-
-                // Stats line
-                if stats_mode || line.starts_with("Number of files:") {
-                    stats_mode = true;
-                    sender.send(RsyncSend::Stats(line.into()))
-                        .await
-                        .expect("Could not send through channel");
-
-                    continue;
-                }
-
                 // Recursion start line
                 if line.starts_with("building file list ...") {
                     recurse_mode = true;
@@ -349,10 +322,35 @@ impl RsyncProcess {
                     continue;
                 }
 
-                // Message line
-                if !recurse_mode {
-                    Self::handle_message(line, &sender).await;
+                // Recursion line
+                if recurse_mode {
+                    for chunk in line.split('\r').filter(|chunk| !chunk.is_empty()) {
+                        sender.send(RsyncSend::Recurse(chunk.into()))
+                            .await
+                            .expect("Could not send through channel");
+                    }
+
+                    continue;
                 }
+
+                // Progress line
+                if line.starts_with('\r') {
+                    Self::handle_progress(line, &sender).await;
+                    continue;
+                }
+
+                // Stats line
+                if stats_mode || line.starts_with("Number of files:") {
+                    stats_mode = true;
+                    sender.send(RsyncSend::Stats(line.into()))
+                        .await
+                        .expect("Could not send through channel");
+
+                    continue;
+                }
+
+                // Message line
+                Self::handle_message(line, &sender).await;
             }
         }
     }
