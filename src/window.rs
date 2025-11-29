@@ -187,7 +187,7 @@ mod imp {
                     .expect("Could not downcast to 'ProfileObject'");
 
                 // Init command line dialog
-                label.set_label(&format!("rsync {} {} {}",
+                label.set_label(&format!("rsync {} \"{}\" \"{}\"",
                     profile.options(true).join(" "),
                     profile.source(),
                     profile.destination()
