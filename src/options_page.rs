@@ -285,13 +285,11 @@ impl OptionsPage {
             }
 
             if let Some(profile) = page.profile() {
-                let bindings: Vec<glib::Binding> = vec![
-                    // Bind profile property to widgets
-                    profile.bind_property("source-copy-by-name", &imp.copy_by_name_button.get(), "active")
-                        .bidirectional()
-                        .sync_create()
-                        .build(),
+                // Set copy by name button initial state
+                imp.copy_by_name_button.set_active(!profile.source().ends_with('/'));
 
+                // Bind profile property to widgets
+                let bindings: Vec<glib::Binding> = vec![
                     profile.bind_property("source", &imp.source_row.get(), "subtitle")
                         .bidirectional()
                         .sync_create()

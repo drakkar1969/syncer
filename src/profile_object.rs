@@ -110,8 +110,6 @@ mod imp {
         #[property(get, set)]
         name: RefCell<String>,
 
-        #[property(get, set, default = false, construct)]
-        source_copy_by_name: Cell<bool>,
         #[property(get, set, default = "")]
         source: RefCell<String>,
         #[property(get, set, default = "")]
