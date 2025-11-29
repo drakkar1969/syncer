@@ -290,9 +290,9 @@ impl ProfileObject {
     }
 
     //---------------------------------------
-    // To args function
+    // Options function
     //---------------------------------------
-    pub fn to_args(&self, quoted: bool) -> Vec<String> {
+    pub fn options(&self, quoted: bool) -> Vec<String> {
         let adv_args_map = IndexMap::from(ADVANCED_ARGS);
 
         // Advanced options
@@ -333,15 +333,6 @@ impl ProfileObject {
                 .collect::<Vec<String>>();
 
             args.append(&mut extra_options);
-        }
-
-        // Source and destination
-        if quoted {
-            args.push(format!("\"{}\"", self.source()));
-            args.push(format!("\"{}\"", self.destination()));
-        } else {
-            args.push(self.source());
-            args.push(self.destination());
         }
 
         args

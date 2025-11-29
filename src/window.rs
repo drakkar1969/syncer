@@ -147,17 +147,21 @@ mod imp {
                         .expect("Could not downcast to 'ProfileObject'");
 
                     // Get args
-                    let args = [
-                            "--human-readable",
-                            &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
-                            "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2",
-                            "--debug=filter"
-                        ]
+                    let args = profile.options(false)
                         .into_iter()
-                        .chain(dry_run.then_some("--dry-run"))
-                        .map(ToOwned::to_owned)
-                        .chain(profile.to_args(false))
-                        .collect();
+                        .chain(
+                            [
+                                "--human-readable",
+                                &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
+                                "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2",
+                                "--debug=filter"
+                            ]
+                            .into_iter()
+                            .chain(dry_run.then_some("--dry-run"))
+                            .map(ToOwned::to_owned)
+                        )
+                        .chain([profile.source(), profile.destination()])
+                        .collect::<Vec<_>>();
 
                     // Start rsync
                     let _ = imp.rsync_page.rsync_process().start(args).await;
@@ -183,7 +187,11 @@ mod imp {
                     .expect("Could not downcast to 'ProfileObject'");
 
                 // Init command line dialog
-                label.set_label(&format!("rsync {}", profile.to_args(true).join(" ")));
+                label.set_label(&format!("rsync {} {} {}",
+                    profile.options(true).join(" "),
+                    profile.source(),
+                    profile.destination()
+                ));
 
                 dialog.present(Some(window));
             });
