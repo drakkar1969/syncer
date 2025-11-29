@@ -77,7 +77,7 @@ impl RecurseMode {
 //------------------------------------------------------------------------------
 // DATA: Advanced Switches
 //------------------------------------------------------------------------------
-const ADVANCED_ARGS: [(&str, (&str, Option<&str>)); 15] = [
+const BOOLEAN_OPTIONS: [(&str, (&str, Option<&str>)); 15] = [
     ("preserve-time", ("-t", None)),
     ("preserve-permissions", ("-p", None)),
     ("preserve-owner", ("-o", None)),
@@ -291,10 +291,10 @@ impl ProfileObject {
     // Options function
     //---------------------------------------
     pub fn options(&self, quoted: bool) -> Vec<String> {
-        let adv_args_map = IndexMap::from(ADVANCED_ARGS);
+        let options_map = IndexMap::from(BOOLEAN_OPTIONS);
 
         // Advanced options
-        let mut args: Vec<String> = adv_args_map.iter()
+        let mut args: Vec<String> = options_map.iter()
             .filter_map(|(&nick, &(arg, off_arg))| {
                 let value = self.property_value(nick)
                     .get::<bool>()
