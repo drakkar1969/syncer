@@ -291,10 +291,21 @@ impl ProfileObject {
     // Options function
     //---------------------------------------
     pub fn options(&self, quoted: bool) -> Vec<String> {
-        let options_map = IndexMap::from(BOOLEAN_OPTIONS);
+        // Check mode
+        let mut options: Vec<String> = self.check_mode().switch()
+            .map_or_else(Vec::new, |mode| vec![mode.to_owned()]);
+
+        // Recurse mode
+        if let Some(mode) = self.recurse_mode().switches() {
+            let switches: Vec<String> = mode.split(' ')
+                .map(ToOwned::to_owned)
+                .collect();
+
+            options.extend_from_slice(&switches);
+        }
 
         // Advanced options
-        let mut args: Vec<String> = options_map.iter()
+        let advanced: Vec<String> = IndexMap::from(BOOLEAN_OPTIONS).iter()
             .filter_map(|(&nick, &(arg, off_arg))| {
                 let value = self.property_value(nick)
                     .get::<bool>()
@@ -306,19 +317,7 @@ impl ProfileObject {
             })
             .collect();
 
-        // Check mode
-        if let Some(mode) = self.check_mode().switch() {
-            args.push(mode.to_owned());
-        }
-
-        // Recurse mode
-        if let Some(mode) = self.recurse_mode().switches() {
-            let switches: Vec<String> = mode.split(' ')
-                .map(ToOwned::to_owned)
-                .collect();
-
-            args.extend_from_slice(&switches);
-        }
+        options.extend_from_slice(&advanced);
 
         // Extra options
         let replace = if quoted { "\"" } else { "" };
@@ -330,9 +329,9 @@ impl ProfileObject {
                 .map(ToOwned::to_owned)
                 .collect::<Vec<String>>();
 
-            args.append(&mut extra_options);
+            options.append(&mut extra_options);
         }
 
-        args
+        options
     }
 }
