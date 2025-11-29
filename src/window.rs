@@ -153,7 +153,7 @@ mod imp {
                             [
                                 "--human-readable",
                                 &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
-                                "--info=copy,del,flist2,misc,name,progress2,symsafe,stats2",
+                                "--info=backup,copy,del,flist2,misc,name,progress2,skip2,symsafe,stats2",
                                 "--debug=filter"
                             ]
                             .into_iter()
