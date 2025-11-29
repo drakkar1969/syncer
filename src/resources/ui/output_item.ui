@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// LogItem template //-->
-  <template class="LogItem" parent="GtkBox">
+  <!--// OutputItem template //-->
+  <template class="OutputItem" parent="GtkBox">
     <property name="spacing">8</property>
     <child>
       <object class="GtkImage" id="image">

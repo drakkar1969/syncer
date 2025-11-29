@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// LogWindow template //-->
-  <template class="LogWindow" parent="AdwWindow">
+  <!--// OutputWindow template //-->
+  <template class="OutputWindow" parent="AdwWindow">
     <property name="default-width">800</property>
     <property name="default-height">660</property>
     <property name="modal">true</property>
@@ -47,7 +47,7 @@
                       <object class="GtkLabel" id="header_label">
                         <property name="xalign">0</property>
                         <property name="yalign">0.5</property>
-                        <property name="label">Rsync Log</property>
+                        <property name="label">Rsync Output</property>
                         <style>
                           <class name="title-3"/>
                         </style>

@@ -6,9 +6,9 @@ mod advanced_page;
 mod adv_switchrow;
 mod rsync_page;
 mod stats_table;
-mod log_window;
-mod log_item;
-mod log_header;
+mod output_window;
+mod output_item;
+mod output_header;
 mod rsync_process;
 mod utils;
 

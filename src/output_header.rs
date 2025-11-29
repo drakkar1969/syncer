@@ -2,12 +2,12 @@ use gtk::subclass::prelude::*;
 use gtk::glib;
 
 use crate::{
-    log_window::LogObject,
+    output_window::OutputObject,
     rsync_process::RsyncMsgType
 };
 
 //------------------------------------------------------------------------------
-// MODULE: LogHeader
+// MODULE: OutputHeader
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -16,8 +16,8 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/Syncer/ui/log_header.ui")]
-    pub struct LogHeader {
+    #[template(resource = "/com/github/Syncer/ui/output_header.ui")]
+    pub struct OutputHeader {
         #[template_child]
         pub(super) label: TemplateChild<gtk::Label>,
     }
@@ -26,9 +26,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for LogHeader {
-        const NAME: &'static str = "LogHeader";
-        type Type = super::LogHeader;
+    impl ObjectSubclass for OutputHeader {
+        const NAME: &'static str = "OutputHeader";
+        type Type = super::OutputHeader;
         type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
@@ -40,36 +40,36 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for LogHeader {}
-    impl WidgetImpl for LogHeader {}
-    impl BoxImpl for LogHeader {}
+    impl ObjectImpl for OutputHeader {}
+    impl WidgetImpl for OutputHeader {}
+    impl BoxImpl for OutputHeader {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: LogHeader
+// IMPLEMENTATION: OutputHeader
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct LogHeader(ObjectSubclass<imp::LogHeader>)
+    pub struct OutputHeader(ObjectSubclass<imp::OutputHeader>)
         @extends gtk::Box, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl LogHeader {
+impl OutputHeader {
     //---------------------------------------
     // Bind function
     //---------------------------------------
-    pub fn bind(&self, obj: &LogObject) {
+    pub fn bind(&self, obj: &OutputObject) {
         self.imp().label.set_label(
             match obj.tag {
                 RsyncMsgType::Error => "Errors",
                 RsyncMsgType::Stat => "Statistics",
-                _ => "Log Messages",
+                _ => "Output",
             }
         );
     }
 }
 
-impl Default for LogHeader {
+impl Default for OutputHeader {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

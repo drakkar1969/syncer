@@ -9,7 +9,7 @@ use glib::{clone, closure_local};
 use crate::{
     profile_object::ProfileObject,
     stats_table::StatsTable,
-    log_window::LogWindow,
+    output_window::OutputWindow,
     rsync_process::{RsyncProcess, RsyncMessages}
 };
 
@@ -62,14 +62,14 @@ mod imp {
         #[template_child]
         pub(super) stop_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) log_button: TemplateChild<gtk::Button>,
+        pub(super) output_button: TemplateChild<gtk::Button>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
         #[property(get)]
         rsync_process: RefCell<RsyncProcess>,
 
-        pub(super) log_window: RefCell<LogWindow>,
+        pub(super) output_window: RefCell<OutputWindow>,
 
         pub(super) binding: RefCell<Option<glib::Binding>>,
     }
@@ -254,15 +254,15 @@ impl RsyncPage {
             }
         ));
 
-        // Log button clicked signal
-        imp.log_button.connect_clicked(clone!(
+        // Output button clicked signal
+        imp.output_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
             move|_| {
                 let parent = page.root()
                     .and_downcast::<gtk::Window>()
                     .expect("Could not downcast to 'GtkWindow'");
 
-                page.imp().log_window.borrow().display(&parent);
+                page.imp().output_window.borrow().display(&parent);
             }
         ));
     }
@@ -288,7 +288,7 @@ impl RsyncPage {
         imp.stats_stack.set_visible_child_name("empty");
         imp.button_stack.set_visible_child_name("empty");
 
-        imp.log_window.borrow().clear_messages();
+        imp.output_window.borrow().clear_messages();
     }
 
     //---------------------------------------
@@ -350,13 +350,13 @@ impl RsyncPage {
         if messages.messages.is_empty() && messages.stats.is_empty() && messages.errors.is_empty() {
             imp.button_stack.set_visible_child_name("empty");
         } else {
-            imp.button_stack.set_visible_child_name("log");
+            imp.button_stack.set_visible_child_name("output");
 
-            // Populate log window
+            // Populate output window
             glib::idle_add_local_once(clone!(
                 #[weak] imp,
                 move || {
-                    imp.log_window.borrow().load_messages(&messages);
+                    imp.output_window.borrow().load_messages(&messages);
                 }
             ));
         }

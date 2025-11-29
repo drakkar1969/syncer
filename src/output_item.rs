@@ -3,12 +3,12 @@ use gtk::prelude::WidgetExt;
 use gtk::glib;
 
 use crate::{
-    log_window::LogObject,
+    output_window::OutputObject,
     rsync_process::RsyncMsgType
 };
 
 //------------------------------------------------------------------------------
-// MODULE: LogItem
+// MODULE: OutputItem
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -17,8 +17,8 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/Syncer/ui/log_item.ui")]
-    pub struct LogItem {
+    #[template(resource = "/com/github/Syncer/ui/output_item.ui")]
+    pub struct OutputItem {
         #[template_child]
         pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
@@ -29,9 +29,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for LogItem {
-        const NAME: &'static str = "LogItem";
-        type Type = super::LogItem;
+    impl ObjectSubclass for OutputItem {
+        const NAME: &'static str = "OutputItem";
+        type Type = super::OutputItem;
         type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
@@ -43,25 +43,25 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for LogItem {}
-    impl WidgetImpl for LogItem {}
-    impl BoxImpl for LogItem {}
+    impl ObjectImpl for OutputItem {}
+    impl WidgetImpl for OutputItem {}
+    impl BoxImpl for OutputItem {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: LogItem
+// IMPLEMENTATION: OutputItem
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct LogItem(ObjectSubclass<imp::LogItem>)
+    pub struct OutputItem(ObjectSubclass<imp::OutputItem>)
         @extends gtk::Box, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl LogItem {
+impl OutputItem {
     //---------------------------------------
     // Bind function
     //---------------------------------------
-    pub fn bind(&self, obj: &LogObject) {
+    pub fn bind(&self, obj: &OutputObject) {
         let imp = self.imp();
 
         let msg = &obj.msg;
@@ -97,7 +97,7 @@ impl LogItem {
     }
 }
 
-impl Default for LogItem {
+impl Default for OutputItem {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

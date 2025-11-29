@@ -7,21 +7,21 @@ use gtk::{gio, glib, gdk};
 use glib::{clone, BoxedAnyObject};
 
 use crate::{
-    log_item::LogItem,
-    log_header::LogHeader,
+    output_item::OutputItem,
+    output_header::OutputHeader,
     rsync_process::{RsyncMsgType, RsyncMessages}
 };
 
 //------------------------------------------------------------------------------
-// STRUCT: LogObject
+// STRUCT: OutputObject
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
-pub struct LogObject {
+pub struct OutputObject {
     pub tag: RsyncMsgType,
     pub msg: String
 }
 
-impl LogObject {
+impl OutputObject {
     pub fn new(tag: RsyncMsgType, msg: &str) -> Self {
         Self {
             tag,
@@ -47,7 +47,7 @@ pub enum FilterType {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: LogWindow
+// MODULE: OutputWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -56,9 +56,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::LogWindow)]
-    #[template(resource = "/com/github/Syncer/ui/log_window.ui")]
-    pub struct LogWindow {
+    #[properties(wrapper_type = super::OutputWindow)]
+    #[template(resource = "/com/github/Syncer/ui/output_window.ui")]
+    pub struct OutputWindow {
         #[template_child]
         pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -96,9 +96,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for LogWindow {
-        const NAME: &'static str = "LogWindow";
-        type Type = super::LogWindow;
+    impl ObjectSubclass for OutputWindow {
+        const NAME: &'static str = "OutputWindow";
+        type Type = super::OutputWindow;
         type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
@@ -114,7 +114,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for LogWindow {
+    impl ObjectImpl for OutputWindow {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -128,11 +128,11 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for LogWindow {}
-    impl WindowImpl for LogWindow {}
-    impl AdwWindowImpl for LogWindow {}
+    impl WidgetImpl for OutputWindow {}
+    impl WindowImpl for OutputWindow {}
+    impl AdwWindowImpl for OutputWindow {}
 
-    impl LogWindow {
+    impl OutputWindow {
         //---------------------------------------
         // Install actions
         //---------------------------------------
@@ -163,15 +163,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: LogWindow
+// IMPLEMENTATION: OutputWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct LogWindow(ObjectSubclass<imp::LogWindow>)
+    pub struct OutputWindow(ObjectSubclass<imp::OutputWindow>)
     @extends adw::Window, gtk::Window, gtk::Widget,
     @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
-impl LogWindow {
+impl OutputWindow {
     //---------------------------------------
     // Show spinner function
     //---------------------------------------
@@ -223,7 +223,7 @@ impl LogWindow {
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Could not downcast to 'GtkLIstItem'");
 
-            item.set_child(Some(&LogItem::default()));
+            item.set_child(Some(&OutputItem::default()));
         });
 
         // Item factory bind signal
@@ -233,14 +233,14 @@ impl LogWindow {
                 .expect("Could not downcast to 'GtkListItem'");
 
             let child = item.child()
-                .and_downcast::<LogItem>()
-                .expect("Could not downcast to 'LogItem'");
+                .and_downcast::<OutputItem>()
+                .expect("Could not downcast to 'OutputItem'");
 
-            let log_object = item.item()
+            let output_object = item.item()
                 .and_downcast::<BoxedAnyObject>()
                 .expect("Could not downcast to 'BoxedAnyObject'");
 
-            child.bind(&log_object.borrow());
+            child.bind(&output_object.borrow());
         });
 
         // Header factory setup signal
@@ -249,7 +249,7 @@ impl LogWindow {
                 .downcast_ref::<gtk::ListHeader>()
                 .expect("Could not downcast to 'GtkLIstHeader'");
 
-            header.set_child(Some(&LogHeader::default()));
+            header.set_child(Some(&OutputHeader::default()));
         });
 
         // Header factory bind signal
@@ -259,14 +259,14 @@ impl LogWindow {
                 .expect("Could not downcast to 'GtkListHeader'");
 
             let child = header.child()
-                .and_downcast::<LogHeader>()
-                .expect("Could not downcast to 'LogHeader'");
+                .and_downcast::<OutputHeader>()
+                .expect("Could not downcast to 'OutputHeader'");
 
-            let log_object = header.item()
+            let output_object = header.item()
                 .and_downcast::<BoxedAnyObject>()
                 .expect("Could not downcast to 'BoxedAnyObject'");
 
-            child.bind(&log_object.borrow());
+            child.bind(&output_object.borrow());
         });
 
         // Search entry search started signal
@@ -322,13 +322,13 @@ impl LogWindow {
             #[weak] imp,
             #[upgrade_or] false,
             move |obj| {
-                let log_object = obj
+                let output_object = obj
                     .downcast_ref::<BoxedAnyObject>()
                     .expect("Could not downcast to 'BoxedAnyObject'")
-                    .borrow::<LogObject>();
+                    .borrow::<OutputObject>();
 
-                let tag = log_object.tag;
-                let msg = &log_object.msg;
+                let tag = output_object.tag;
+                let msg = &output_object.msg;
 
                 let search = imp.search_entry.text();
 
@@ -377,14 +377,14 @@ impl LogWindow {
 
         // Add errors to model
         let errors: Vec<BoxedAnyObject> = messages.errors.iter()
-            .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Error, msg)))
+            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsgType::Error, msg)))
             .collect();
 
         imp.error_model.splice(0, 0, &errors);
 
         // Add stats to model
         let stats: Vec<BoxedAnyObject> = messages.stats.iter()
-            .map(|msg| BoxedAnyObject::new(LogObject::new(RsyncMsgType::Stat, msg)))
+            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsgType::Stat, msg)))
             .collect();
 
         imp.stat_model.splice(0, 0, &stats);
@@ -411,7 +411,7 @@ impl LogWindow {
                 while let Ok(chunk) = receiver.recv().await {
                     // Add messages to model
                     let messages: Vec<BoxedAnyObject> = chunk.iter()
-                        .map(|(flag, msg)| BoxedAnyObject::new(LogObject::new(*flag, msg)))
+                        .map(|(flag, msg)| BoxedAnyObject::new(OutputObject::new(*flag, msg)))
                         .collect();
 
                     imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
@@ -459,7 +459,7 @@ impl LogWindow {
     }
 }
 
-impl Default for LogWindow {
+impl Default for OutputWindow {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

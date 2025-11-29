@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// LogHeader template //-->
-  <template class="LogHeader" parent="GtkBox">
+  <!--// OutputHeader template //-->
+  <template class="OutputHeader" parent="GtkBox">
     <property name="orientation">vertical</property>
     <property name="spacing">8</property>
     <child>

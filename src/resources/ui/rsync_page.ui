@@ -252,15 +252,15 @@
                 </child>
                 <child>
                   <object class="GtkStackPage">
-                    <property name="name">log</property>
+                    <property name="name">output</property>
                     <property name="child">
-                      <object class="GtkButton" id="log_button">
+                      <object class="GtkButton" id="output_button">
                         <property name="halign">center</property>
                         <property name="valign">end</property>
                         <property name="child">
                           <object class="AdwButtonContent">
                             <property name="icon-name">document-edit-symbolic</property>
-                            <property name="label">Rsync _Log</property>
+                            <property name="label">Rsync _Output</property>
                             <property name="use-underline">true</property>
                           </object>
                         </property>
