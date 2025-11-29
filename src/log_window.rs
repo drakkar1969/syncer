@@ -40,8 +40,6 @@ pub enum FilterType {
     #[default]
     All,
     Info,
-    Deleted,
-    Skipped,
     Files,
     Dirs,
     Links,
@@ -210,8 +208,6 @@ impl LogWindow {
             let icon = match window.filter_type() {
                 FilterType::All => "stats-symbolic",
                 FilterType::Info => "stats-info-symbolic",
-                FilterType::Deleted => "stats-deleted-symbolic",
-                FilterType::Skipped => "stats-skipped-symbolic",
                 FilterType::Files => "stats-file-symbolic",
                 FilterType::Dirs => "stats-dir-symbolic",
                 FilterType::Links => "stats-link-symbolic",
@@ -341,37 +337,13 @@ impl LogWindow {
                     return false;
                 }
 
-                // Helper closure for case-insensitive prefix check
-                let starts_with_ic = |prefix: &str| -> bool {
-                    msg.get(..prefix.len())
-                        .is_some_and(|s| s.eq_ignore_ascii_case(prefix))
-                };
-
                 match window.filter_type() {
                     FilterType::All => true,
-                    FilterType::Info => {
-                        tag == RsyncMsgType::Info
-                            && !starts_with_ic("deleting")
-                            && !starts_with_ic("skipping")
-                    }
-                    FilterType::Deleted => {
-                        tag == RsyncMsgType::Info && starts_with_ic("deleting")
-                    }
-                    FilterType::Skipped => {
-                        tag == RsyncMsgType::Info && starts_with_ic("skipping")
-                    }
-                    FilterType::Files => {
-                        tag == RsyncMsgType::f
-                    }
-                    FilterType::Dirs => {
-                        tag == RsyncMsgType::d
-                    }
-                    FilterType::Links => {
-                        tag == RsyncMsgType::L
-                    }
-                    FilterType::Specials => {
-                        tag == RsyncMsgType::D || tag == RsyncMsgType::S
-                    }
+                    FilterType::Info => tag == RsyncMsgType::Info,
+                    FilterType::Files => tag == RsyncMsgType::f,
+                    FilterType::Dirs => tag == RsyncMsgType::d,
+                    FilterType::Links => tag == RsyncMsgType::L,
+                    FilterType::Specials => tag == RsyncMsgType::D || tag == RsyncMsgType::S,
                 }
             }
         ));

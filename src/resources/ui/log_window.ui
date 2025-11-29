@@ -178,16 +178,6 @@
         <attribute name="action">filter.type</attribute>
         <attribute name="target">info</attribute>
       </item>
-      <item>
-        <attribute name="label">Deleted</attribute>
-        <attribute name="action">filter.type</attribute>
-        <attribute name="target">deleted</attribute>
-      </item>
-      <item>
-        <attribute name="label">Skipped</attribute>
-        <attribute name="action">filter.type</attribute>
-        <attribute name="target">skipped</attribute>
-      </item>
     </section>
     <section>
       <item>
