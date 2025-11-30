@@ -58,8 +58,8 @@ mod imp {
                 vec![
                     Signal::builder("deleted")
                         .build(),
-                    Signal::builder("drag")
-                        .param_types([i32::static_type(), i32::static_type()])
+                    Signal::builder("drop")
+                        .param_types([super::FilterRow::static_type()])
                         .build(),
                 ]
             })
@@ -190,7 +190,7 @@ impl FilterRow {
                     return false;
                 }
 
-                row.emit_by_name::<()>("drag", &[&drag_row.index(), &row.index()]);
+                row.emit_by_name::<()>("drop", &[&drag_row]);
 
                 true
             }

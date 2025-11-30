@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
@@ -25,6 +25,8 @@ mod imp {
 
         #[property(get, set)]
         filters: RefCell<Vec<String>>,
+
+        pub(super) internal_change: Cell<bool>,
     }
 
     //---------------------------------------
@@ -83,50 +85,25 @@ impl FilterExpanderRow {
 
         // Filters property notify signal
         self.connect_filters_notify(|expander| {
-            // Remove all filter rows
-            for row in expander.filter_rows() {
-                expander.remove(&row);
+            if !expander.imp().internal_change.get() {
+                let listbox = expander.listbox();
+
+                // Remove all filter rows
+                listbox.remove_all();
+
+                // Create new filter rows
+                for filter in expander.filters().iter() {
+                    let row = expander.new_filter_row(filter);
+
+                    listbox.append(&row);
+                }
             }
 
-            // Create new filter rows
             let filters = expander.filters();
-
-            for filter in filters.iter() {
-                let row = FilterRow::new(filter);
-
-                row.connect_closure("deleted", false, closure_local!(
-                    #[weak] expander,
-                    move |row: FilterRow| {
-                        if let Some(pos) = expander.filters().iter()
-                            .position(|filter| filter == &row.filter()) {
-                                let mut filters = expander.filters();
-
-                                filters.remove(pos);
-
-                                expander.set_filters(filters);
-                            }
-                    }
-                ));
-
-                row.connect_closure("drag", false, closure_local!(
-                    #[weak] expander,
-                    move |_: FilterRow, old_pos: i32, new_pos: i32| {
-                        let mut filters = expander.filters();
-
-                        let filter = filters.remove(old_pos as usize);
-                        filters.insert(new_pos as usize, filter);
-
-                        expander.set_filters(filters);
-                    }
-                ));
-
-                expander.add_row(&row);
-            }
 
             expander.set_expanded(!filters.is_empty());
             expander.set_enable_expansion(!filters.is_empty());
 
-            // Update subtitle
             expander.set_subtitle(&filters.join(" "));
         });
 
@@ -137,13 +114,90 @@ impl FilterExpanderRow {
                 expander.filter_dialog(clone!(
                     #[weak] expander,
                     move |filter| {
+                        let imp = expander.imp();
+
+                        imp.internal_change.set(true);
+
                         let mut filters = expander.filters();
                         filters.push(filter.to_owned());
                         expander.set_filters(filters);
+
+                        let row = expander.new_filter_row(filter);
+                        expander.listbox().append(&row);
+
+                        imp.internal_change.set(false);
                     }
                 ));
             }
         ));
+    }
+
+    //---------------------------------------
+    // Listbox function
+    //---------------------------------------
+    fn listbox(&self) -> gtk::ListBox {
+        self.first_child()
+            .and_downcast::<gtk::Box>()
+            .expect("Could not downcast to 'GtkBox'")
+            .last_child()
+            .and_downcast::<gtk::Revealer>()
+            .expect("Could not downcast to 'GtkRevealer'")
+            .child()
+            .and_downcast::<gtk::ListBox>()
+            .expect("Could not downcast to 'GtkListBox'")
+    }
+
+    //---------------------------------------
+    // New filter row function
+    //---------------------------------------
+    fn new_filter_row(&self, filter: &str) -> FilterRow {
+        let row = FilterRow::new(filter);
+
+        row.connect_closure("deleted", false, closure_local!(
+            #[weak(rename_to = expander)] self,
+            move |row: FilterRow| {
+                let imp = expander.imp();
+
+                imp.internal_change.set(true);
+
+                let pos = expander.filters().iter()
+                    .position(|filter| filter == &row.filter())
+                    .expect("Could not find filter");
+
+                let mut filters = expander.filters();
+                filters.remove(pos);
+                expander.set_filters(filters);
+
+                expander.listbox().remove(&row);
+
+                imp.internal_change.set(false);
+            }
+        ));
+
+        row.connect_closure("drop", false, closure_local!(
+            #[weak(rename_to = expander)] self,
+            move |row: FilterRow, drag_row: FilterRow| {
+                let imp = expander.imp();
+
+                imp.internal_change.set(true);
+
+                let old_pos = drag_row.index();
+                let new_pos = row.index();
+
+                let mut filters = expander.filters();
+                let filter = filters.remove(old_pos as usize);
+                filters.insert(new_pos as usize, filter);
+                expander.set_filters(filters);
+
+                let listbox = expander.listbox();
+                listbox.remove(&drag_row);
+                listbox.insert(&drag_row, new_pos);
+
+                imp.internal_change.set(false);
+            }
+        ));
+
+        row
     }
 
     //---------------------------------------
@@ -179,31 +233,5 @@ impl FilterExpanderRow {
         });
 
         dialog.present(Some(self));
-    }
-
-    //---------------------------------------
-    // Rows function
-    //---------------------------------------
-    fn filter_rows(&self) -> Vec<FilterRow> {
-        let listbox = self.first_child()
-            .and_downcast::<gtk::Box>()
-            .expect("Could not downcast to 'GtkBox'")
-            .last_child()
-            .and_downcast::<gtk::Revealer>()
-            .expect("Could not downcast to 'GtkListBox'")
-            .child()
-            .and_downcast::<gtk::ListBox>()
-            .expect("Could not downcast to 'GtkListBox'");
-
-        let mut i = 0;
-        let mut rows = vec![];
-
-        while let Some(row) = listbox.row_at_index(i).and_downcast::<FilterRow>() {
-            rows.push(row);
-            
-            i += 1;
-        }
-
-        rows
     }
 }
