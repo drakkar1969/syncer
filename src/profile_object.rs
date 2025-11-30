@@ -119,8 +119,8 @@ mod imp {
         check_mode: Cell<CheckMode>,
         #[property(get, set, default = RecurseMode::default(), construct, builder(RecurseMode::default()))]
         recurse_mode: Cell<RecurseMode>,
-        #[property(get, set, default = "", construct)]
-        filters: RefCell<String>,
+        #[property(get, set, construct)]
+        filters: RefCell<Vec<String>>,
 
         #[property(get, set, default = true, construct)]
         preserve_time: Cell<bool>,
@@ -195,6 +195,13 @@ impl ProfileObject {
         for (key, value) in json_map {
             if obj.has_property(key) {
                 match value {
+                    JsonValue::Array(v) => {
+                        let vec: Vec<String> = v.iter()
+                            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                            .collect();
+
+                        obj.set_property(key, vec);
+                    }
                     JsonValue::String(s) => {
                         obj.set_property(key, s);
                     },
@@ -234,7 +241,9 @@ impl ProfileObject {
             .map(|prop| {
                 let value = self.property_value(prop.nick());
 
-                let json_value = if let Ok(s) = value.get::<String>() {
+                let json_value = if let Ok(v) = value.get::<Vec<String>>() {
+                    json!(v)
+                } else if let Ok(s) = value.get::<String>() {
                     json!(s)
                 } else if let Ok(b) = value.get::<bool>() {
                     json!(b)
@@ -323,10 +332,8 @@ impl ProfileObject {
         let replace = if quoted { "\"" } else { "" };
 
         if !self.filters().is_empty() {
-            let mut filters = self.filters()
-                .replace(['\'', '"'], replace)
-                .split(' ')
-                .map(ToOwned::to_owned)
+            let mut filters = self.filters().into_iter()
+                .map(|filter| filter.replace(['\'', '"'], replace))
                 .collect::<Vec<String>>();
 
             options.append(&mut filters);

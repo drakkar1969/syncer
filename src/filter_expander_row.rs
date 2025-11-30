@@ -1,16 +1,11 @@
-use std::sync::LazyLock;
+use std::cell::RefCell;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
 use glib::{clone, closure_local};
 
-use regex::Regex;
-
-use crate::{
-    filter_row::FilterRow,
-    utils::case
-};
+use crate::filter_row::FilterRow;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterExpanderRow
@@ -21,11 +16,15 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::FilterExpanderRow)]
     #[template(resource = "/com/github/Syncer/ui/filter_expander_row.ui")]
     pub struct FilterExpanderRow {
         #[template_child]
         pub(super) add_button: TemplateChild<gtk::Button>,
+
+        #[property(get, set)]
+        filters: RefCell<Vec<String>>,
     }
 
     //---------------------------------------
@@ -46,6 +45,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for FilterExpanderRow {
         //---------------------------------------
         // Constructor
@@ -81,19 +81,65 @@ impl FilterExpanderRow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Filters property notify signal
+        self.connect_filters_notify(|expander| {
+            // Remove all filter rows
+            for row in expander.filter_rows() {
+                expander.remove(&row);
+            }
+
+            // Create new filter rows
+            let filters = expander.filters();
+
+            for filter in filters.iter() {
+                let row = FilterRow::new(filter);
+
+                row.connect_closure("deleted", false, closure_local!(
+                    #[weak] expander,
+                    move |row: FilterRow| {
+                        if let Some(pos) = expander.filters().iter()
+                            .position(|filter| filter == &row.filter()) {
+                                let mut filters = expander.filters();
+
+                                filters.remove(pos);
+
+                                expander.set_filters(filters);
+                            }
+                    }
+                ));
+
+                row.connect_closure("drag", false, closure_local!(
+                    #[weak] expander,
+                    move |_: FilterRow, old_pos: i32, new_pos: i32| {
+                        let mut filters = expander.filters();
+
+                        let filter = filters.remove(old_pos as usize);
+                        filters.insert(new_pos as usize, filter);
+
+                        expander.set_filters(filters);
+                    }
+                ));
+
+                expander.add_row(&row);
+            }
+
+            expander.set_expanded(!filters.is_empty());
+            expander.set_enable_expansion(!filters.is_empty());
+
+            // Update subtitle
+            expander.set_subtitle(&filters.join(" "));
+        });
+
         // Add button clicked signal
         imp.add_button.connect_clicked(clone!(
             #[weak(rename_to = expander)] self,
             move |_| {
                 expander.filter_dialog(clone!(
                     #[weak] expander,
-                    move |type_, filter| {
-                        expander.add_filter_row(type_, filter);
-
-                        expander.set_enable_expansion(true);
-                        expander.set_expanded(true);
-
-                        expander.update_subtitle();
+                    move |filter| {
+                        let mut filters = expander.filters();
+                        filters.push(filter.to_owned());
+                        expander.set_filters(filters);
                     }
                 ));
             }
@@ -101,31 +147,10 @@ impl FilterExpanderRow {
     }
 
     //---------------------------------------
-    // Add filter function
-    //---------------------------------------
-    fn add_filter_row(&self, type_: &str, filter: &str) {
-        let row = FilterRow::new(type_, filter);
-
-        row.connect_closure("changed", false, closure_local!(
-            #[weak(rename_to = expander)] self,
-            move |_: FilterRow| {
-                expander.update_subtitle();
-
-                if expander.filter_rows().is_empty() {
-                    expander.set_expanded(false);
-                    expander.set_enable_expansion(false);
-                }
-            }
-        ));
-
-        self.add_row(&row);
-    }
-
-    //---------------------------------------
     // Filter dialog function
     //---------------------------------------
     fn filter_dialog<F>(&self, f: F)
-    where F: Fn(&str, &str) + 'static {
+    where F: Fn(&str) + 'static {
         let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/filter_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
@@ -150,7 +175,7 @@ impl FilterExpanderRow {
                 .expect("Could not downcast to 'GtkStringObject'")
                 .string();
 
-            f(&type_, &filter_entry.text());
+            f(&format!("--{}=\"{}\"", type_.to_ascii_lowercase(), filter_entry.text()));
         });
 
         dialog.present(Some(self));
@@ -180,48 +205,5 @@ impl FilterExpanderRow {
         }
 
         rows
-    }
-
-    //---------------------------------------
-    // Update subtitle function
-    //---------------------------------------
-    fn update_subtitle(&self) {
-        let filters: Vec<String> = self.filter_rows().iter()
-            .map(|row| {
-                format!("--{}=\"{}\"",
-                    row.title().to_ascii_lowercase(),
-                    row.subtitle().unwrap_or_default()
-                )
-            })
-            .collect();
-
-        self.set_subtitle(&filters.join(" "));
-    }
-
-    //---------------------------------------
-    // Create filter rows function
-    //---------------------------------------
-    pub fn create_filter_rows(&self, filters: &str) {
-        for row in self.filter_rows() {
-            self.remove(&row);
-        }
-
-        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r#"--(?P<type>\w+)="(?P<filter>[^"]+)""#)
-                .expect("Failed to compile Regex")
-        });
-
-        for filter in filters.split(' ') {
-            if let Some((type_, filter)) = EXPR.captures(filter)
-                .and_then(|caps| caps.name("type").zip(caps.name("filter"))) {
-                    self.add_filter_row(
-                        &case::capitalize_first(type_.as_str()),
-                        filter.as_str()
-                    );
-                }
-        }
-
-        self.set_enable_expansion(!filters.is_empty());
-        self.set_expanded(false);
     }
 }

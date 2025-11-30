@@ -1,10 +1,13 @@
+use std::cell::RefCell;
 use std::sync::OnceLock;
 
-use adw::subclass::prelude::*;
 use adw::prelude::*;
+use adw::subclass::prelude::*;
 use gtk::{gdk, glib};
 use glib::clone;
 use glib::subclass::Signal;
+
+use crate::utils::case;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterRow
@@ -15,11 +18,15 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::FilterRow)]
     #[template(resource = "/com/github/Syncer/ui/filter_row.ui")]
     pub struct FilterRow {
         #[template_child]
         pub(super) delete_button: TemplateChild<gtk::Button>,
+
+        #[property(get, set)]
+        filter: RefCell<String>,
     }
 
     //---------------------------------------
@@ -40,6 +47,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for FilterRow {
         //---------------------------------------
         // Signals
@@ -48,7 +56,10 @@ mod imp {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
                 vec![
-                    Signal::builder("changed")
+                    Signal::builder("deleted")
+                        .build(),
+                    Signal::builder("drag")
+                        .param_types([i32::static_type(), i32::static_type()])
                         .build(),
                 ]
             })
@@ -86,10 +97,9 @@ impl FilterRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(type_: &str, filter: &str) -> Self {
+    pub fn new(filter: &str) -> Self {
         glib::Object::builder()
-            .property("title", type_)
-            .property("subtitle", filter)
+            .property("filter", filter)
             .build()
     }
 
@@ -103,13 +113,7 @@ impl FilterRow {
         imp.delete_button.connect_clicked(clone!(
             #[weak(rename_to = row)] self,
             move |_| {
-                let listbox = row.parent()
-                    .and_downcast::<gtk::ListBox>()
-                    .expect("Could not downcast to 'GtkListBox'");
-
-                listbox.remove(&row);
-
-                row.emit_by_name::<()>("changed", &[]);
+                row.emit_by_name::<()>("deleted", &[]);
             }
         ));
     }
@@ -118,6 +122,23 @@ impl FilterRow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
+        // Bind filter property to widget
+        self.bind_property("filter", self, "title")
+            .transform_to(|_, filter: String| {
+                filter.split_once("=")
+                    .map(|(type_, _)| case::capitalize_first(type_.trim_start_matches("--")))
+            })
+            .sync_create()
+            .build();
+
+        self.bind_property("filter", self, "subtitle")
+            .transform_to(|_, filter: String| {
+                filter.split_once("=")
+                    .map(|(_, filter)| filter.trim_matches('"').to_owned())
+            })
+            .sync_create()
+            .build();
+
         // Create drag source
         let drag_source = gtk::DragSource::builder()
             .actions(gdk::DragAction::MOVE)
@@ -135,10 +156,7 @@ impl FilterRow {
             let listbox = source.widget()
                 .and_downcast::<Self>()
                 .map(|row| {
-                    let drag_row = Self::new(
-                        &row.title(),
-                        &row.subtitle().unwrap_or_default()
-                    );
+                    let drag_row = Self::new(&row.filter());
 
                     let listbox = gtk::ListBox::new();
                     listbox.set_size_request(row.width(), row.height());
@@ -172,16 +190,7 @@ impl FilterRow {
                     return false;
                 }
 
-                let Some(listbox) = row.parent().and_downcast::<gtk::ListBox>() else {
-                    return false;
-                };
-
-                let index = row.index();
-
-                listbox.remove(&drag_row);
-                listbox.insert(&drag_row, index);
-
-                row.emit_by_name::<()>("changed", &[]);
+                row.emit_by_name::<()>("drag", &[&drag_row.index(), &row.index()]);
 
                 true
             }

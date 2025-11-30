@@ -291,9 +291,6 @@ impl OptionsPage {
                 // Set copy by name button initial state
                 imp.copy_by_name_button.set_active(!profile.source().ends_with('/'));
 
-                // Create filter rows
-                imp.filter_expander_row.create_filter_rows(&profile.filters());
-
                 // Bind profile property to widgets
                 let bindings: Vec<glib::Binding> = vec![
                     profile.bind_property("source", &imp.source_row.get(), "subtitle")
@@ -324,7 +321,7 @@ impl OptionsPage {
                         .sync_create()
                         .build(),
 
-                    profile.bind_property("filters", &imp.filter_expander_row.get(), "subtitle")
+                    profile.bind_property("filters", &imp.filter_expander_row.get(), "filters")
                         .bidirectional()
                         .sync_create()
                         .build(),
@@ -332,6 +329,9 @@ impl OptionsPage {
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
+
+                // Contract filter expander row
+                imp.filter_expander_row.set_expanded(false);
             }
         });
 
