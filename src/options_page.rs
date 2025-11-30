@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::io;
 use std::fs;
+use std::env;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
@@ -248,6 +249,7 @@ impl OptionsPage {
         dialog.set_initial_folder(
             row.subtitle()
                 .filter(|subtitle| !subtitle.is_empty())
+                .or_else(|| env::var("HOME").ok().map(|s| s.into()))
                 .map(gio::File::for_path)
                 .as_ref()
         );
