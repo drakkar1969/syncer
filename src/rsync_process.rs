@@ -262,6 +262,7 @@ impl RsyncProcess {
         let mut pending = vec![];
 
         let mut stats_mode = false;
+        let mut recurse_mode = false;
 
         while let Ok(read) = stdout.read(&mut buffer).await {
             // Break if stdout is empty
@@ -286,16 +287,18 @@ impl RsyncProcess {
                 // Progress line
                 if line.starts_with('\r') {
                     Self::handle_progress(line, &sender).await;
+
                     continue;
                 }
 
                 // Recursion line
-                if line.ends_with('\r') {
-                    for chunk in line.split_terminator('\r') {
-                        sender.send(RsyncSend::Recurse(chunk.into()))
-                            .await
-                            .expect("Could not send through channel");
-                    }
+                if recurse_mode && line.starts_with(' ')
+                    && (line.ends_with("files...") || line.ends_with("files...\r")) {
+                        for chunk in line.split_terminator('\r') {
+                            sender.send(RsyncSend::Recurse(chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        }
 
                     continue;
                 }
@@ -312,6 +315,8 @@ impl RsyncProcess {
 
                 // Recursion start line
                 if line.starts_with("building file list ...") {
+                    recurse_mode = true;
+
                     for chunk in line.split_terminator('\r') {
                         if chunk.starts_with("building file list ...") {
                             sender.send(RsyncSend::Message(RsyncMsgType::Info, chunk.into()))
@@ -329,6 +334,8 @@ impl RsyncProcess {
 
                 // Recursion end line
                 if line.ends_with("to consider") {
+                    recurse_mode = false;
+
                     for chunk in line.split('\r') {
                         if chunk.ends_with("to consider") {
                             sender.send(RsyncSend::Message(RsyncMsgType::Info, chunk.into()))
