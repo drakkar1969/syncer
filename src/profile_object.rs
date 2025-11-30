@@ -120,7 +120,7 @@ mod imp {
         #[property(get, set, default = RecurseMode::default(), construct, builder(RecurseMode::default()))]
         recurse_mode: Cell<RecurseMode>,
         #[property(get, set, default = "", construct)]
-        extra_options: RefCell<String>,
+        filters: RefCell<String>,
 
         #[property(get, set, default = true, construct)]
         preserve_time: Cell<bool>,
@@ -319,17 +319,17 @@ impl ProfileObject {
 
         options.extend_from_slice(&advanced);
 
-        // Extra options
+        // Filters
         let replace = if quoted { "\"" } else { "" };
 
-        if !self.extra_options().is_empty() {
-            let mut extra_options = self.extra_options()
+        if !self.filters().is_empty() {
+            let mut filters = self.filters()
                 .replace(['\'', '"'], replace)
                 .split(' ')
                 .map(ToOwned::to_owned)
                 .collect::<Vec<String>>();
 
-            options.append(&mut extra_options);
+            options.append(&mut filters);
         }
 
         options

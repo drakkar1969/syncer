@@ -2,6 +2,8 @@ mod app;
 mod window;
 mod profile_object;
 mod options_page;
+mod filter_expander_row;
+mod filter_row;
 mod advanced_page;
 mod adv_switchrow;
 mod rsync_page;

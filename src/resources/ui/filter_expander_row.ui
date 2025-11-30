@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// FilterExpanderRow template //-->
+  <template class="FilterExpanderRow" parent="AdwExpanderRow">
+    <property name="enable-expansion">false</property>
+    <property name="title">_Filter Rules</property>
+    <property name="use-underline">true</property>
+    <style>
+      <class name="property"/>
+    </style>
+    <child type="prefix">
+      <object class="GtkImage">
+        <property name="valign">center</property>
+        <property name="icon-name">options-filter-symbolic</property>
+        <style>
+          <class name="bubble"/>
+        </style>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkButton" id="add_button">
+        <property name="valign">center</property>
+        <property name="icon-name">list-add-symbolic</property>
+        <style>
+          <class name="circular"/>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>

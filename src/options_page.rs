@@ -9,7 +9,10 @@ use glib::clone;
 
 use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
-use crate::profile_object::{CheckMode, RecurseMode, ProfileObject};
+use crate::{
+    profile_object::{CheckMode, RecurseMode, ProfileObject},
+    filter_expander_row::FilterExpanderRow
+};
 
 //------------------------------------------------------------------------------
 // MODULE: OptionsPage
@@ -44,7 +47,7 @@ mod imp {
         #[template_child]
         pub(super) recurse_mode_combo: TemplateChild<adw::ComboRow>,
         #[template_child]
-        pub(super) extra_options_row: TemplateChild<adw::EntryRow>,
+        pub(super) filter_expander_row: TemplateChild<FilterExpanderRow>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -288,6 +291,9 @@ impl OptionsPage {
                 // Set copy by name button initial state
                 imp.copy_by_name_button.set_active(!profile.source().ends_with('/'));
 
+                // Create filter rows
+                imp.filter_expander_row.create_filter_rows(&profile.filters());
+
                 // Bind profile property to widgets
                 let bindings: Vec<glib::Binding> = vec![
                     profile.bind_property("source", &imp.source_row.get(), "subtitle")
@@ -318,7 +324,7 @@ impl OptionsPage {
                         .sync_create()
                         .build(),
 
-                    profile.bind_property("extra-options", &imp.extra_options_row.get(), "text")
+                    profile.bind_property("filters", &imp.filter_expander_row.get(), "subtitle")
                         .bidirectional()
                         .sync_create()
                         .build(),

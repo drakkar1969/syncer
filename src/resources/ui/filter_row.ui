@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// FilterRow template //-->
+  <template class="FilterRow" parent="AdwActionRow">
+    <style>
+      <class name="property"/>
+    </style>
+    <child type="prefix">
+      <object class="GtkImage">
+        <property name="valign">center</property>
+        <property name="icon-name">list-drag-handle-symbolic</property>
+        <style>
+          <class name="dimmed"/>
+        </style>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkButton" id="delete_button">
+        <property name="valign">center</property>
+        <property name="icon-name">stats-deleted-symbolic</property>
+        <style>
+          <class name="circular"/>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>

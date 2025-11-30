@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/com/github/Syncer/icons/scalable/actions/">
     <file alias="options-copy-byname-symbolic.svg">icons/options-copy-byname-symbolic.svg</file>
+    <file alias="options-filter-symbolic.svg">icons/options-filter-symbolic.svg</file>
     <file alias="options-recurse-symbolic.svg">icons/options-recurse-symbolic.svg</file>
     <file alias="options-swap-symbolic.svg">icons/options-swap-symbolic.svg</file>
     <file alias="rsync-start-symbolic.svg">icons/rsync-start-symbolic.svg</file>
@@ -27,12 +28,15 @@
   <gresource prefix="/com/github/Syncer/">
     <file compressed="true">style.css</file>
     <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
+    <file compressed="true">ui/builder/filter_dialog.ui</file>
     <file compressed="true">ui/builder/profile_dialog.ui</file>
     <file compressed="true">ui/builder/rsync_cmdline_dialog.ui</file>
     <file compressed="true">ui/options_page/profile_item.ui</file>
     <file compressed="true">ui/options_page/profile_list_item.ui</file>
     <file compressed="true">ui/advanced_page.ui</file>
     <file compressed="true">ui/adv_switchrow.ui</file>
+    <file compressed="true">ui/filter_expander_row.ui</file>
+    <file compressed="true">ui/filter_row.ui</file>
     <file compressed="true">ui/options_page.ui</file>
     <file compressed="true">ui/output_header.ui</file>
     <file compressed="true">ui/output_item.ui</file>
