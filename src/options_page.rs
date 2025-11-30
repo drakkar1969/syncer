@@ -289,7 +289,9 @@ impl OptionsPage {
 
             if let Some(profile) = page.profile() {
                 // Set copy by name button initial state
-                imp.copy_by_name_button.set_active(!profile.source().ends_with('/'));
+                let source = profile.source();
+
+                imp.copy_by_name_button.set_active(!source.is_empty() && !source.ends_with('/'));
 
                 // Bind profile property to widgets
                 let bindings: Vec<glib::Binding> = vec![
