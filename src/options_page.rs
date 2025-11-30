@@ -10,10 +10,7 @@ use glib::clone;
 
 use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
-use crate::{
-    profile_object::{CheckMode, RecurseMode, ProfileObject},
-    filter_expander_row::FilterExpanderRow
-};
+use crate::profile_object::{CheckMode, RecurseMode, ProfileObject};
 
 //------------------------------------------------------------------------------
 // MODULE: OptionsPage
@@ -47,8 +44,6 @@ mod imp {
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) recurse_mode_combo: TemplateChild<adw::ComboRow>,
-        #[template_child]
-        pub(super) filter_expander_row: TemplateChild<FilterExpanderRow>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -323,19 +318,11 @@ impl OptionsPage {
                         })
                         .bidirectional()
                         .sync_create()
-                        .build(),
-
-                    profile.bind_property("filters", &imp.filter_expander_row.get(), "filters")
-                        .bidirectional()
-                        .sync_create()
-                        .build(),
+                        .build()
                 ];
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
-
-                // Contract filter expander row
-                imp.filter_expander_row.set_expanded(false);
             }
         });
 

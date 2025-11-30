@@ -6,6 +6,7 @@ use gtk::glib;
 
 use crate::{
     profile_object::ProfileObject,
+    filter_expander_row::FilterExpanderRow,
     adv_switchrow::AdvSwitchRow
 };
 
@@ -22,6 +23,8 @@ mod imp {
     #[properties(wrapper_type = super::AdvancedPage)]
     #[template(resource = "/com/github/Syncer/ui/advanced_page.ui")]
     pub struct AdvancedPage {
+        #[template_child]
+        pub(super) filter_expander_row: TemplateChild<FilterExpanderRow>,
         #[template_child]
         pub(super) switches_box: TemplateChild<gtk::Box>,
 
@@ -130,6 +133,13 @@ impl AdvancedPage {
                     })
                     .collect();
 
+                bindings.push(
+                    profile.bind_property("filters", &imp.filter_expander_row.get(), "filters")
+                        .bidirectional()
+                        .sync_create()
+                        .build()
+                );
+
                 // Bind profile property to page title
                 bindings.push(
                     profile.bind_property("name", page, "title")
@@ -139,6 +149,9 @@ impl AdvancedPage {
 
                 // Store bindings
                 imp.bindings.replace(Some(bindings));
+
+                // Contract filter expander row
+                imp.filter_expander_row.set_expanded(false);
             }
         });
     }
