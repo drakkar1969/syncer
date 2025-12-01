@@ -25,7 +25,7 @@ mod imp {
         #[template_child]
         pub(super) delete_button: TemplateChild<gtk::Button>,
 
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         filter: RefCell<String>,
     }
 
@@ -122,22 +122,14 @@ impl FilterRow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
-        // Bind filter property to widget
-        self.bind_property("filter", self, "title")
-            .transform_to(|_, filter: String| {
-                filter.split_once("=")
-                    .map(|(type_, _)| case::capitalize_first(type_.trim_start_matches("--")))
-            })
-            .sync_create()
-            .build();
+        // Set title and subtitle
+        let filter = self.filter();
 
-        self.bind_property("filter", self, "subtitle")
-            .transform_to(|_, filter: String| {
-                filter.split_once("=")
-                    .map(|(_, filter)| filter.trim_matches('"').to_owned())
-            })
-            .sync_create()
-            .build();
+        let (type_, rule) = filter.split_once("=")
+            .expect("Could not split filter");
+
+        self.set_title(&case::capitalize_first(type_.trim_start_matches("--")));
+        self.set_subtitle(rule.trim_matches('"'));
 
         // Create drag source
         let drag_source = gtk::DragSource::builder()
