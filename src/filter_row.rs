@@ -125,7 +125,7 @@ impl FilterRow {
         // Set title and subtitle
         let filter = self.filter();
 
-        let (type_, rule) = filter.split_once("=")
+        let (type_, rule) = filter.split_once('=')
             .expect("Could not split filter");
 
         self.set_title(&case::capitalize_first(type_.trim_start_matches("--")));

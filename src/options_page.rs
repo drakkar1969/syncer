@@ -244,7 +244,7 @@ impl OptionsPage {
         dialog.set_initial_folder(
             row.subtitle()
                 .filter(|subtitle| !subtitle.is_empty())
-                .or_else(|| env::var("HOME").ok().map(|s| s.into()))
+                .or_else(|| env::var("HOME").ok().map(Into::into))
                 .map(gio::File::for_path)
                 .as_ref()
         );

@@ -85,6 +85,8 @@ impl FilterExpanderRow {
 
         // Filters property notify signal
         self.connect_filters_notify(|expander| {
+            let filters = expander.filters();
+
             if !expander.imp().internal_change.get() {
                 let listbox = expander.listbox();
 
@@ -92,14 +94,12 @@ impl FilterExpanderRow {
                 listbox.remove_all();
 
                 // Create new filter rows
-                for filter in expander.filters().iter() {
+                for filter in &filters {
                     let row = expander.new_filter_row(filter);
 
                     listbox.append(&row);
                 }
             }
-
-            let filters = expander.filters();
 
             expander.set_expanded(!filters.is_empty());
             expander.set_enable_expansion(!filters.is_empty());
