@@ -160,12 +160,10 @@ impl FilterExpanderRow {
 
                 imp.internal_change.set(true);
 
-                let pos = expander.filters().iter()
-                    .position(|filter| filter == &row.filter())
-                    .expect("Could not find filter");
+                let pos = row.index();
 
                 let mut filters = expander.filters();
-                filters.remove(pos);
+                filters.remove(pos as usize);
                 expander.set_filters(filters);
 
                 expander.listbox().remove(&row);
