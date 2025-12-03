@@ -386,11 +386,9 @@ impl OptionsPage {
         // Bind check mode combo selected item to subtitle
         imp.check_mode_combo.bind_property("selected-item", &imp.check_mode_combo.get(), "subtitle")
             .transform_to(|_, obj: Option<glib::Object>| {
-                let mode = obj
-                    .and_downcast::<adw::EnumListItem>()
-                    .and_then(|item| CheckMode::from_repr(item.value() as u32))?;
+                let item = obj.and_downcast::<adw::EnumListItem>()?;
 
-                mode.desc()
+                CheckMode::from_repr(item.value() as u32)?.desc()
             })
             .sync_create()
             .build();
@@ -398,11 +396,9 @@ impl OptionsPage {
         // Bind recurse mode combo selected item to subtitle
         imp.recurse_mode_combo.bind_property("selected-item", &imp.recurse_mode_combo.get(), "subtitle")
             .transform_to(|_, obj: Option<glib::Object>| {
-                let mode = obj
-                    .and_downcast::<adw::EnumListItem>()
-                    .and_then(|item| RecurseMode::from_repr(item.value() as u32))?;
+                let item = obj.and_downcast::<adw::EnumListItem>()?;
 
-                mode.desc()
+                RecurseMode::from_repr(item.value() as u32)?.desc()
             })
             .sync_create()
             .build();

@@ -80,9 +80,11 @@ impl OutputItem {
             RsyncMsgType::Error => Some("rsync-error-symbolic"),
             RsyncMsgType::Stat => Some("stats-symbolic"),
             RsyncMsgType::Info => {
-                if msg.to_ascii_lowercase().starts_with("deleting") {
+                let msg_lower = msg.to_ascii_lowercase();
+
+                if msg_lower.starts_with("deleting") {
                     Some("stats-deleted-symbolic")
-                } else if msg.to_ascii_lowercase().starts_with("skipping") {
+                } else if msg_lower.starts_with("skipping") {
                     Some("stats-skipped-symbolic")
                 } else {
                     Some("stats-info-symbolic")
