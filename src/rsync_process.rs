@@ -394,6 +394,7 @@ impl RsyncProcess {
                     .args(args)
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
+                    .kill_on_drop(true)
                     .spawn()?;
 
                 // Get sdtout/stderr handles
