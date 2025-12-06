@@ -31,12 +31,12 @@ impl OutputObject {
 }
 
 //------------------------------------------------------------------------------
-// ENUM: FilterType
+// ENUM: OutputFilter
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
-#[enum_type(name = "FilterType")]
-pub enum FilterType {
+#[enum_type(name = "OutputFilter")]
+pub enum OutputFilter {
     #[default]
     All,
     Info,
@@ -88,8 +88,8 @@ mod imp {
         #[template_child]
         pub(super) header_factory: TemplateChild<gtk::SignalListItemFactory>,
 
-        #[property(get, set, builder(FilterType::default()))]
-        filter_type: Cell<FilterType>,
+        #[property(get, set, builder(OutputFilter::default()))]
+        filter_type: Cell<OutputFilter>,
     }
 
     //---------------------------------------
@@ -206,12 +206,12 @@ impl OutputWindow {
             imp.filter.changed(gtk::FilterChange::Different);
 
             let icon = match window.filter_type() {
-                FilterType::All => "stats-symbolic",
-                FilterType::Info => "stats-info-symbolic",
-                FilterType::Files => "stats-file-symbolic",
-                FilterType::Dirs => "stats-dir-symbolic",
-                FilterType::Links => "stats-link-symbolic",
-                FilterType::Specials => "stats-special-symbolic",
+                OutputFilter::All => "stats-symbolic",
+                OutputFilter::Info => "stats-info-symbolic",
+                OutputFilter::Files => "stats-file-symbolic",
+                OutputFilter::Dirs => "stats-dir-symbolic",
+                OutputFilter::Links => "stats-link-symbolic",
+                OutputFilter::Specials => "stats-special-symbolic",
             };
 
             imp.filter_button.set_icon_name(icon);
@@ -338,12 +338,12 @@ impl OutputWindow {
                 }
 
                 match window.filter_type() {
-                    FilterType::All => true,
-                    FilterType::Info => tag == RsyncMsgType::Info,
-                    FilterType::Files => tag == RsyncMsgType::f,
-                    FilterType::Dirs => tag == RsyncMsgType::d,
-                    FilterType::Links => tag == RsyncMsgType::L,
-                    FilterType::Specials => tag == RsyncMsgType::D || tag == RsyncMsgType::S,
+                    OutputFilter::All => true,
+                    OutputFilter::Info => tag == RsyncMsgType::Info,
+                    OutputFilter::Files => tag == RsyncMsgType::f,
+                    OutputFilter::Dirs => tag == RsyncMsgType::d,
+                    OutputFilter::Links => tag == RsyncMsgType::L,
+                    OutputFilter::Specials => tag == RsyncMsgType::D || tag == RsyncMsgType::S,
                 }
             }
         ));
@@ -435,7 +435,7 @@ impl OutputWindow {
 
         imp.search_entry.set_text("");
 
-        self.set_filter_type(FilterType::default());
+        self.set_filter_type(OutputFilter::default());
     }
 
     //---------------------------------------
