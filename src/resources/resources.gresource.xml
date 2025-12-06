@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/Syncer/icons/scalable/actions/">
+    <file alias="options-clear-symbolic.svg">icons/options-clear-symbolic.svg</file>
     <file alias="options-copy-byname-symbolic.svg">icons/options-copy-byname-symbolic.svg</file>
     <file alias="options-filter-symbolic.svg">icons/options-filter-symbolic.svg</file>
     <file alias="options-recurse-symbolic.svg">icons/options-recurse-symbolic.svg</file>

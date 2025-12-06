@@ -22,6 +22,8 @@ mod imp {
     pub struct FilterExpanderRow {
         #[template_child]
         pub(super) add_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) delete_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
         filters: RefCell<Vec<String>>,
@@ -128,6 +130,22 @@ impl FilterExpanderRow {
                         imp.internal_change.set(false);
                     }
                 ));
+            }
+        ));
+
+        // Delete button clicked signal
+        imp.delete_button.connect_clicked(clone!(
+            #[weak(rename_to = expander)] self,
+            move |_| {
+                let imp = expander.imp();
+
+                imp.internal_change.set(true);
+
+                expander.set_filters(vec![]);
+
+                expander.listbox().remove_all();
+
+                imp.internal_change.set(false);
             }
         ));
     }

@@ -17,7 +17,8 @@
     <child type="suffix">
       <object class="GtkButton" id="delete_button">
         <property name="valign">center</property>
-        <property name="icon-name">stats-deleted-symbolic</property>
+        <property name="icon-name">options-clear-symbolic</property>
+        <property name="tooltip-text">Delete Filter</property>
         <style>
           <class name="circular"/>
           <class name="flat"/>

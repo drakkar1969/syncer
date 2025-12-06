@@ -9,9 +9,21 @@
       <class name="property"/>
     </style>
     <child type="suffix">
+      <object class="GtkButton" id="delete_button">
+        <property name="valign">center</property>
+        <property name="icon-name">stats-deleted-symbolic</property>
+        <property name="tooltip-text">Delete All Filters</property>
+        <style>
+          <class name="circular"/>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+    <child type="suffix">
       <object class="GtkButton" id="add_button">
         <property name="valign">center</property>
         <property name="icon-name">options-filter-symbolic</property>
+        <property name="tooltip-text">Add Filter</property>
         <style>
           <class name="circular"/>
           <class name="flat"/>
