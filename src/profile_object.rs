@@ -329,7 +329,7 @@ impl ProfileObject {
         options.extend_from_slice(&advanced);
 
         // Filters
-        let replace = if quoted { "\"" } else { "" };
+        let replace = if quoted { "'" } else { "" };
 
         if !self.filters().is_empty() {
             let mut filters = self.filters().into_iter()
