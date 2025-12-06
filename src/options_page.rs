@@ -8,7 +8,7 @@ use adw::prelude::*;
 use gtk::{gio, glib, gdk};
 use glib::clone;
 
-use serde_json::{to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
+use serde_json::{json, to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
 use crate::profile_object::{CheckMode, RecurseMode, ProfileObject};
 
@@ -466,7 +466,7 @@ impl OptionsPage {
     pub fn load_config(&self) -> io::Result<()> {
         let imp = self.imp();
 
-        // Load profiles from config file
+        // Load config file
         let config_path = xdg::BaseDirectories::new()
             .find_config_file("Syncer/config.json")
             .ok_or_else(|| io::Error::other("Config file not found"))?;
@@ -475,12 +475,28 @@ impl OptionsPage {
 
         let json_object: JsonMap<String, JsonValue> = from_str(&json_str)?;
 
-        let profiles: Vec<ProfileObject> = json_object.iter()
+        // Get profile list
+        let profile_object = json_object.get("profiles")
+            .and_then(|value| value.as_object())
+            .ok_or_else(|| io::Error::other("Could not load profiles from config file"))?;
+
+        let profiles: Vec<ProfileObject> = profile_object.iter()
             .filter_map(|(name, value)| ProfileObject::from_json(name, value))
             .collect();
 
         // Add profiles to model
         imp.profile_model.splice(0, 0, &profiles);
+
+        // Select current profile
+        if let Some(pos) = json_object.get("current-profile")
+            .and_then(|value| value.as_str().filter(|profile| !profile.is_empty()))
+            .and_then(|current_profile| {
+                imp.profile_model.iter::<ProfileObject>()
+                    .flatten()
+                    .position(|profile| profile.name() == current_profile)
+            }) {
+                imp.profile_dropdown.set_selected(pos as u32);
+            }
 
         Ok(())
     }
@@ -489,11 +505,21 @@ impl OptionsPage {
     // Save config function
     //---------------------------------------
     pub fn save_config(&self) -> io::Result<()> {
-        let json_object: JsonMap<String, JsonValue> = self.imp().profile_model
+        let imp = self.imp();
+
+        let current_profile = imp.profile_dropdown.selected_item()
+            .and_downcast::<ProfileObject>()
+            .map_or_else(String::new, |profile| profile.name());
+
+        let profiles_object: JsonMap<String, JsonValue> = imp.profile_model
             .iter::<ProfileObject>()
             .flatten()
             .map(|profile| profile.to_json())
             .collect();
+
+        let mut json_object = JsonMap::new();
+        json_object.insert(String::from("current-profile"), json!(current_profile));
+        json_object.insert(String::from("profiles"), profiles_object.into());
 
         let config_path = xdg::BaseDirectories::new()
             .place_config_file("Syncer/config.json")?;
