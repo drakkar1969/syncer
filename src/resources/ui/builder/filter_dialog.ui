@@ -3,7 +3,7 @@
     <property name="heading">Add Filter</property>
     <property name="default-response">add</property>
     <property name="close-response">cancel</property>
-    <property name="focus-widget">filter_entry</property>
+    <property name="focus-widget">pattern_entry</property>
     <property name="extra-child">
       <object class="GtkBox">
         <property name="orientation">vertical</property>
@@ -13,21 +13,21 @@
             <property name="width-request">300</property>
             <property name="separate-rows">true</property>
             <child>
-              <object class="AdwComboRow" id="type_combo">
-                <property name="title">Type</property>
+              <object class="AdwComboRow" id="rule_combo">
+                <property name="title">Rule</property>
                 <property name="model">
-                  <object class="GtkStringList">
-                    <items>
-                      <item>Exclude</item>
-                      <item>Include</item>
-                    </items>
+                  <object class="AdwEnumListModel">
+                    <property name="enum-type">RsyncFilterRule</property>
                   </object>
+                </property>
+                <property name="expression">
+                  <lookup type="AdwEnumListItem" name="name"/>
                 </property>
               </object>
             </child>
             <child>
-              <object class="AdwEntryRow" id="filter_entry">
-                <property name="title">Filter</property>
+              <object class="AdwEntryRow" id="pattern_entry">
+                <property name="title">Pattern</property>
                 <property name="activates-default">true</property>
               </object>
             </child>

@@ -1,4 +1,5 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
+use std::marker::PhantomData;
 use std::sync::OnceLock;
 
 use adw::prelude::*;
@@ -7,7 +8,7 @@ use gtk::{gdk, glib};
 use glib::clone;
 use glib::subclass::Signal;
 
-use crate::utils::case;
+use crate::filter_expander_row::RsyncFilterRule;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterRow
@@ -25,8 +26,13 @@ mod imp {
         #[template_child]
         pub(super) delete_button: TemplateChild<gtk::Button>,
 
+        #[property(get, set, construct_only, builder(RsyncFilterRule::default()))]
+        rule: Cell<RsyncFilterRule>,
         #[property(get, set, construct_only)]
-        filter: RefCell<String>,
+        pattern: RefCell<String>,
+
+        #[property(get = Self::filter)]
+        filter: PhantomData<String>,
     }
 
     //---------------------------------------
@@ -82,6 +88,18 @@ mod imp {
     impl ListBoxRowImpl for FilterRow {}
     impl PreferencesRowImpl for FilterRow {}
     impl ActionRowImpl for FilterRow {}
+
+    impl FilterRow {
+        //---------------------------------------
+        // Filter property getter
+        //---------------------------------------
+        fn filter(&self) -> String {
+            let rule_str = self.rule.get().rule()
+                .expect("Could not get rule from 'RsyncFilterRule'");
+
+            format!("-f'{} {}'", rule_str, self.pattern.borrow())
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -97,9 +115,10 @@ impl FilterRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(filter: &str) -> Self {
+    pub fn new(rule: RsyncFilterRule, pattern: &str) -> Self {
         glib::Object::builder()
-            .property("filter", filter)
+            .property("rule", rule)
+            .property("pattern", pattern)
             .build()
     }
 
@@ -123,13 +142,8 @@ impl FilterRow {
     //---------------------------------------
     fn setup_widgets(&self) {
         // Set title and subtitle
-        let filter = self.filter();
-
-        let (type_, rule) = filter.split_once('=')
-            .expect("Could not split filter");
-
-        self.set_title(&case::capitalize_first(type_.trim_start_matches("--")));
-        self.set_subtitle(rule.trim_matches('"'));
+        self.set_title(&format!("{:?}", self.rule()));
+        self.set_subtitle(&self.pattern());
 
         // Create drag source
         let drag_source = gtk::DragSource::builder()
@@ -148,7 +162,7 @@ impl FilterRow {
             let listbox = source.widget()
                 .and_downcast::<Self>()
                 .map(|row| {
-                    let drag_row = Self::new(&row.filter());
+                    let drag_row = Self::new(row.rule(), &row.pattern());
 
                     let listbox = gtk::ListBox::new();
                     listbox.set_size_request(row.width(), row.height());

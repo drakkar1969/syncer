@@ -4,8 +4,43 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
 use glib::{clone, closure_local};
+use glib::translate::IntoGlib;
+
+use strum::{EnumIter, EnumProperty, FromRepr, IntoEnumIterator};
 
 use crate::filter_row::FilterRow;
+
+//------------------------------------------------------------------------------
+// ENUM: RsyncFilterRule
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, EnumProperty, FromRepr)]
+#[repr(u32)]
+#[enum_type(name = "RsyncFilterRule")]
+pub enum RsyncFilterRule {
+    #[strum(props(Rule="-"))]
+    Exclude,
+    #[strum(props(Rule="+"))]
+    Include,
+    #[default]
+    #[strum(props(Rule="H"))]
+    Hide,
+    #[strum(props(Rule="S"))]
+    Show,
+    #[strum(props(Rule="P"))]
+    Protect,
+    #[strum(props(Rule="R"))]
+    Risk
+}
+
+impl RsyncFilterRule {
+    pub fn value(self) -> u32 {
+        self.into_glib() as u32
+    }
+
+    pub fn rule<'a>(self) -> Option<&'a str> {
+        self.get_str("Rule")
+    }
+}
 
 //------------------------------------------------------------------------------
 // MODULE: FilterExpanderRow
@@ -41,6 +76,8 @@ mod imp {
         type ParentType = adw::ExpanderRow;
 
         fn class_init(klass: &mut Self::Class) {
+            RsyncFilterRule::ensure_type();
+
             klass.bind_template();
         }
 
@@ -97,9 +134,18 @@ impl FilterExpanderRow {
 
                 // Create new filter rows
                 for filter in &filters {
-                    let row = expander.new_filter_row(filter);
+                    let (rule_str, pattern) = filter
+                        .trim_start_matches("-f")
+                        .trim_matches(['"', '\''])
+                        .split_once(' ')
+                        .expect("Could not split filter string");
 
-                    listbox.append(&row);
+                    if let Some(rule) = RsyncFilterRule::iter()
+                        .find(|rule| rule.rule() == Some(rule_str)) {
+                            let row = expander.new_filter_row(rule, pattern);
+
+                            listbox.append(&row);
+                        }
                 }
             }
 
@@ -115,17 +161,17 @@ impl FilterExpanderRow {
             move |_| {
                 expander.filter_dialog(clone!(
                     #[weak] expander,
-                    move |filter| {
+                    move |rule, pattern| {
                         let imp = expander.imp();
 
                         imp.internal_change.set(true);
 
-                        let mut filters = expander.filters();
-                        filters.push(filter.to_owned());
-                        expander.set_filters(filters);
-
-                        let row = expander.new_filter_row(filter);
+                        let row = expander.new_filter_row(rule, pattern);
                         expander.listbox().append(&row);
+
+                        let mut filters = expander.filters();
+                        filters.push(row.filter());
+                        expander.set_filters(filters);
 
                         imp.internal_change.set(false);
                     }
@@ -168,8 +214,8 @@ impl FilterExpanderRow {
     //---------------------------------------
     // New filter row function
     //---------------------------------------
-    fn new_filter_row(&self, filter: &str) -> FilterRow {
-        let row = FilterRow::new(filter);
+    fn new_filter_row(&self, rule: RsyncFilterRule, pattern: &str) -> FilterRow {
+        let row = FilterRow::new(rule, pattern);
 
         row.connect_closure("deleted", false, closure_local!(
             #[weak(rename_to = expander)] self,
@@ -220,32 +266,34 @@ impl FilterExpanderRow {
     // Filter dialog function
     //---------------------------------------
     fn filter_dialog<F>(&self, f: F)
-    where F: Fn(&str) + 'static {
+    where F: Fn(RsyncFilterRule, &str) + 'static {
         let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/filter_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
             .expect("Could not get object from resource");
 
-        let type_combo: adw::ComboRow = builder.object("type_combo")
+        let rule_combo: adw::ComboRow = builder.object("rule_combo")
             .expect("Could not get object from resource");
 
-        let filter_entry: adw::EntryRow = builder.object("filter_entry")
+        let pattern_entry: adw::EntryRow = builder.object("pattern_entry")
             .expect("Could not get object from resource");
 
-        filter_entry.connect_changed(clone!(
+        pattern_entry.connect_changed(clone!(
             #[weak] dialog,
             move |entry| {
                 dialog.set_response_enabled("add", !entry.text().is_empty());
             }
         ));
 
-        dialog.connect_response(Some("add"), move |_, _| {
-            let type_ = type_combo.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Could not downcast to 'GtkStringObject'")
-                .string();
+        rule_combo.set_selected(RsyncFilterRule::default().value());
 
-            f(&format!("--{}=\"{}\"", type_.to_ascii_lowercase(), filter_entry.text()));
+        dialog.connect_response(Some("add"), move |_, _| {
+            let rule = rule_combo.selected_item()
+                .and_downcast::<adw::EnumListItem>()
+                .and_then(|item| RsyncFilterRule::from_repr(item.value() as u32))
+                .unwrap_or_default();
+
+            f(rule, &pattern_entry.text());
         });
 
         dialog.present(Some(self));
