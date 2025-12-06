@@ -261,11 +261,8 @@ impl AppWindow {
             #[weak] imp,
             #[upgrade_or] None,
             move |view| {
-                if view.visible_page_tag() == Some("options".into()) {
-                    Some(imp.advanced_page.get().into())
-                } else {
-                    None
-                }
+                (view.visible_page_tag() == Some("options".into()))
+                    .then(|| imp.advanced_page.get().into())
             }
         ));
 
