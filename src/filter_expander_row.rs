@@ -124,9 +124,11 @@ impl FilterExpanderRow {
 
         // Filters property notify signal
         self.connect_filters_notify(|expander| {
+            let imp = expander.imp();
+
             let filters = expander.filters();
 
-            if !expander.imp().internal_change.get() {
+            if !imp.internal_change.get() {
                 let listbox = expander.listbox();
 
                 // Remove all filter rows
@@ -151,6 +153,8 @@ impl FilterExpanderRow {
                     listbox.append(&row);
                 }
             }
+
+            imp.delete_button.set_sensitive(!filters.is_empty());
 
             expander.set_expanded(!filters.is_empty());
             expander.set_enable_expansion(!filters.is_empty());
