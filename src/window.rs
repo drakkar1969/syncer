@@ -165,6 +165,8 @@ mod imp {
 
                     // Start rsync
                     let _ = imp.rsync_page.rsync_process().start(args).await;
+
+                    imp.rsync_page.set_can_pop(true);
                 }
             );
 

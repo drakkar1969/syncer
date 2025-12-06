@@ -486,7 +486,9 @@ impl RsyncProcess {
             }
         }
 
-        rsync_task.await?
+        rsync_task
+            .await
+            .expect("Failed to complete tokio task")
     }
 
     //---------------------------------------

@@ -360,7 +360,5 @@ impl RsyncPage {
                 }
             ));
         }
-
-        self.set_can_pop(true);
     }
 }
