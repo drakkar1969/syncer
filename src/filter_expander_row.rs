@@ -134,18 +134,21 @@ impl FilterExpanderRow {
 
                 // Create new filter rows
                 for filter in &filters {
-                    let (rule_str, pattern) = filter
+                    let Some((rule_str, pattern)) = filter
                         .trim_start_matches("-f")
                         .trim_matches(['"', '\''])
-                        .split_once(' ')
-                        .expect("Could not split filter string");
+                        .split_once(' ') else {
+                            continue;
+                        };
 
-                    if let Some(rule) = RsyncFilterRule::iter()
-                        .find(|rule| rule.rule() == Some(rule_str)) {
-                            let row = expander.new_filter_row(rule, pattern);
+                    let Some(rule) = RsyncFilterRule::iter()
+                        .find(|rule| rule.rule() == Some(rule_str)) else {
+                            continue;
+                        };
 
-                            listbox.append(&row);
-                        }
+                    let row = expander.new_filter_row(rule, pattern);
+
+                    listbox.append(&row);
                 }
             }
 
