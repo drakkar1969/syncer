@@ -294,7 +294,7 @@ impl RsyncPage {
     //---------------------------------------
     // Set exit status function
     //---------------------------------------
-    pub fn set_exit_status(&self, code: i32, messages: RsyncMessages) {
+    fn set_exit_status(&self, code: i32, messages: RsyncMessages) {
         let imp = self.imp();
 
         // Ensure progress bar at 100% if success
