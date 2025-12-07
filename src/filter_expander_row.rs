@@ -136,17 +136,15 @@ impl FilterExpanderRow {
 
                 // Create new filter rows
                 for filter in &filters {
-                    let Some((rule_str, pattern)) = filter
+                    let (rule_str, pattern) = filter
                         .trim_start_matches("-f")
                         .trim_matches(['"', '\''])
-                        .split_once(' ') else {
-                            continue;
-                        };
+                        .split_once(' ')
+                        .expect("Failed to split filter");
 
-                    let Some(rule) = RsyncFilterRule::iter()
-                        .find(|rule| rule.rule() == Some(rule_str)) else {
-                            continue;
-                        };
+                    let rule = RsyncFilterRule::iter()
+                        .find(|rule| rule.rule() == Some(rule_str))
+                        .expect("Failed to find filter rule");
 
                     let row = expander.new_filter_row(rule, pattern);
 
