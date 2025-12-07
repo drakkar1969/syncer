@@ -416,9 +416,6 @@ impl OutputWindow {
 
                     imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
                 }
-
-                // Set initial focus on view
-                imp.view.grab_focus();
             }
         ));
     }
@@ -447,6 +444,9 @@ impl OutputWindow {
         self.set_transient_for(Some(window));
 
         self.present();
+
+        // Set initial focus on view
+        imp.view.grab_focus();
 
         // Scroll to start
         glib::idle_add_local_once(clone!(
