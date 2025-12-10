@@ -41,8 +41,7 @@
           <object class="GtkGrid">
             <property name="hexpand">true</property>
             <property name="row-spacing">8</property>
-            <property name="column-spacing">24</property>
-            <!-- <property name="column-homogeneous">true</property> -->
+            <property name="column-spacing">32</property>
             <child>
               <object class="GtkLabel">
                 <layout>
@@ -148,12 +147,20 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkSeparator">
                 <layout>
                   <property name="row">0</property>
                   <property name="column">2</property>
+                  <property name="row-span">4</property>
                 </layout>
-                <property name="margin-start">42</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <layout>
+                  <property name="row">0</property>
+                  <property name="column">3</property>
+                </layout>
                 <property name="xalign">0</property>
                 <property name="label">File Size</property>
                 <style>
@@ -166,7 +173,7 @@
               <object class="GtkLabel" id="source_size_label">
                 <layout>
                   <property name="row">0</property>
-                  <property name="column">3</property>
+                  <property name="column">4</property>
                 </layout>
                 <property name="xalign">1</property>
                 <style>
@@ -178,9 +185,8 @@
               <object class="GtkLabel">
                 <layout>
                   <property name="row">1</property>
-                  <property name="column">2</property>
+                  <property name="column">3</property>
                 </layout>
-                <property name="margin-start">42</property>
                 <property name="xalign">0</property>
                 <property name="label">Transfer Size</property>
                 <style>
@@ -193,7 +199,7 @@
               <object class="GtkLabel" id="transferred_size_label">
                 <layout>
                   <property name="row">1</property>
-                  <property name="column">3</property>
+                  <property name="column">4</property>
                 </layout>
                 <property name="xalign">1</property>
                 <style>
@@ -205,9 +211,8 @@
               <object class="GtkLabel">
                 <layout>
                   <property name="row">2</property>
-                  <property name="column">2</property>
+                  <property name="column">3</property>
                 </layout>
-                <property name="margin-start">42</property>
                 <property name="xalign">0</property>
                 <property name="label">Bytes Sent</property>
                 <style>
@@ -220,7 +225,7 @@
               <object class="GtkLabel" id="sent_bytes_label">
                 <layout>
                   <property name="row">2</property>
-                  <property name="column">3</property>
+                  <property name="column">4</property>
                 </layout>
                 <property name="xalign">1</property>
                 <style>
@@ -232,9 +237,8 @@
               <object class="GtkLabel">
                 <layout>
                   <property name="row">3</property>
-                  <property name="column">2</property>
+                  <property name="column">3</property>
                 </layout>
-                <property name="margin-start">42</property>
                 <property name="xalign">0</property>
                 <property name="label">Bytes Received</property>
                 <style>
@@ -247,7 +251,7 @@
               <object class="GtkLabel" id="received_bytes_label">
                 <layout>
                   <property name="row">3</property>
-                  <property name="column">3</property>
+                  <property name="column">4</property>
                 </layout>
                 <property name="xalign">1</property>
                 <style>
