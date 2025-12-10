@@ -43,7 +43,7 @@
     <file compressed="true">ui/output_item.ui</file>
     <file compressed="true">ui/output_window.ui</file>
     <file compressed="true">ui/rsync_page.ui</file>
-    <file compressed="true">ui/stats_table.ui</file>
+    <file compressed="true">ui/stats_pane.ui</file>
     <file compressed="true">ui/window.ui</file>
   </gresource>
 </gresources>

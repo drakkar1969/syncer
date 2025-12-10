@@ -8,7 +8,7 @@ use glib::{clone, closure_local};
 
 use crate::{
     profile_object::ProfileObject,
-    stats_table::StatsTable,
+    stats_pane::StatsPane,
     output_window::OutputWindow,
     rsync_process::{RsyncProcess, RsyncMessages}
 };
@@ -44,7 +44,7 @@ mod imp {
         #[template_child]
         pub(super) stats_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) stats_table: TemplateChild<StatsTable>,
+        pub(super) stats_pane: TemplateChild<StatsPane>,
         #[template_child]
         pub(super) button_stack: TemplateChild<gtk::Stack>,
         #[template_child]
@@ -310,7 +310,7 @@ impl RsyncPage {
         if let Some(stats) = stats {
             imp.speed_label.set_label(&format!("{}B/s", stats.speed));
 
-            imp.stats_table.fill(&stats);
+            imp.stats_pane.fill(&stats);
 
             imp.stats_stack.set_visible_child_name("stats");
         } else {

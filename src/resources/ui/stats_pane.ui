@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// StatsTable template //-->
-  <template class="StatsTable" parent="GtkBox">
+  <!--// StatsPane template //-->
+  <template class="StatsPane" parent="GtkBox">
     <style>
       <class name="card"/>
     </style>

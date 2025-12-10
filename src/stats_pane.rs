@@ -4,7 +4,7 @@ use gtk::glib;
 use crate::rsync_process::RsyncStats;
 
 //------------------------------------------------------------------------------
-// MODULE: StatsTable
+// MODULE: StatsPane
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -13,8 +13,8 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/Syncer/ui/stats_table.ui")]
-    pub struct StatsTable {
+    #[template(resource = "/com/github/Syncer/ui/stats_pane.ui")]
+    pub struct StatsPane {
         #[template_child]
         pub(super) source_files_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -38,9 +38,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for StatsTable {
-        const NAME: &'static str = "StatsTable";
-        type Type = super::StatsTable;
+    impl ObjectSubclass for StatsPane {
+        const NAME: &'static str = "StatsPane";
+        type Type = super::StatsPane;
         type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
@@ -52,21 +52,21 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for StatsTable {}
-    impl WidgetImpl for StatsTable {}
-    impl BoxImpl for StatsTable {}
+    impl ObjectImpl for StatsPane {}
+    impl WidgetImpl for StatsPane {}
+    impl BoxImpl for StatsPane {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: StatsTable
+// IMPLEMENTATION: StatsPane
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct StatsTable(ObjectSubclass<imp::StatsTable>)
+    pub struct StatsPane(ObjectSubclass<imp::StatsPane>)
         @extends gtk::Box, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl StatsTable {
+impl StatsPane {
     //---------------------------------------
     // Fill function
     //---------------------------------------
