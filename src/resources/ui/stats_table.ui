@@ -9,8 +9,8 @@
       <object class="GtkBox">
         <property name="margin-start">24</property>
         <property name="margin-end">24</property>
-        <property name="margin-top">16</property>
-        <property name="margin-bottom">16</property>
+        <property name="margin-top">20</property>
+        <property name="margin-bottom">20</property>
         <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
@@ -38,255 +38,223 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox">
-            <property name="spacing">16</property>
+          <object class="GtkGrid">
+            <property name="hexpand">true</property>
+            <property name="row-spacing">8</property>
+            <property name="column-spacing">24</property>
+            <!-- <property name="column-homogeneous">true</property> -->
             <child>
               <object class="GtkLabel">
+                <layout>
+                  <property name="row">0</property>
+                  <property name="column">0</property>
+                </layout>
                 <property name="xalign">0</property>
-                <property name="label">Source</property>
+                <property name="label">Source Files</property>
                 <style>
-                  <class name="heading"/>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
                 </style>
               </object>
             </child>
             <child>
-              <object class="GtkLabel" id="source_total_label">
-                <property name="xalign">0</property>
-                <property name="tooltip-text">On Source</property>
+              <object class="GtkLabel" id="source_files_label">
+                <layout>
+                  <property name="row">0</property>
+                  <property name="column">1</property>
+                </layout>
+                <property name="xalign">1</property>
                 <style>
-                  <class name="heading"/>
                   <class name="numeric"/>
                 </style>
               </object>
             </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkBox">
-            <property name="spacing">20</property>
-            <child>
-              <object class="GtkBox" id="source_files_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Files</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-file-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="source_files_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox" id="source_dirs_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Directories</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-dir-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="source_dirs_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox" id="source_links_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Links</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-link-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="source_links_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox" id="source_specials_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Devices and Special Files</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-special-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="source_specials_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkBox">
-            <property name="margin-top">8</property>
-            <property name="spacing">16</property>
             <child>
               <object class="GtkLabel">
+                <layout>
+                  <property name="row">1</property>
+                  <property name="column">0</property>
+                </layout>
                 <property name="xalign">0</property>
-                <property name="label">Destination</property>
+                <property name="label">Created</property>
                 <style>
-                  <class name="heading"/>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
                 </style>
               </object>
             </child>
             <child>
-              <object class="GtkLabel" id="destination_total_label">
-                <property name="xalign">0</property>
-                <property name="tooltip-text">Transferred to Destination</property>
+              <object class="GtkLabel" id="created_files_label">
+                <layout>
+                  <property name="row">1</property>
+                  <property name="column">1</property>
+                </layout>
+                <property name="xalign">1</property>
                 <style>
-                  <class name="heading"/>
                   <class name="numeric"/>
                 </style>
               </object>
             </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkBox">
-            <property name="spacing">20</property>
             <child>
-              <object class="GtkLabel" id="destination_none_label">
+              <object class="GtkLabel">
+                <layout>
+                  <property name="row">2</property>
+                  <property name="column">0</property>
+                </layout>
                 <property name="xalign">0</property>
-                <property name="label">---</property>
+                <property name="label">Transferred</property>
                 <style>
-                  <class name="caption"/>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
                 </style>
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="destination_files_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Files</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-file-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="destination_files_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
+              <object class="GtkLabel" id="transferred_files_label">
+                <layout>
+                  <property name="row">2</property>
+                  <property name="column">1</property>
+                </layout>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child> 
+            <child>
+              <object class="GtkLabel">
+                <layout>
+                  <property name="row">3</property>
+                  <property name="column">0</property>
+                </layout>
+                <property name="xalign">0</property>
+                <property name="label">Deleted</property>
+                <style>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
+                </style>
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="destination_dirs_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Directories</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-dir-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="destination_dirs_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
+              <object class="GtkLabel" id="deleted_files_label">
+                <layout>
+                  <property name="row">3</property>
+                  <property name="column">1</property>
+                </layout>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="numeric"/>
+                </style>
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="destination_links_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Links</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-link-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="destination_links_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
+              <object class="GtkLabel">
+                <layout>
+                  <property name="row">0</property>
+                  <property name="column">2</property>
+                </layout>
+                <property name="margin-start">42</property>
+                <property name="xalign">0</property>
+                <property name="label">File Size</property>
+                <style>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
+                </style>
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="destination_specials_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Devices and Special Files</property>
-                <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">stats-special-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="destination_specials_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
+              <object class="GtkLabel" id="source_size_label">
+                <layout>
+                  <property name="row">0</property>
+                  <property name="column">3</property>
+                </layout>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child> 
+            <child>
+              <object class="GtkLabel">
+                <layout>
+                  <property name="row">1</property>
+                  <property name="column">2</property>
+                </layout>
+                <property name="margin-start">42</property>
+                <property name="xalign">0</property>
+                <property name="label">Transfer Size</property>
+                <style>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
+                </style>
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="destination_deleted_box">
-                <property name="spacing">6</property>
-                <property name="tooltip-text">Deleted on Destination</property>
-                <child>
-                  <object class="GtkSeparator"/>
-                </child>
-                <child>
-                  <object class="GtkImage">
-                    <property name="margin-start">18</property>
-                    <property name="icon-name">stats-deleted-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="destination_deleted_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="numeric"/>
-                    </style>
-                  </object>
-                </child>
+              <object class="GtkLabel" id="transferred_size_label">
+                <layout>
+                  <property name="row">1</property>
+                  <property name="column">3</property>
+                </layout>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child> 
+            <child>
+              <object class="GtkLabel">
+                <layout>
+                  <property name="row">2</property>
+                  <property name="column">2</property>
+                </layout>
+                <property name="margin-start">42</property>
+                <property name="xalign">0</property>
+                <property name="label">Bytes Sent</property>
+                <style>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
+                </style>
               </object>
             </child>
+            <child>
+              <object class="GtkLabel" id="sent_bytes_label">
+                <layout>
+                  <property name="row">2</property>
+                  <property name="column">3</property>
+                </layout>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child> 
+            <child>
+              <object class="GtkLabel">
+                <layout>
+                  <property name="row">3</property>
+                  <property name="column">2</property>
+                </layout>
+                <property name="margin-start">42</property>
+                <property name="xalign">0</property>
+                <property name="label">Bytes Received</property>
+                <style>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="received_bytes_label">
+                <layout>
+                  <property name="row">3</property>
+                  <property name="column">3</property>
+                </layout>
+                <property name="xalign">1</property>
+                <style>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child> 
           </object>
         </child>
       </object>

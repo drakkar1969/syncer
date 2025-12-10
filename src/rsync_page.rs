@@ -40,14 +40,6 @@ mod imp {
         pub(super) message_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
-        #[template_child]
-        pub(super) source_box: TemplateChild<gtk::Box>,
-        #[template_child]
-        pub(super) source_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) destination_box: TemplateChild<gtk::Box>,
-        #[template_child]
-        pub(super) destination_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) stats_stack: TemplateChild<gtk::Stack>,
@@ -113,27 +105,6 @@ mod imp {
         //---------------------------------------
         fn hidden(&self) {
             self.obj().reset();
-        }
-
-        //---------------------------------------
-        // Showing function
-        //---------------------------------------
-        fn showing(&self) {
-            let obj = self.obj();
-
-            let source = obj.profile()
-                .map(|profile| profile.source())
-                .unwrap_or_default();
-
-            let destination = obj.profile()
-                .map(|profile| profile.destination())
-                .unwrap_or_default();
-
-            self.source_box.set_visible(!source.is_empty() && !destination.is_empty());
-            self.source_label.set_label(&source);
-
-            self.destination_box.set_visible(!source.is_empty() && !destination.is_empty());
-            self.destination_label.set_label(&destination);
         }
     }
 }
@@ -313,8 +284,8 @@ impl RsyncPage {
 
                 imp.message_label.set_label(&format!(
                     "Success: {}B of {}B transferred",
-                    stats.bytes_transferred,
-                    stats.bytes_source
+                    stats.transferred_size,
+                    stats.source_size
                 ));
             }
 

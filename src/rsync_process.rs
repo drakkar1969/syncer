@@ -23,7 +23,7 @@ use nix::{
 };
 use regex::Regex;
 
-use crate::utils::{convert, case};
+use crate::utils::case;
 
 //------------------------------------------------------------------------------
 // CONST Variables
@@ -100,19 +100,14 @@ impl RsyncMessages {
 //------------------------------------------------------------------------------
 #[derive(Default, Debug)]
 pub struct RsyncStats {
-    pub source_total: String,
     pub source_files: String,
-    pub source_dirs: String,
-    pub source_links: String,
-    pub source_specials: String,
-    pub destination_total: String,
-    pub destination_files: String,
-    pub destination_dirs: String,
-    pub destination_links: String,
-    pub destination_specials: String,
-    pub destination_deleted: String,
-    pub bytes_source: String,
-    pub bytes_transferred: String,
+    pub created_files: String,
+    pub transferred_files: String,
+    pub deleted_files: String,
+    pub source_size: String,
+    pub transferred_size: String,
+    pub sent_bytes: String,
+    pub received_bytes: String,
     pub speed: String
 }
 
@@ -550,20 +545,20 @@ impl RsyncProcess {
     pub fn stats(stats: &[String]) -> Option<RsyncStats> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
-                Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*created\s*files:\s*(?P<dt>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*deleted\s*files:\s*(?P<dr>[\d,.]+)\s*\(?(?:reg:\s*(?P<nf>[\d,.]+))?,?\s*(?:dir:\s*(?P<nd>[\d,.]+))?,?\s*(?:link:\s*(?P<nl>[\d,.]+))?,?\s*(?:special:\s*(?P<ns>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tt>[\d,.]+)\n
-                Total\s*file\s*size:\s*(?P<bs>.+)\s*bytes\n
-                Total\s*transferred\s*file\s*size:\s*(?P<bt>.+)\s*bytes\n
+                Number\s*of\s*files:\s*(?P<sfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*created\s*files:\s*(?P<cfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<cf>[\d,.]+))?,?\s*(?:dir:\s*(?P<cd>[\d,.]+))?,?\s*(?:link:\s*(?P<cl>[\d,.]+))?,?\s*(?:special:\s*(?P<cs>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*deleted\s*files:\s*(?P<dfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tfiles>[\d,.]+)\n
+                Total\s*file\s*size:\s*(?P<ssize>.+)\s*bytes\n
+                Total\s*transferred\s*file\s*size:\s*(?P<tsize>.+)\s*bytes\n
                 .*\n
                 .*\n
                 .*\n
                 .*\n
                 .*\n
-                .*\n
-                .*\n
-                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<ts>.*?)\s*bytes
+                Total\s*bytes\s*sent:\s*(?P<sbytes>.*?)\n
+                Total\s*bytes\s*received:\s*(?P<rbytes>.*?)\n
+                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<speed>.*?)\s*bytes
             ")
             .expect("Failed to compile Regex")
         });
@@ -572,32 +567,20 @@ impl RsyncProcess {
             .map(|caps| {
                 let regex_match = |m: &str| -> String {
                     caps.name(m)
-                        .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
+                        .map_or("---", |m| m.as_str().trim_end_matches(',').trim())
                         .to_owned()
                 };
 
-                let d_total = regex_match("dt");
-                let d_files = regex_match("df");
-                let d_transf = regex_match("tt");
-
-                let dest_total = convert::max_str::<u32>(&d_total, &d_transf);
-                let dest_files = convert::max_str::<u32>(&d_files, &d_transf);
-
                 RsyncStats {
-                    source_total: regex_match("st"),
-                    source_files: regex_match("sf"),
-                    source_dirs: regex_match("sd"),
-                    source_links: regex_match("sl"),
-                    source_specials: regex_match("ss"),
-                    destination_total: dest_total,
-                    destination_files: dest_files,
-                    destination_dirs: regex_match("dd"),
-                    destination_links: regex_match("dl"),
-                    destination_specials: regex_match("ds"),
-                    destination_deleted: regex_match("dr"),
-                    bytes_source: regex_match("bs"),
-                    bytes_transferred: regex_match("bt"),
-                    speed: regex_match("ts")
+                    source_files: regex_match("sfiles"),
+                    created_files: regex_match("cfiles"),
+                    deleted_files: regex_match("dfiles"),
+                    transferred_files: regex_match("tfiles"),
+                    source_size: regex_match("ssize"),
+                    transferred_size: regex_match("tsize"),
+                    sent_bytes: regex_match("sbytes"),
+                    received_bytes: regex_match("rbytes"),
+                    speed: regex_match("speed")
                 }
             })
     }
