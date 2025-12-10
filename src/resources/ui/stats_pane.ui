@@ -41,7 +41,7 @@
           <object class="GtkGrid">
             <property name="hexpand">true</property>
             <property name="row-spacing">8</property>
-            <property name="column-spacing">32</property>
+            <property name="column-spacing">28</property>
             <child>
               <object class="GtkLabel">
                 <layout>
