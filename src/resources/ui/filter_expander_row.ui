@@ -22,7 +22,7 @@
     <child type="suffix">
       <object class="GtkButton" id="add_button">
         <property name="valign">center</property>
-        <property name="icon-name">options-filter-symbolic</property>
+        <property name="icon-name">list-add-symbolic</property>
         <property name="tooltip-text">Add Filter</property>
         <style>
           <class name="circular"/>
