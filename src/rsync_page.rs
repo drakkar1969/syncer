@@ -151,10 +151,10 @@ impl RsyncPage {
             #[weak] imp,
             move |process| {
                 if process.paused() {
-                    imp.pause_content.set_icon_name("rsync-start-symbolic");
+                    imp.pause_content.set_icon_name("media-playback-start-symbolic");
                     imp.pause_content.set_label("_Resume");
                 } else {
-                    imp.pause_content.set_icon_name("rsync-pause-symbolic");
+                    imp.pause_content.set_icon_name("media-playback-pause-symbolic");
                     imp.pause_content.set_label("_Pause");
                 }
             }

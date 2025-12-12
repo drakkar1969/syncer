@@ -5,9 +5,6 @@
     <file alias="options-copy-byname-symbolic.svg">icons/options-copy-byname-symbolic.svg</file>
     <file alias="options-recurse-symbolic.svg">icons/options-recurse-symbolic.svg</file>
     <file alias="options-swap-symbolic.svg">icons/options-swap-symbolic.svg</file>
-    <file alias="rsync-start-symbolic.svg">icons/rsync-start-symbolic.svg</file>
-    <file alias="rsync-stop-symbolic.svg">icons/rsync-stop-symbolic.svg</file>
-    <file alias="rsync-pause-symbolic.svg">icons/rsync-pause-symbolic.svg</file>
     <file alias="rsync-sync-symbolic.svg">icons/rsync-sync-symbolic.svg</file>
     <file alias="rsync-message-symbolic.svg">icons/rsync-message-symbolic.svg</file>
     <file alias="rsync-transferred-symbolic.svg">icons/rsync-transferred-symbolic.svg</file>
