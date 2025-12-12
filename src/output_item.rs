@@ -83,11 +83,11 @@ impl OutputItem {
                 let msg_lower = msg.to_ascii_lowercase();
 
                 if msg_lower.starts_with("deleting") {
-                    Some("stats-deleted-symbolic")
+                    Some("user-trash-symbolic")
                 } else if msg_lower.starts_with("skipping") {
-                    Some("stats-skipped-symbolic")
+                    Some("edit-undo-symbolic")
                 } else {
-                    Some("stats-info-symbolic")
+                    Some("info-outline-symbolic")
                 }
             }
             RsyncMsgType::f => Some("stats-file-symbolic"),

@@ -207,7 +207,7 @@ impl OutputWindow {
 
             let icon = match window.filter_type() {
                 OutputFilter::All => "stats-symbolic",
-                OutputFilter::Info => "stats-info-symbolic",
+                OutputFilter::Info => "info-outline-symbolic",
                 OutputFilter::Files => "stats-file-symbolic",
                 OutputFilter::Dirs => "stats-dir-symbolic",
                 OutputFilter::Links => "stats-link-symbolic",
