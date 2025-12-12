@@ -164,7 +164,7 @@ impl FilterExpanderRow {
         imp.add_button.connect_clicked(clone!(
             #[weak(rename_to = expander)] self,
             move |_| {
-                expander.filter_dialog(clone!(
+                expander.filter_dialog("Add", None, clone!(
                     #[weak] expander,
                     move |rule, pattern| {
                         let imp = expander.imp();
@@ -222,6 +222,32 @@ impl FilterExpanderRow {
     fn new_filter_row(&self, rule: RsyncFilterRule, pattern: &str) -> FilterRow {
         let row = FilterRow::new(rule, pattern);
 
+        row.connect_closure("modified", false, closure_local!(
+            #[weak(rename_to = expander)] self,
+            move |row: FilterRow| {
+                expander.filter_dialog("Modify", Some((row.rule(), &row.pattern())), clone!(
+                    #[weak] expander,
+                    move |rule, pattern| {
+                        let imp = expander.imp();
+
+                        imp.internal_change.set(true);
+
+                        row.set_rule(rule);
+                        row.set_pattern(pattern);
+
+                        let pos = row.index() as usize;
+
+                        let mut filters = expander.filters();
+                        filters.remove(pos);
+                        filters.insert(pos, row.filter());
+                        expander.set_filters(filters);
+
+                        imp.internal_change.set(false);
+                    }
+                ));
+            }
+        ));
+
         row.connect_closure("deleted", false, closure_local!(
             #[weak(rename_to = expander)] self,
             move |row: FilterRow| {
@@ -270,12 +296,15 @@ impl FilterExpanderRow {
     //---------------------------------------
     // Filter dialog function
     //---------------------------------------
-    fn filter_dialog<F>(&self, f: F)
+    fn filter_dialog<F>(&self, action: &str, filter: Option<(RsyncFilterRule, &str)>, f: F)
     where F: Fn(RsyncFilterRule, &str) + 'static {
         let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/filter_dialog.ui");
 
         let dialog: adw::AlertDialog = builder.object("dialog")
             .expect("Could not get object from resource");
+
+        dialog.set_heading(Some(&format!("{action} Filter")));
+        dialog.set_response_label("add", action);
 
         let rule_combo: adw::ComboRow = builder.object("rule_combo")
             .expect("Could not get object from resource");
@@ -290,7 +319,12 @@ impl FilterExpanderRow {
             }
         ));
 
-        rule_combo.set_selected(RsyncFilterRule::default().value());
+        if let Some((rule, pattern)) = filter {
+            rule_combo.set_selected(rule.value());
+            pattern_entry.set_text(pattern);
+        } else {
+            rule_combo.set_selected(RsyncFilterRule::default().value());
+        }
 
         dialog.connect_response(Some("add"), move |_, _| {
             let rule = rule_combo.selected_item()

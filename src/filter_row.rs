@@ -24,11 +24,13 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/filter_row.ui")]
     pub struct FilterRow {
         #[template_child]
+        pub(super) modify_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) delete_button: TemplateChild<gtk::Button>,
 
-        #[property(get, set, construct_only, builder(RsyncFilterRule::default()))]
+        #[property(get, set, builder(RsyncFilterRule::default()))]
         rule: Cell<RsyncFilterRule>,
-        #[property(get, set, construct_only)]
+        #[property(get, set)]
         pattern: RefCell<String>,
 
         #[property(get = Self::filter)]
@@ -62,6 +64,8 @@ mod imp {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
                 vec![
+                    Signal::builder("modified")
+                        .build(),
                     Signal::builder("deleted")
                         .build(),
                     Signal::builder("drop")
@@ -128,6 +132,14 @@ impl FilterRow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Modify button clicked signal
+        imp.modify_button.connect_clicked(clone!(
+            #[weak(rename_to = row)] self,
+            move |_| {
+                row.emit_by_name::<()>("modified", &[]);
+            }
+        ));
+
         // Delete button clicked signal
         imp.delete_button.connect_clicked(clone!(
             #[weak(rename_to = row)] self,
@@ -141,9 +153,15 @@ impl FilterRow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
-        // Set title and subtitle
-        self.set_title(&format!("{:?}", self.rule()));
-        self.set_subtitle(&self.pattern());
+        // Bind properties to widget
+        self.bind_property("rule", self, "title")
+            .transform_to(|_, rule: RsyncFilterRule| Some(format!("{:?}", rule)))
+            .sync_create()
+            .build();
+
+        self.bind_property("pattern", self, "subtitle")
+            .sync_create()
+            .build();
 
         // Create drag source
         let drag_source = gtk::DragSource::builder()

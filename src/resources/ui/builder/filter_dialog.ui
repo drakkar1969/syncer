@@ -1,6 +1,5 @@
 <interface>
   <object class="AdwAlertDialog" id="dialog">
-    <property name="heading">Add Filter</property>
     <property name="default-response">add</property>
     <property name="close-response">cancel</property>
     <property name="focus-widget">pattern_entry</property>
