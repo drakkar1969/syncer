@@ -61,6 +61,8 @@ mod imp {
         pub(super) filters_group: TemplateChild<adw::PreferencesGroup>,
         #[template_child]
         pub(super) add_button: TemplateChild<adw::ButtonRow>,
+        #[template_child]
+        pub(super) delete_button: TemplateChild<adw::ButtonRow>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -176,8 +178,9 @@ impl FiltersPage {
         self.connect_filters_notify(|page| {
             let imp = page.imp();
 
+            let filters = page.filters();
+
             if !imp.internal_change.get() {
-                let filters = page.filters();
                 let listbox = page.listbox();
 
                 // Remove all filter rows
@@ -200,6 +203,8 @@ impl FiltersPage {
                     listbox.append(&row);
                 }
             }
+
+            imp.delete_button.set_sensitive(!filters.is_empty());
         });
 
         // Add button activated signal
@@ -223,6 +228,22 @@ impl FiltersPage {
                         imp.internal_change.set(false);
                     }
                 ));
+            }
+        ));
+
+        // Delete button clicked signal
+        imp.delete_button.connect_activated(clone!(
+            #[weak(rename_to = page)] self,
+            move |_| {
+                let imp = page.imp();
+
+                imp.internal_change.set(true);
+
+                page.set_filters(vec![]);
+
+                page.listbox().remove_all();
+
+                imp.internal_change.set(false);
             }
         ));
     }
