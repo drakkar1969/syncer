@@ -8,7 +8,7 @@ use gtk::{gdk, glib};
 use glib::clone;
 use glib::subclass::Signal;
 
-use crate::filter_expander_row::RsyncFilterRule;
+use crate::filters_page::RsyncFilterRule;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterRow

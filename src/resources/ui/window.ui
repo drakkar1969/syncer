@@ -51,8 +51,11 @@
                   <object class="AdvancedPage" id="advanced_page"/>
                 </child>
                 <child>
-                  <object class="RsyncPage" id="rsync_page"/>
+                  <object class="FiltersPage" id="filters_page"/>
                 </child>
+                <!-- <child>
+                  <object class="RsyncPage" id="rsync_page"/>
+                </child> -->
               </object>
             </property>
           </object>

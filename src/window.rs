@@ -3,13 +3,14 @@ use std::cell::Cell;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::{gio, gdk, glib};
-use glib::{ clone, VariantTy};
+use glib::{clone, VariantTy};
 
 use crate::{
     Application,
     profile_object::ProfileObject,
     options_page::OptionsPage,
     advanced_page::AdvancedPage,
+    filters_page::FiltersPage,
     rsync_page::RsyncPage,
     rsync_process::ITEMIZE_TAG
 };
@@ -38,9 +39,11 @@ mod imp {
         #[template_child]
         pub(super) advanced_page: TemplateChild<AdvancedPage>,
         #[template_child]
-        pub(super) rsync_page: TemplateChild<RsyncPage>,
+        pub(super) filters_page: TemplateChild<FiltersPage>,
+        // #[template_child]
+        // pub(super) rsync_page: TemplateChild<RsyncPage>,
 
-        pub(super) close_request: Cell<bool>,
+        // pub(super) close_request: Cell<bool>,
     }
 
     //---------------------------------------
@@ -87,39 +90,40 @@ mod imp {
         // Close request function
         //---------------------------------------
         fn close_request(&self) -> glib::Propagation {
-            let rsync_process = self.rsync_page.rsync_process();
+        //     let rsync_process = self.rsync_page.rsync_process();
 
-            if rsync_process.running() {
-                let _ = rsync_process.pause();
+        //     if rsync_process.running() {
+        //         let _ = rsync_process.pause();
 
-                let dialog = adw::AlertDialog::builder()
-                    .heading("Exit Syncer?")
-                    .body("Terminate transfer process and exit.")
-                    .default_response("exit")
-                    .build();
+        //         let dialog = adw::AlertDialog::builder()
+        //             .heading("Exit Syncer?")
+        //             .body("Terminate transfer process and exit.")
+        //             .default_response("exit")
+        //             .build();
 
-                dialog.add_responses(&[("cancel", "_Cancel"), ("exit", "E_xit")]);
-                dialog.set_response_appearance("exit", adw::ResponseAppearance::Destructive);
+        //         dialog.add_responses(&[("cancel", "_Cancel"), ("exit", "E_xit")]);
+        //         dialog.set_response_appearance("exit", adw::ResponseAppearance::Destructive);
 
-                dialog.connect_response(Some("exit"), clone!(
-                    #[weak(rename_to = imp)] self,
-                    move |_, _| {
-                        imp.close_request.set(true);
+        //         dialog.connect_response(Some("exit"), clone!(
+        //             #[weak(rename_to = imp)] self,
+        //             move |_, _| {
+        //                 imp.close_request.set(true);
 
-                        let _ = rsync_process.terminate();
-                    }
-                ));
+        //                 let _ = rsync_process.terminate();
+        //             }
+        //         ));
 
-                dialog.present(Some(&*self.obj()));
+        //         dialog.present(Some(&*self.obj()));
 
-                return glib::Propagation::Stop;
-            }
+        //         return glib::Propagation::Stop;
+        //     }
 
             let _ = self.options_page.save_config();
 
             glib::Propagation::Proceed
         }
     }
+
     impl ApplicationWindowImpl for AppWindow {}
     impl AdwApplicationWindowImpl for AppWindow {}
 
@@ -128,75 +132,75 @@ mod imp {
         // Install rsync actions
         //---------------------------------------
         fn install_rsync_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Rsync start action
-            klass.install_action_async("rsync.start", Some(VariantTy::BOOLEAN),
-                async |window, _, param| {
-                    let imp = window.imp();
+            // // Rsync start action
+            // klass.install_action_async("rsync.start", Some(VariantTy::BOOLEAN),
+            //     async |window, _, param| {
+            //         let imp = window.imp();
 
-                    // Get dry run
-                    let dry_run = param
-                        .and_then(|param| param.get::<bool>())
-                        .expect("Could not get bool from variant");
+            //         // Get dry run
+            //         let dry_run = param
+            //             .and_then(|param| param.get::<bool>())
+            //             .expect("Could not get bool from variant");
 
-                    // Show rsync page
-                    imp.navigation_view.push_by_tag("rsync");
+            //         // Show rsync page
+            //         imp.navigation_view.push_by_tag("rsync");
 
-                    // Get profile
-                    let profile = imp.options_page.profile_dropdown().selected_item()
-                        .and_downcast::<ProfileObject>()
-                        .expect("Could not downcast to 'ProfileObject'");
+            //         // Get profile
+            //         let profile = imp.options_page.profile_dropdown().selected_item()
+            //             .and_downcast::<ProfileObject>()
+            //             .expect("Could not downcast to 'ProfileObject'");
 
-                    // Get args
-                    let args = profile.options(false)
-                        .into_iter()
-                        .chain(
-                            [
-                                "--human-readable",
-                                &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
-                                "--info=backup,copy,del,flist2,misc,name,progress2,skip2,symsafe,stats2",
-                                "--debug=filter"
-                            ]
-                            .into_iter()
-                            .chain(dry_run.then_some("--dry-run"))
-                            .map(ToOwned::to_owned)
-                        )
-                        .chain([profile.source(), profile.destination()])
-                        .collect::<Vec<_>>();
+            //         // Get args
+            //         let args = profile.options(false)
+            //             .into_iter()
+            //             .chain(
+            //                 [
+            //                     "--human-readable",
+            //                     &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
+            //                     "--info=backup,copy,del,flist2,misc,name,progress2,skip2,symsafe,stats2",
+            //                     "--debug=filter"
+            //                 ]
+            //                 .into_iter()
+            //                 .chain(dry_run.then_some("--dry-run"))
+            //                 .map(ToOwned::to_owned)
+            //             )
+            //             .chain([profile.source(), profile.destination()])
+            //             .collect::<Vec<_>>();
 
-                    // Start rsync
-                    let _ = imp.rsync_page.rsync_process().start(args).await;
+            //         // Start rsync
+            //         let _ = imp.rsync_page.rsync_process().start(args).await;
 
-                    imp.rsync_page.set_can_pop(true);
-                }
-            );
+            //         imp.rsync_page.set_can_pop(true);
+            //     }
+            // );
 
-            // Rsync show cmdline action
-            klass.install_action("rsync.show-cmdline", None, |window, _, _| {
-                let imp = window.imp();
+            // // Rsync show cmdline action
+            // klass.install_action("rsync.show-cmdline", None, |window, _, _| {
+            //     let imp = window.imp();
 
-                // Build command line dialog
-                let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/rsync_cmdline_dialog.ui");
+            //     // Build command line dialog
+            //     let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/rsync_cmdline_dialog.ui");
 
-                let dialog: adw::AlertDialog = builder.object("dialog")
-                    .expect("Could not get object from resource");
+            //     let dialog: adw::AlertDialog = builder.object("dialog")
+            //         .expect("Could not get object from resource");
 
-                let label: gtk::Label = builder.object("label")
-                    .expect("Could not get object from resource");
+            //     let label: gtk::Label = builder.object("label")
+            //         .expect("Could not get object from resource");
 
-                // Get profile
-                let profile = imp.options_page.profile_dropdown().selected_item()
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'");
+            //     // Get profile
+            //     let profile = imp.options_page.profile_dropdown().selected_item()
+            //         .and_downcast::<ProfileObject>()
+            //         .expect("Could not downcast to 'ProfileObject'");
 
-                // Init command line dialog
-                label.set_label(&format!("rsync {} \"{}\" \"{}\"",
-                    profile.options(true).join(" "),
-                    profile.source(),
-                    profile.destination()
-                ));
+            //     // Init command line dialog
+            //     label.set_label(&format!("rsync {} \"{}\" \"{}\"",
+            //         profile.options(true).join(" "),
+            //         profile.source(),
+            //         profile.destination()
+            //     ));
 
-                dialog.present(Some(window));
-            });
+            //     dialog.present(Some(window));
+            // });
         }
 
         //---------------------------------------
@@ -207,7 +211,9 @@ mod imp {
             klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
-                if imp.status_stack.visible_child_name() == Some("status".into()) {
+                let page = imp.status_stack.visible_child_name();
+
+                if page == Some("status".into()) || page == Some("main".into()) {
                     imp.options_page.activate_action("profile.new", None)
                         .expect("Could not activate action 'new-profile'");
                 }
@@ -215,8 +221,8 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Rsync show cmdline key binding
-            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
+            // // Rsync show cmdline key binding
+            // klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
         }
     }
 }
@@ -256,15 +262,15 @@ impl AppWindow {
             }
         ));
 
-        // Navigation view get next page signal
-        imp.navigation_view.connect_get_next_page(clone!(
-            #[weak] imp,
-            #[upgrade_or] None,
-            move |view| {
-                (view.visible_page_tag() == Some("options".into()))
-                    .then(|| imp.advanced_page.get().into())
-            }
-        ));
+        // // Navigation view get next page signal
+        // imp.navigation_view.connect_get_next_page(clone!(
+        //     #[weak] imp,
+        //     #[upgrade_or] None,
+        //     move |view| {
+        //         (view.visible_page_tag() == Some("options".into()))
+        //             .then(|| imp.advanced_page.get().into())
+        //     }
+        // ));
 
         // Profile model items changed signal
         imp.options_page.profile_model().connect_items_changed(clone!(
@@ -280,15 +286,15 @@ impl AppWindow {
             }
         ));
 
-        // Rsync process running property notify signal
-        imp.rsync_page.rsync_process().connect_running_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |process| {
-                if !process.running() && window.imp().close_request.get() {
-                    window.close();
-                }
-            }
-        ));
+        // // Rsync process running property notify signal
+        // imp.rsync_page.rsync_process().connect_running_notify(clone!(
+        //     #[weak(rename_to = window)] self,
+        //     move |process| {
+        //         if !process.running() && window.imp().close_request.get() {
+        //             window.close();
+        //         }
+        //     }
+        // ));
     }
 
     //---------------------------------------
@@ -309,10 +315,15 @@ impl AppWindow {
             .sync_create()
             .build();
 
-        // Bind selected profile to rsync page
-        profile_dropdown.bind_property("selected-item", &imp.rsync_page.get(), "profile")
+        // Bind selected profile to filters page
+        profile_dropdown.bind_property("selected-item", &imp.filters_page.get(), "profile")
             .sync_create()
             .build();
+
+        // // Bind selected profile to rsync page
+        // profile_dropdown.bind_property("selected-item", &imp.rsync_page.get(), "profile")
+        //     .sync_create()
+        //     .build();
 
         // Load profiles from config file
         let _ = imp.options_page.load_config();

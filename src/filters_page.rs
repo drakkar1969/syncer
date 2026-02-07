@@ -3,12 +3,14 @@ use std::cell::{Cell, RefCell};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
-use glib::{clone, closure_local};
-use glib::translate::IntoGlib;
+use glib::{clone, closure_local, translate::IntoGlib};
 
 use strum::{EnumIter, EnumProperty, FromRepr, IntoEnumIterator};
 
-use crate::filter_row::FilterRow;
+use crate::{
+    profile_object::ProfileObject,
+    filter_row::FilterRow
+};
 
 //------------------------------------------------------------------------------
 // ENUM: RsyncFilterRule
@@ -43,7 +45,7 @@ impl RsyncFilterRule {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: FilterExpanderRow
+// MODULE: FiltersPage
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -52,16 +54,20 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::FilterExpanderRow)]
-    #[template(resource = "/com/github/Syncer/ui/filter_expander_row.ui")]
-    pub struct FilterExpanderRow {
+    #[properties(wrapper_type = super::FiltersPage)]
+    #[template(resource = "/com/github/Syncer/ui/filters_page.ui")]
+    pub struct FiltersPage {
         #[template_child]
-        pub(super) add_button: TemplateChild<gtk::Button>,
+        pub(super) filters_group: TemplateChild<adw::PreferencesGroup>,
         #[template_child]
-        pub(super) delete_button: TemplateChild<gtk::Button>,
+        pub(super) add_button: TemplateChild<adw::ButtonRow>,
 
+        #[property(get, set, nullable)]
+        profile: RefCell<Option<ProfileObject>>,
         #[property(get, set)]
         filters: RefCell<Vec<String>>,
+
+        pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>,
 
         pub(super) internal_change: Cell<bool>,
     }
@@ -70,10 +76,10 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for FilterExpanderRow {
-        const NAME: &'static str = "FilterExpanderRow";
-        type Type = super::FilterExpanderRow;
-        type ParentType = adw::ExpanderRow;
+    impl ObjectSubclass for FiltersPage {
+        const NAME: &'static str = "FiltersPage";
+        type Type = super::FiltersPage;
+        type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
             RsyncFilterRule::ensure_type();
@@ -87,7 +93,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for FilterExpanderRow {
+    impl ObjectImpl for FiltersPage {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -100,36 +106,79 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for FilterExpanderRow {}
-    impl ListBoxRowImpl for FilterExpanderRow {}
-    impl PreferencesRowImpl for FilterExpanderRow {}
-    impl ExpanderRowImpl for FilterExpanderRow {}
+    impl WidgetImpl for FiltersPage {}
+    impl NavigationPageImpl for FiltersPage {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: FilterExpanderRow
+// IMPLEMENTATION: FiltersPage
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct FilterExpanderRow(ObjectSubclass<imp::FilterExpanderRow>)
-        @extends adw::ExpanderRow, adw::PreferencesRow, gtk::ListBoxRow, gtk::Widget,
-        @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
+    pub struct FiltersPage(ObjectSubclass<imp::FiltersPage>)
+        @extends adw::NavigationPage, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl FilterExpanderRow {
+impl FiltersPage {
+    //---------------------------------------
+    // Listbox function
+    //---------------------------------------
+    fn listbox(&self) -> gtk::ListBox {
+        self.imp().filters_group.first_child()
+            .and_downcast::<gtk::Box>()
+            .expect("Could not downcast to 'GtkBox'")
+            .last_child()
+            .and_downcast::<gtk::Box>()
+            .expect("Could not downcast to 'GtkBox'")
+            .first_child()
+            .and_downcast::<gtk::ListBox>()
+            .expect("Could not downcast to 'GtkListBox'")
+    }
+
     //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Filters property notify signal
-        self.connect_filters_notify(|expander| {
-            let imp = expander.imp();
+        // Profile property notify signal
+        self.connect_profile_notify(|page| {
+            let imp = page.imp();
 
-            let filters = expander.filters();
+            // Unbind stored bindings
+            if let Some(bindings) = imp.bindings.take() {
+                for binding in bindings {
+                    binding.unbind();
+                }
+            }
+
+            if let Some(profile) = page.profile() {
+                // Bind profile property to widgets
+                let bindings: Vec<glib::Binding> = vec![
+                    // Bind profile property to filter property
+                    profile.bind_property("filters", page, "filters")
+                        .bidirectional()
+                        .sync_create()
+                        .build(),
+
+                    // Bind profile property to page title
+                    profile.bind_property("name", page, "title")
+                        .sync_create()
+                        .build()
+                ];
+
+                // Store bindings
+                imp.bindings.replace(Some(bindings));
+            }
+        });
+
+        // Filters property notify signal
+        self.connect_filters_notify(|page| {
+            let imp = page.imp();
 
             if !imp.internal_change.get() {
-                let listbox = expander.listbox();
+                let filters = page.filters();
+                let listbox = page.listbox();
 
                 // Remove all filter rows
                 listbox.remove_all();
@@ -146,74 +195,36 @@ impl FilterExpanderRow {
                         .find(|rule| rule.rule() == Some(rule_str))
                         .expect("Failed to find filter rule");
 
-                    let row = expander.new_filter_row(rule, pattern);
+                    let row = page.new_filter_row(rule, pattern);
 
                     listbox.append(&row);
                 }
             }
-
-            imp.delete_button.set_sensitive(!filters.is_empty());
-
-            expander.set_expanded(!filters.is_empty());
-            expander.set_enable_expansion(!filters.is_empty());
-
-            expander.set_subtitle(&filters.join(" "));
         });
 
-        // Add button clicked signal
-        imp.add_button.connect_clicked(clone!(
-            #[weak(rename_to = expander)] self,
+        // Add button activated signal
+        imp.add_button.connect_activated(clone!(
+            #[weak(rename_to = page)] self,
             move |_| {
-                expander.filter_dialog("Add", None, clone!(
-                    #[weak] expander,
+                page.filter_dialog("Add", None, clone!(
+                    #[weak] page,
                     move |rule, pattern| {
-                        let imp = expander.imp();
+                        let imp = page.imp();
+
+                        let row = page.new_filter_row(rule, pattern);
+                        page.listbox().append(&row);
 
                         imp.internal_change.set(true);
 
-                        let row = expander.new_filter_row(rule, pattern);
-                        expander.listbox().append(&row);
-
-                        let mut filters = expander.filters();
+                        let mut filters = page.filters();
                         filters.push(row.filter());
-                        expander.set_filters(filters);
+                        page.set_filters(filters);
 
                         imp.internal_change.set(false);
                     }
                 ));
             }
         ));
-
-        // Delete button clicked signal
-        imp.delete_button.connect_clicked(clone!(
-            #[weak(rename_to = expander)] self,
-            move |_| {
-                let imp = expander.imp();
-
-                imp.internal_change.set(true);
-
-                expander.set_filters(vec![]);
-
-                expander.listbox().remove_all();
-
-                imp.internal_change.set(false);
-            }
-        ));
-    }
-
-    //---------------------------------------
-    // Listbox function
-    //---------------------------------------
-    fn listbox(&self) -> gtk::ListBox {
-        self.first_child()
-            .and_downcast::<gtk::Box>()
-            .expect("Could not downcast to 'GtkBox'")
-            .last_child()
-            .and_downcast::<gtk::Revealer>()
-            .expect("Could not downcast to 'GtkRevealer'")
-            .child()
-            .and_downcast::<gtk::ListBox>()
-            .expect("Could not downcast to 'GtkListBox'")
     }
 
     //---------------------------------------
@@ -223,12 +234,12 @@ impl FilterExpanderRow {
         let row = FilterRow::new(rule, pattern);
 
         row.connect_closure("modified", false, closure_local!(
-            #[weak(rename_to = expander)] self,
+            #[weak(rename_to = page)] self,
             move |row: FilterRow| {
-                expander.filter_dialog("Modify", Some((row.rule(), &row.pattern())), clone!(
-                    #[weak] expander,
+                page.filter_dialog("Modify", Some((row.rule(), &row.pattern())), clone!(
+                    #[weak] page,
                     move |rule, pattern| {
-                        let imp = expander.imp();
+                        let imp = page.imp();
 
                         imp.internal_change.set(true);
 
@@ -237,10 +248,10 @@ impl FilterExpanderRow {
 
                         let pos = row.index() as usize;
 
-                        let mut filters = expander.filters();
+                        let mut filters = page.filters();
                         filters.remove(pos);
                         filters.insert(pos, row.filter());
-                        expander.set_filters(filters);
+                        page.set_filters(filters);
 
                         imp.internal_change.set(false);
                     }
@@ -249,40 +260,40 @@ impl FilterExpanderRow {
         ));
 
         row.connect_closure("deleted", false, closure_local!(
-            #[weak(rename_to = expander)] self,
+            #[weak(rename_to = page)] self,
             move |row: FilterRow| {
-                let imp = expander.imp();
+                let imp = page.imp();
 
                 imp.internal_change.set(true);
 
                 let pos = row.index();
 
-                let mut filters = expander.filters();
+                let mut filters = page.filters();
                 filters.remove(pos as usize);
-                expander.set_filters(filters);
+                page.set_filters(filters);
 
-                expander.listbox().remove(&row);
+                page.listbox().remove(&row);
 
                 imp.internal_change.set(false);
             }
         ));
 
         row.connect_closure("drop", false, closure_local!(
-            #[weak(rename_to = expander)] self,
+            #[weak(rename_to = page)] self,
             move |row: FilterRow, drag_row: FilterRow| {
-                let imp = expander.imp();
+                let imp = page.imp();
 
                 imp.internal_change.set(true);
 
                 let old_pos = drag_row.index();
                 let new_pos = row.index();
 
-                let mut filters = expander.filters();
+                let mut filters = page.filters();
                 let filter = filters.remove(old_pos as usize);
                 filters.insert(new_pos as usize, filter);
-                expander.set_filters(filters);
+                page.set_filters(filters);
 
-                let listbox = expander.listbox();
+                let listbox = page.listbox();
                 listbox.remove(&drag_row);
                 listbox.insert(&drag_row, new_pos);
 

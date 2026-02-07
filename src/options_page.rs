@@ -5,7 +5,7 @@ use std::env;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use gtk::{gio, glib, gdk};
+use gtk::{gio, glib};
 use glib::clone;
 
 use serde_json::{json, to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
@@ -64,8 +64,6 @@ mod imp {
             klass.bind_template();
 
             Self::install_profile_actions(klass);
-
-            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -210,14 +208,6 @@ mod imp {
 
                 dialog.present(Some(page));
             });
-        }
-
-        //---------------------------------------
-        // Bind shortcuts
-        //---------------------------------------
-        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // New profile key binding
-            klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "profile.new");
         }
     }
 }
