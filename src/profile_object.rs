@@ -299,7 +299,7 @@ impl ProfileObject {
     //---------------------------------------
     // Options function
     //---------------------------------------
-    pub fn options(&self, quoted: bool) -> Vec<String> {
+    pub fn options(&self) -> Vec<String> {
         // Check mode
         let mut options: Vec<String> = self.check_mode().switch()
             .map_or_else(Vec::new, |mode| vec![mode.to_owned()]);
@@ -314,7 +314,7 @@ impl ProfileObject {
         }
 
         // Advanced options
-        let advanced: Vec<String> = IndexMap::from(BOOLEAN_OPTIONS).iter()
+        let mut advanced: Vec<String> = IndexMap::from(BOOLEAN_OPTIONS).iter()
             .filter_map(|(&nick, &(arg, off_arg))| {
                 let value = self.property_value(nick)
                     .get::<bool>()
@@ -326,19 +326,19 @@ impl ProfileObject {
             })
             .collect();
 
-        options.extend_from_slice(&advanced);
-
-        // Filters
-        let replace = if quoted { "'" } else { "" };
-
-        if !self.filters().is_empty() {
-            let mut filters = self.filters().into_iter()
-                .map(|filter| filter.replace(['\'', '"'], replace))
-                .collect::<Vec<String>>();
-
-            options.append(&mut filters);
-        }
+        options.append(&mut advanced);
 
         options
+    }
+
+    //---------------------------------------
+    // Quoted filters function
+    //---------------------------------------
+    pub fn quoted_filters(&self, quoted: bool) -> Vec<String> {
+        let replace = if quoted { "'" } else { "" };
+
+        self.filters().into_iter()
+            .map(|filter| filter.replace(['\'', '"'], replace))
+            .collect()
     }
 }

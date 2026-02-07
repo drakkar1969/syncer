@@ -193,8 +193,13 @@ mod imp {
                     .expect("Could not downcast to 'ProfileObject'");
 
                 // Init command line dialog
+                let options = profile.options().into_iter()
+                    .chain(profile.quoted_filters(true))
+                    .collect::<Vec<String>>()
+                    .join(" ");
+
                 label.set_label(&format!("rsync {} \"{}\" \"{}\"",
-                    profile.options(true).join(" "),
+                    options,
                     profile.source(),
                     profile.destination()
                 ));
