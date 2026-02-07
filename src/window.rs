@@ -174,33 +174,33 @@ mod imp {
             //     }
             // );
 
-            // // Rsync show cmdline action
-            // klass.install_action("rsync.show-cmdline", None, |window, _, _| {
-            //     let imp = window.imp();
+            // Rsync show cmdline action
+            klass.install_action("rsync.show-cmdline", None, |window, _, _| {
+                let imp = window.imp();
 
-            //     // Build command line dialog
-            //     let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/rsync_cmdline_dialog.ui");
+                // Build command line dialog
+                let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/rsync_cmdline_dialog.ui");
 
-            //     let dialog: adw::AlertDialog = builder.object("dialog")
-            //         .expect("Could not get object from resource");
+                let dialog: adw::AlertDialog = builder.object("dialog")
+                    .expect("Could not get object from resource");
 
-            //     let label: gtk::Label = builder.object("label")
-            //         .expect("Could not get object from resource");
+                let label: gtk::Label = builder.object("label")
+                    .expect("Could not get object from resource");
 
-            //     // Get profile
-            //     let profile = imp.options_page.profile_dropdown().selected_item()
-            //         .and_downcast::<ProfileObject>()
-            //         .expect("Could not downcast to 'ProfileObject'");
+                // Get profile
+                let profile = imp.options_page.profile_dropdown().selected_item()
+                    .and_downcast::<ProfileObject>()
+                    .expect("Could not downcast to 'ProfileObject'");
 
-            //     // Init command line dialog
-            //     label.set_label(&format!("rsync {} \"{}\" \"{}\"",
-            //         profile.options(true).join(" "),
-            //         profile.source(),
-            //         profile.destination()
-            //     ));
+                // Init command line dialog
+                label.set_label(&format!("rsync {} \"{}\" \"{}\"",
+                    profile.options(true).join(" "),
+                    profile.source(),
+                    profile.destination()
+                ));
 
-            //     dialog.present(Some(window));
-            // });
+                dialog.present(Some(window));
+            });
         }
 
         //---------------------------------------
@@ -221,8 +221,8 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // // Rsync show cmdline key binding
-            // klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
+            // Rsync show cmdline key binding
+            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
         }
     }
 }
