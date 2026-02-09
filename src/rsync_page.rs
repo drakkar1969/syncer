@@ -339,7 +339,7 @@ impl RsyncPage {
 
         self.ui_transferred("0");
         self.ui_speed("n/a");
-        self.ui_bar_fraction(0.0);
+        self.ui_bar_progress(0.0);
 
         imp.button_stack.set_visible_child_name("empty");
 
@@ -403,19 +403,9 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // UI bar pulse function
+    // UI bar progress function
     //---------------------------------------
-    fn ui_bar_pulse(&self) {
-        let imp = self.imp();
-
-        imp.progress_label.set_label("---");
-        imp.progress_bar.pulse();
-    }
-
-    //---------------------------------------
-    // UI bar fraction function
-    //---------------------------------------
-    fn ui_bar_fraction(&self, fraction: f64) {
+    fn ui_bar_progress(&self, fraction: f64) {
         let imp = self.imp();
 
         imp.progress_label.set_label(&format!("{fraction}%"));
@@ -438,7 +428,7 @@ impl RsyncPage {
         match code {
             Some(0) => {
                 // Ensure progress bar at 100% if success
-                self.ui_bar_fraction(100.0);
+                self.ui_bar_progress(100.0);
 
                 if let Some(stats) = stats_table.as_ref() {
                     let status = format!("Success: {}B of {}B transferred",
@@ -799,8 +789,6 @@ impl RsyncPage {
                 }
 
                 RsyncSend::Recurse(msg) => {
-                    self.ui_bar_pulse();
-
                     self.ui_message(&msg);
                 }
 
@@ -809,8 +797,6 @@ impl RsyncPage {
                     sync_shown = true;
 
                     self.ui_message(&msg);
-
-                    self.ui_bar_fraction(0.0);
 
                     messages.push_message(RsyncMsgType::Info, msg);
                 }
@@ -822,7 +808,7 @@ impl RsyncPage {
                         self.ui_speed(&speed);
                     }
 
-                    self.ui_bar_fraction(progress);
+                    self.ui_bar_progress(progress);
                 }
 
                 RsyncSend::Message(type_, msg) => {
