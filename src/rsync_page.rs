@@ -439,7 +439,7 @@ impl RsyncPage {
                     let msg = format!("{} of {} file(s) created{}",
                         stats.created_files,
                         stats.source_files,
-                        if stats.deleted_files == "0" { "".into() } else { format!(" | {} file(s) deleted", stats.deleted_files) }
+                        if stats.deleted_files == "0" { String::new() } else { format!(" | {} file(s) deleted", stats.deleted_files) }
                     );
 
                     self.ui_status_format(&["success", "heading"], "rsync-success-symbolic");
@@ -692,6 +692,7 @@ impl RsyncPage {
     //---------------------------------------
     // Rsync start function
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     pub async fn rsync_start(&self, dry_run: bool) -> io::Result<()> {
         // Get args
         let profile = self.profile();
@@ -957,7 +958,7 @@ impl RsyncPage {
             msg
                 .and_then(|msg| EXPR.captures(msg))
                 .and_then(|m| m.name("err"))
-                .map(|m| {
+                .map_or_else(|| "Unknown error".into(), |m| {
                     let s = m.as_str().trim()
                         .trim_end_matches('.')
                         .replace("Rsync: ", "")
@@ -966,7 +967,6 @@ impl RsyncPage {
 
                     case::capitalize_first(&s)
                 })
-                .unwrap_or_else(|| "Unknown error".into())
         };
 
         // Get error string
