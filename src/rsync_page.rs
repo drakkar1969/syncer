@@ -192,6 +192,7 @@ mod imp {
 
         pub(super) output_window: RefCell<OutputWindow>,
 
+        pub(super) dry_run: Cell<bool>,
         pub(super) pid: Cell<Option<NixPid>>,
     }
 
@@ -337,7 +338,7 @@ impl RsyncPage {
         self.ui_message("");
 
         self.ui_transferred("0");
-        self.ui_speed("0B/s");
+        self.ui_speed("n/a");
         self.ui_bar_fraction(0.0);
 
         imp.button_stack.set_visible_child_name("empty");
@@ -480,7 +481,7 @@ impl RsyncPage {
         }
 
         // Show other stats
-        if let Some(stats) = stats_table {
+        if !imp.dry_run.get() && let Some(stats) = stats_table {
             self.ui_speed(&format!("{}B/s", stats.speed));
         }
 
@@ -723,6 +724,8 @@ impl RsyncPage {
             .chain([profile.source(), profile.destination()])
             .collect::<Vec<_>>();
 
+        self.imp().dry_run.set(dry_run);
+
         // Spawn tokio task to run rsync
         let (sender, receiver) = async_channel::bounded(1);
 
@@ -814,7 +817,11 @@ impl RsyncPage {
 
                 RsyncSend::Progress(size, speed, progress) => {
                     self.ui_transferred(&size);
-                    self.ui_speed(&speed);
+
+                    if !self.imp().dry_run.get() {
+                        self.ui_speed(&speed);
+                    }
+
                     self.ui_bar_fraction(progress);
                 }
 

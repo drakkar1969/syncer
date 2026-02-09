@@ -129,7 +129,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="speed_label">
-                                <property name="label">0B/s</property>
+                                <property name="label">n/a</property>
                                 <style>
                                   <class name="numeric"/>
                                 </style>
