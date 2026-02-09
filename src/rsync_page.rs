@@ -23,6 +23,7 @@ use nix::{
     unistd::Pid as NixPid
 };
 use regex::Regex;
+use num_format::{SystemLocale, ToFormattedString};
 
 use crate::{
     profile_object::ProfileObject,
@@ -120,6 +121,15 @@ impl RsyncMessages {
     pub fn is_empty(&self) -> bool {
         self.messages.is_empty() && self.stats.is_empty() && self.errors.is_empty()
     }
+
+    pub fn transferred_items(&self) -> String {
+        self.messages.iter()
+            .filter(|(type_, _)| {
+                [RsyncMsgType::File, RsyncMsgType::Link, RsyncMsgType::Device, RsyncMsgType::Special].contains(type_)
+            })
+            .count()
+            .to_formatted_string(&SystemLocale::default().unwrap())
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -127,14 +137,9 @@ impl RsyncMessages {
 //------------------------------------------------------------------------------
 #[derive(Default, Debug)]
 pub struct RsyncStats {
-    pub source_files: String,
-    pub created_files: String,
-    pub transferred_files: String,
-    pub deleted_files: String,
+    pub source_items: String,
     pub source_size: String,
     pub transferred_size: String,
-    pub sent_bytes: String,
-    pub received_bytes: String,
     pub speed: String
 }
 
@@ -440,10 +445,9 @@ impl RsyncPage {
                         stats.source_size
                     );
 
-                    let msg = format!("{} of {} file(s) created{}",
-                        stats.created_files,
-                        stats.source_files,
-                        if stats.deleted_files == "0" { String::new() } else { format!(" | {} file(s) deleted", stats.deleted_files) }
+                    let msg = format!("{} of {} items(s) transferred",
+                        messages.transferred_items(),
+                        stats.source_items
                     );
 
                     self.ui_status_format(&["success", "heading"], "rsync-success-symbolic");
@@ -903,9 +907,9 @@ impl RsyncPage {
     pub fn rsync_stats(stats: &[String]) -> Option<RsyncStats> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
-                Number\s*of\s*files:\s*(?P<sfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*created\s*files:\s*(?P<cfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<cf>[\d,.]+))?,?\s*(?:dir:\s*(?P<cd>[\d,.]+))?,?\s*(?:link:\s*(?P<cl>[\d,.]+))?,?\s*(?:special:\s*(?P<cs>[\d,.]+))?,?\s*\)?\n
-                Number\s*of\s*deleted\s*files:\s*(?P<dfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sfiles>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<slinks>[\d,.]+))?,?\s*(?:special:\s*(?P<sspecials>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*created\s*files:\s*(?P<ct>[\d,.]+)\s*\(?(?:reg:\s*(?P<cfiles>[\d,.]+))?,?\s*(?:dir:\s*(?P<cd>[\d,.]+))?,?\s*(?:link:\s*(?P<clinks>[\d,.]+))?,?\s*(?:special:\s*(?P<cspecials>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*deleted\s*files:\s*(?P<dt>[\d,.]+)\s*\(?(?:reg:\s*(?P<dfiles>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dlinks>[\d,.]+))?,?\s*(?:special:\s*(?P<dspecials>[\d,.]+))?,?\s*\)?\n
                 Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tfiles>[\d,.]+)\n
                 Total\s*file\s*size:\s*(?P<ssize>.+)\s*bytes\n
                 Total\s*transferred\s*file\s*size:\s*(?P<tsize>.+)\s*bytes\n
@@ -923,21 +927,28 @@ impl RsyncPage {
 
         EXPR.captures(&stats.join("\n"))
             .map(|caps| {
-                let regex_match = |m: &str| -> String {
-                    caps.name(m)
-                        .map_or("---", |m| m.as_str().trim_end_matches(',').trim())
+                let regex_match = |s: &str| -> String {
+                    caps.name(s)
+                        .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
                         .to_owned()
                 };
 
+                let item_count = |v: &[&str]| -> String {
+                    v.into_iter()
+                        .map(|s| {
+                            regex_match(s)
+                                .replace(',', "")
+                                .parse::<i64>()
+                                .unwrap_or_default()
+                        })
+                        .sum::<i64>()
+                        .to_formatted_string(&SystemLocale::default().unwrap())
+                };
+
                 RsyncStats {
-                    source_files: regex_match("sfiles"),
-                    created_files: regex_match("cfiles"),
-                    deleted_files: regex_match("dfiles"),
-                    transferred_files: regex_match("tfiles"),
+                    source_items: item_count(&["sfiles", "slinks", "sspecials"]),
                     source_size: regex_match("ssize"),
                     transferred_size: regex_match("tsize"),
-                    sent_bytes: regex_match("sbytes"),
-                    received_bytes: regex_match("rbytes"),
                     speed: regex_match("speed")
                 }
             })

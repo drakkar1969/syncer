@@ -9,6 +9,7 @@ async-channel = "2"
 gtk = { version = "0.10", package = "gtk4", features = ["v4_20"] }
 indexmap = "2"
 nix = { version = "0.30", features = ["signal"] }
+num-format = { version = "0.4", features = ["with-system-locale"] }
 regex = "1"
 serde_json = { version = "1.0", features = ["preserve_order"] }
 strum = { version = "0.27", features = ["derive"] }
