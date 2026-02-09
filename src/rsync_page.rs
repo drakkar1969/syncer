@@ -116,6 +116,10 @@ impl RsyncMessages {
     pub fn push_error(&mut self, msg: String) {
         self.errors.push(msg);
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.messages.is_empty() && self.stats.is_empty() && self.errors.is_empty()
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -477,7 +481,7 @@ impl RsyncPage {
         }
 
         // Show details
-        if messages.messages.is_empty() && messages.stats.is_empty() && messages.errors.is_empty() {
+        if messages.is_empty() {
             imp.button_stack.set_visible_child_name("empty");
         } else {
             imp.button_stack.set_visible_child_name("output");
