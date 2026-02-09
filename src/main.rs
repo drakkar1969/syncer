@@ -7,11 +7,9 @@ mod adv_switchrow;
 mod filters_page;
 mod filter_row;
 mod rsync_page;
-mod stats_pane;
 mod output_window;
 mod output_item;
 mod output_header;
-mod rsync_process;
 mod utils;
 
 use gtk::prelude::*;

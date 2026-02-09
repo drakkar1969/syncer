@@ -3,7 +3,7 @@ use gtk::glib;
 
 use crate::{
     output_window::OutputObject,
-    rsync_process::RsyncMsgType
+    rsync_page::RsyncMsgType
 };
 
 //------------------------------------------------------------------------------

@@ -4,7 +4,6 @@
   <template class="RsyncPage" parent="AdwNavigationPage">
     <property name="title">Rsync</property>
     <property name="tag">rsync</property>
-    <property name="can-pop">false</property>
     <property name="child">
       <object class="AdwToolbarView">
         <child type="top">
@@ -19,10 +18,11 @@
             <property name="margin-bottom">36</property>
             <property name="spacing">30</property>
             <child>
-              <object class="GtkBox" id="status_box">
+              <object class="GtkBox">
                 <style>
                   <class name="card"/>
                 </style>
+                <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkBox">
                     <property name="orientation">vertical</property>
@@ -33,7 +33,7 @@
                     <property name="spacing">14</property>
                     <child>
                       <object class="GtkBox">
-                        <property name="margin-bottom">4</property>
+                        <property name="margin-bottom">12</property>
                         <property name="spacing">16</property>
                         <child>
                           <object class="GtkImage">
@@ -50,6 +50,26 @@
                             <property name="label">Rsync Transfer</property>
                             <style>
                               <class name="title-3"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="status_box">
+                        <property name="spacing">10</property>
+                        <child>
+                          <object class="GtkImage" id="status_image">
+                            <property name="icon-name">rsync-status-symbolic</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="status_label">
+                            <property name="xalign">0</property>
+                            <property name="ellipsize">start</property>
+                            <property name="single-line-mode">true</property>
+                            <style>
+                              <class name="numeric"/>
                             </style>
                           </object>
                         </child>
@@ -78,6 +98,7 @@
                     <child>
                       <object class="GtkCenterBox">
                         <property name="hexpand">true</property>
+                        <property name="margin-top">16</property>
                         <property name="start-widget">
                           <object class="GtkBox">
                             <property name="spacing">10</property>
@@ -138,27 +159,6 @@
                         <property name="valign">center</property>
                       </object>
                     </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkStack" id="stats_stack">
-                <property name="vhomogeneous">true</property>
-                <child>
-                  <object class="GtkStackPage">
-                    <property name="name">empty</property>
-                    <property name="child">
-                      <object class="GtkBox"/>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkStackPage">
-                    <property name="name">stats</property>
-                    <property name="child">
-                      <object class="StatsPane" id="stats_pane"/>
-                    </property>
                   </object>
                 </child>
               </object>

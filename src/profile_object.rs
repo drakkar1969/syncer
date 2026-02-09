@@ -342,3 +342,12 @@ impl ProfileObject {
             .collect()
     }
 }
+
+impl Default for ProfileObject {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
+    }
+}

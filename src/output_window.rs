@@ -9,7 +9,7 @@ use glib::{clone, BoxedAnyObject};
 use crate::{
     output_item::OutputItem,
     output_header::OutputHeader,
-    rsync_process::{RsyncMsgType, RsyncMessages}
+    rsync_page::{RsyncMsgType, RsyncMessages}
 };
 
 //------------------------------------------------------------------------------
@@ -340,10 +340,12 @@ impl OutputWindow {
                 match window.filter_type() {
                     OutputFilter::All => true,
                     OutputFilter::Info => tag == RsyncMsgType::Info,
-                    OutputFilter::Files => tag == RsyncMsgType::f,
-                    OutputFilter::Dirs => tag == RsyncMsgType::d,
-                    OutputFilter::Links => tag == RsyncMsgType::L,
-                    OutputFilter::Specials => tag == RsyncMsgType::D || tag == RsyncMsgType::S,
+                    OutputFilter::Files => tag == RsyncMsgType::File,
+                    OutputFilter::Dirs => tag == RsyncMsgType::Directory,
+                    OutputFilter::Links => tag == RsyncMsgType::Link,
+                    OutputFilter::Specials => {
+                        tag == RsyncMsgType::Device || tag == RsyncMsgType::Special
+                    }
                 }
             }
         ));

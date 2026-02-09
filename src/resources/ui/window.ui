@@ -53,9 +53,9 @@
                 <child>
                   <object class="FiltersPage" id="filters_page"/>
                 </child>
-                <!-- <child>
+                <child>
                   <object class="RsyncPage" id="rsync_page"/>
-                </child> -->
+                </child>
               </object>
             </property>
           </object>

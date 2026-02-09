@@ -1,17 +1,138 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
+use std::sync::{LazyLock, OnceLock};
+use std::str::FromStr;
 use std::time::Duration;
+use std::io;
+use std::process::Stdio;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
-use glib::{clone, closure_local};
+use glib::clone;
+
+use strum::EnumString;
+use async_channel::Sender;
+use tokio::{
+    runtime::Runtime,
+    process::{Command, ChildStdout, ChildStderr},
+    io::AsyncReadExt as _
+};
+use nix::{
+    errno::Errno as NixErrno,
+    sys::signal::{kill as nix_kill, Signal as NixSignal},
+    unistd::Pid as NixPid
+};
+use regex::Regex;
 
 use crate::{
     profile_object::ProfileObject,
-    stats_pane::StatsPane,
     output_window::OutputWindow,
-    rsync_process::{RsyncProcess, RsyncMessages}
+    utils::case
 };
+
+//------------------------------------------------------------------------------
+// CONST Variables
+//------------------------------------------------------------------------------
+const BUFFER_SIZE: usize = 16384;
+const ITEMIZE_TAG: &str = "[ITEMIZE]";
+
+//------------------------------------------------------------------------------
+// ENUM: RsyncState
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "RsyncState")]
+pub enum RsyncState {
+    #[default]
+    Stopped,
+    Running,
+    Paused
+}
+
+//------------------------------------------------------------------------------
+// ENUM: RsyncSend
+//------------------------------------------------------------------------------
+#[derive(Debug, PartialEq)]
+#[repr(u32)]
+enum RsyncSend {
+    Start(Option<i32>),
+    RecurseBegin(String),
+    Recurse(String),
+    RecurseEnd(String),
+    Progress(String, String, f64),
+    Message(RsyncMsgType, String),
+    Stats(String),
+    Error(String),
+    Exit(Option<i32>)
+}
+
+//------------------------------------------------------------------------------
+// ENUM: RsyncMsgType
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, glib::Enum, EnumString)]
+#[repr(u32)]
+#[enum_type(name = "RsyncMsgType")]
+pub enum RsyncMsgType {
+    Stat,
+    Error,
+    Info,
+    #[strum(serialize = "f")]
+    File,
+    #[strum(serialize = "d")]
+    Directory,
+    #[strum(serialize = "L")]
+    Link,
+    #[strum(serialize = "D")]
+    Device,
+    #[strum(serialize = "S")]
+    Special,
+    #[default]
+    None
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: RsyncMessages
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone)]
+pub struct RsyncMessages {
+    pub messages: Vec<(RsyncMsgType, String)>,
+    pub stats: Vec<String>,
+    pub errors: Vec<String>
+}
+
+impl RsyncMessages {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn push_message(&mut self, type_: RsyncMsgType, msg: String) {
+        self.messages.push((type_, msg));
+    }
+
+    pub fn push_stat(&mut self, msg: String) {
+        self.stats.push(msg);
+    }
+
+    pub fn push_error(&mut self, msg: String) {
+        self.errors.push(msg);
+    }
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: RsyncStats
+//------------------------------------------------------------------------------
+#[derive(Default, Debug)]
+pub struct RsyncStats {
+    pub source_files: String,
+    pub created_files: String,
+    pub transferred_files: String,
+    pub deleted_files: String,
+    pub source_size: String,
+    pub transferred_size: String,
+    pub sent_bytes: String,
+    pub received_bytes: String,
+    pub speed: String
+}
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage
@@ -27,24 +148,22 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/rsync_page.ui")]
     pub struct RsyncPage {
         #[template_child]
-        pub(super) progress_label: TemplateChild<gtk::Label>,
+        pub(super) status_box: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub(super) status_image: TemplateChild<gtk::Image>,
+        #[template_child]
+        pub(super) status_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) message_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) transferred_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) speed_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) message_box: TemplateChild<gtk::Box>,
-        #[template_child]
-        pub(super) message_image: TemplateChild<gtk::Image>,
-        #[template_child]
-        pub(super) message_label: TemplateChild<gtk::Label>,
+        pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
 
-        #[template_child]
-        pub(super) stats_stack: TemplateChild<gtk::Stack>,
-        #[template_child]
-        pub(super) stats_pane: TemplateChild<StatsPane>,
         #[template_child]
         pub(super) button_stack: TemplateChild<gtk::Stack>,
         #[template_child]
@@ -56,14 +175,15 @@ mod imp {
         #[template_child]
         pub(super) output_button: TemplateChild<gtk::Button>,
 
-        #[property(get, set, nullable)]
-        profile: RefCell<Option<ProfileObject>>,
-        #[property(get)]
-        rsync_process: RefCell<RsyncProcess>,
+        #[property(get, set)]
+        profile: RefCell<ProfileObject>,
+
+        #[property(get, set, construct, builder(RsyncState::default()))]
+        state: Cell<RsyncState>,
 
         pub(super) output_window: RefCell<OutputWindow>,
 
-        pub(super) binding: RefCell<Option<glib::Binding>>,
+        pub(super) pid: Cell<Option<NixPid>>,
     }
 
     //---------------------------------------
@@ -104,7 +224,7 @@ mod imp {
         // Hidden function
         //---------------------------------------
         fn hidden(&self) {
-            self.obj().reset();
+            self.obj().ui_reset();
         }
     }
 }
@@ -127,93 +247,51 @@ impl RsyncPage {
 
         // Profile property notify signal
         self.connect_profile_notify(|page| {
-            let imp = page.imp();
-
-            // Unbind stored binding
-            if let Some(binding) = imp.binding.take() {
-                binding.unbind();
-            }
-
-            // Bind profile property to page title
-            if let Some(profile) = page.profile() {
-                imp.binding.replace(Some(
-                    profile.bind_property("name", page, "title")
-                        .sync_create()
-                        .build()
-                ));
-            }
+            // Set page title
+            page.set_title(&page.profile().name());
         });
 
-        // Rsync process paused property notify signal
-        let rsync_process = self.rsync_process();
+        // State property notify signal
+        self.connect_state_notify(|page| {
+            let imp = page.imp();
 
-        rsync_process.connect_paused_notify(clone!(
-            #[weak] imp,
-            move |process| {
-                if process.paused() {
-                    imp.pause_content.set_icon_name("media-playback-start-symbolic");
-                    imp.pause_content.set_label("_Resume");
-                } else {
+            match page.state() {
+                RsyncState::Stopped => {
+                    imp.stop_button.set_sensitive(false);
+
+                    imp.pause_button.set_sensitive(false);
+                }
+
+                RsyncState::Running => {
+                    imp.stop_button.set_sensitive(true);
+
+                    imp.pause_button.set_sensitive(true);
+
                     imp.pause_content.set_icon_name("media-playback-pause-symbolic");
                     imp.pause_content.set_label("_Pause");
                 }
-            }
-        ));
 
-        // Rsync process start signal
-        rsync_process.connect_closure("start", false, closure_local!(
-            #[weak] imp,
-            move |process: RsyncProcess| {
-                glib::timeout_add_local_once(Duration::from_millis(150), clone!(
-                    #[weak] imp,
-                    move || {
-                        if process.running() {
-                            imp.button_stack.set_visible_child_name("rsync");
-                        }
-                    }
-                ));
-            }
-        ));
+                RsyncState::Paused => {
+                    imp.stop_button.set_sensitive(true);
 
-        // Rsync process message signal
-        rsync_process.connect_closure("message", false, closure_local!(
-            #[weak] imp,
-            move |_: RsyncProcess, message: String| {
-                imp.message_label.set_label(&message);
-            }
-        ));
+                    imp.pause_button.set_sensitive(true);
 
-        // Rsync process progress signal
-        rsync_process.connect_closure("progress", false, closure_local!(
-            #[weak] imp,
-            move |_: RsyncProcess, size: String, speed: String, progress: f64| {
-                imp.transferred_label.set_label(&format!("{size}B"));
-                imp.speed_label.set_label(&speed);
-
-                imp.progress_label.set_label(&format!("{progress}%"));
-                imp.progress_bar.set_fraction(progress/100.0);
+                    imp.pause_content.set_icon_name("media-playback-start-symbolic");
+                    imp.pause_content.set_label("_Resume");
+                }
             }
-        ));
 
-        // Rsync process exit signal
-        rsync_process.connect_closure("exit", false, closure_local!(
-            #[weak(rename_to = page)] self,
-            move |_: RsyncProcess, code: i32, messages: RsyncMessages| {
-                page.set_exit_status(code, messages);
-            }
-        ));
+        });
 
         // Pause button clicked signal
         imp.pause_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
             move|_| {
-                let process = page.rsync_process();
-
-                let _ = if process.paused() {
-                    process.resume()
-                } else {
-                    process.pause()
-                };
+                if page.state() == RsyncState::Paused {
+                    let _ = page.rsync_resume();
+                } else if page.state() == RsyncState::Running {
+                    let _ = page.rsync_pause();
+                }
             }
         ));
 
@@ -221,7 +299,7 @@ impl RsyncPage {
         imp.stop_button.connect_clicked(clone!(
             #[weak(rename_to = page)] self,
             move|_| {
-                let _ = page.rsync_process().terminate();
+                let _ = page.rsync_terminate();
             }
         ));
 
@@ -239,82 +317,163 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Reset function
+    // UI reset function
     //---------------------------------------
-    fn reset(&self) {
+    fn ui_reset(&self) {
         let imp = self.imp();
 
-        self.set_can_pop(false);
+        self.ui_status_format(&[], "rsync-status-symbolic");
+        self.ui_status("");
 
-        imp.progress_label.set_label("0%");
-        imp.progress_bar.set_fraction(0.0);
+        self.ui_message("");
 
-        imp.transferred_label.set_label("0B");
-        imp.speed_label.set_label("0B/s");
+        self.ui_transferred("0");
+        self.ui_speed("0B/s");
+        self.ui_bar_fraction(0.0);
 
-        imp.message_box.set_css_classes(&[]);
-        imp.message_image.set_icon_name(Some("rsync-message-symbolic"));
-        imp.message_label.set_label("");
-
-        imp.stats_stack.set_visible_child_name("empty");
         imp.button_stack.set_visible_child_name("empty");
 
         imp.output_window.borrow().clear_messages();
     }
 
     //---------------------------------------
-    // Set exit status function
+    // UI start function
     //---------------------------------------
-    fn set_exit_status(&self, code: i32, messages: RsyncMessages) {
+    fn ui_start(&self, id: Option<i32>) {
+        self.imp().pid.set(id.map(NixPid::from_raw));
+
+        self.set_state(RsyncState::Running);
+
+        glib::timeout_add_local_once(Duration::from_millis(150), clone!(
+            #[weak(rename_to = page)] self,
+            move || {
+                if page.state() != RsyncState::Stopped {
+                    page.imp().button_stack.set_visible_child_name("rsync");
+                }
+            }
+        ));
+    }
+
+    //---------------------------------------
+    // UI status function
+    //---------------------------------------
+    fn ui_status(&self, status: &str) {
+        self.imp().status_label.set_label(status);
+    }
+
+    //---------------------------------------
+    // UI status format function
+    //---------------------------------------
+    fn ui_status_format(&self, css_classes: &[&str], icon: &str) {
         let imp = self.imp();
 
-        // Ensure progress bar at 100% if success
-        if code == 0 {
-            imp.progress_label.set_label("100%");
-            imp.progress_bar.set_fraction(1.0);
+        imp.status_box.set_css_classes(css_classes);
+        imp.status_image.set_icon_name(Some(icon));
+    }
+
+    //---------------------------------------
+    // UI message function
+    //---------------------------------------
+    fn ui_message(&self, message: &str) {
+        self.imp().message_label.set_label(message);
+    }
+
+    //---------------------------------------
+    // UI transferred function
+    //---------------------------------------
+    fn ui_transferred(&self, size: &str) {
+        self.imp().transferred_label.set_label(&format!("{size}B"));
+    }
+
+    //---------------------------------------
+    // UI speed function
+    //---------------------------------------
+    fn ui_speed(&self, speed: &str) {
+        self.imp().speed_label.set_label(speed);
+    }
+
+    //---------------------------------------
+    // UI bar pulse function
+    //---------------------------------------
+    fn ui_bar_pulse(&self) {
+        let imp = self.imp();
+
+        imp.progress_label.set_label("---");
+        imp.progress_bar.pulse();
+    }
+
+    //---------------------------------------
+    // UI bar fraction function
+    //---------------------------------------
+    fn ui_bar_fraction(&self, fraction: f64) {
+        let imp = self.imp();
+
+        imp.progress_label.set_label(&format!("{fraction}%"));
+        imp.progress_bar.set_fraction(fraction/100.0);
+    }
+
+    //---------------------------------------
+    // UI exit status function
+    //---------------------------------------
+    fn ui_exit_status(&self, code: Option<i32>, messages: &RsyncMessages) {
+        let imp = self.imp();
+
+        self.set_state(RsyncState::Stopped);
+
+        imp.pid.set(None);
+
+        let stats_table = Self::rsync_stats(&messages.stats);
+
+        // Show exit status
+        match code {
+            Some(0) => {
+                // Ensure progress bar at 100% if success
+                self.ui_bar_fraction(100.0);
+
+                if let Some(stats) = stats_table.as_ref() {
+                    let status = format!("Success: {}B of {}B transferred",
+                        stats.transferred_size,
+                        stats.source_size
+                    );
+
+                    let msg = format!("{} of {} file(s) created{}",
+                        stats.created_files,
+                        stats.source_files,
+                        if stats.deleted_files == "0" { "".into() } else { format!(" | {} file(s) deleted", stats.deleted_files) }
+                    );
+
+                    self.ui_status_format(&["success", "heading"], "rsync-success-symbolic");
+                    self.ui_status(&status);
+
+                    self.ui_message(&msg);
+                } else {
+                    self.ui_status_format(&["warning", "heading"], "rsync-success-symbolic");
+                    self.ui_status("Success: could not retrieve stats");
+
+                    self.ui_message("");
+                }
+            }
+
+            Some(code) => {
+                let (error, details) = Self::rsync_error(code, &messages.errors);
+
+                self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
+                self.ui_status(&format!("{error} (code {code})"));
+
+                self.ui_message(&details);
+            }
+
+            None => {
+                self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
+                self.ui_status("Unknown error");
+
+                self.ui_message("");
+            }
         }
 
-        // Show exit status in message label
-        let stats = RsyncProcess::stats(&messages.stats);
-
-        match (code, &stats) {
-            (0, Some(stats)) => {
-                imp.message_box.set_css_classes(&["success", "heading"]);
-                imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
-
-                imp.message_label.set_label(&format!(
-                    "Success: {}B of {}B transferred",
-                    stats.transferred_size,
-                    stats.source_size
-                ));
-            }
-
-            (0, None) => {
-                imp.message_box.set_css_classes(&["warning", "heading"]);
-                imp.message_image.set_icon_name(Some("rsync-success-symbolic"));
-
-                imp.message_label.set_label("Success: could not retrieve stats");
-            }
-
-            (code, _) => {
-                imp.message_box.set_css_classes(&["error", "heading"]);
-                imp.message_image.set_icon_name(Some("rsync-error-symbolic"));
-
-                let error = RsyncProcess::error(code, &messages.errors);
-
-                imp.message_label.set_label(&format!("{error} (code {code})"));
-            }
-        }
-
-        // Show stats
-        if let Some(stats) = stats {
-            imp.speed_label.set_label(&format!("{}B/s", stats.speed));
-
-            imp.stats_pane.fill(&stats);
-
-            imp.stats_stack.set_visible_child_name("stats");
-        } else {
-            imp.stats_stack.set_visible_child_name("empty");
+        // Show other stats
+        if let Some(stats) = stats_table {
+            self.ui_speed(&format!("{}B/s", stats.speed));
         }
 
         // Show details
@@ -326,10 +485,504 @@ impl RsyncPage {
             // Populate output window
             glib::idle_add_local_once(clone!(
                 #[weak] imp,
+                #[strong] messages,
                 move || {
                     imp.output_window.borrow().load_messages(&messages);
                 }
             ));
         }
+    }
+
+    //---------------------------------------
+    // Tokio runtime helper function
+    //---------------------------------------
+    fn runtime() -> &'static Runtime {
+        static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+        RUNTIME.get_or_init(|| {
+            Runtime::new().expect("Setting up tokio runtime needs to succeed.")
+        })
+    }
+
+    //---------------------------------------
+    // Parse progress async function
+    //---------------------------------------
+    async fn parse_progress(line: &str, sender: &Sender::<RsyncSend>) {
+        for chunk in line.trim_start_matches('\r').split_terminator('\r') {
+            let parts: Vec<&str> = chunk
+                .split_whitespace()
+                .collect();
+
+            if parts.len() >= 3 && let (size, speed, Ok(progress)) = (
+                parts[0],
+                parts[2],
+                parts[1].trim_end_matches('%').parse::<f64>()
+            ) {
+                sender
+                    .send(RsyncSend::Progress(
+                        size.into(),
+                        speed.into(),
+                        progress
+                    ))
+                    .await
+                    .expect("Could not send through channel");
+            }
+        }
+    }
+
+    //---------------------------------------
+    // Parse message async function
+    //---------------------------------------
+    async fn parse_message(line: &str, sender: &Sender::<RsyncSend>) {
+        if line.starts_with(ITEMIZE_TAG) && let Some((flags, msg)) = line
+            .trim_start_matches(ITEMIZE_TAG)
+            .split_once(' ') {
+                if flags.starts_with('*') {
+                    let msg = format!("{} {}",
+                        case::capitalize_first(flags.trim_start_matches('*')),
+                        msg
+                    );
+
+                    sender.send(RsyncSend::Message(RsyncMsgType::Info, msg))
+                        .await
+                        .expect("Could not send through channel");
+                } else {
+                    let type_ = flags.get(1..2)
+                        .and_then(|type_| RsyncMsgType::from_str(type_).ok())
+                        .unwrap_or_default();
+
+                    sender.send(RsyncSend::Message(type_, msg.into()))
+                        .await
+                        .expect("Could not send through channel");
+                }
+            } else {
+                let msg = case::capitalize_first(line);
+
+                sender.send(RsyncSend::Message(RsyncMsgType::Info, msg))
+                    .await
+                    .expect("Could not send through channel");
+            }
+    }
+
+    //---------------------------------------
+    // Parse stdout async function
+    //---------------------------------------
+    async fn parse_stdout(mut stdout: ChildStdout, sender: Sender::<RsyncSend>) {
+        let mut buffer = [0u8; BUFFER_SIZE];
+        let mut pending = vec![];
+
+        let mut stats_mode = false;
+        let mut recurse_mode = false;
+
+        while let Ok(read) = stdout.read(&mut buffer).await {
+            // Break if stdout is empty
+            if read == 0 {
+                break;
+            }
+
+            // Add buffer to pending
+            pending.extend_from_slice(&buffer[..read]);
+
+            // Continue if buffer is full
+            if read == BUFFER_SIZE {
+                continue;
+            }
+
+            // Drain pending and convert to string
+            let bytes = std::mem::take(&mut pending);
+            let text = String::from_utf8_lossy(&bytes);
+
+            // Process stdout line by line
+            for line in text.lines().filter(|&line| !line.is_empty()) {
+                // Recursion start line
+                if line.contains("building file list") {
+                    recurse_mode = true;
+
+                    for chunk in line.split_terminator('\r') {
+                        if chunk.starts_with("building file list ...") {
+                            sender.send(RsyncSend::RecurseBegin(case::capitalize_first(chunk)))
+                                .await
+                                .expect("Could not send through channel");
+                        } else {
+                            sender.send(RsyncSend::Recurse(chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        }
+                    }
+
+                    continue;
+                }
+
+                // Recursion line
+                if recurse_mode {
+                    if line.ends_with("to consider") {
+                        // Recursion end line
+                        recurse_mode = false;
+
+                        for chunk in line.split('\r') {
+                            if chunk.ends_with("to consider") {
+                                sender.send(RsyncSend::RecurseEnd(chunk.into()))
+                                    .await
+                                    .expect("Could not send through channel");
+                            } else {
+                                sender.send(RsyncSend::Recurse(chunk.into()))
+                                    .await
+                                    .expect("Could not send through channel");
+                            }
+                        }
+
+                        continue;
+                    } else if line.starts_with(' ') && line.contains("files...") {
+                        for chunk in line.split_terminator('\r') {
+                            sender.send(RsyncSend::Recurse(chunk.into()))
+                                .await
+                                .expect("Could not send through channel");
+                        }
+
+                        continue;
+                    }
+                }
+
+                // Progress line
+                if line.starts_with('\r') {
+                    Self::parse_progress(line, &sender).await;
+
+                    continue;
+                }
+
+                // Stats line
+                if stats_mode || line.starts_with("Number of files:") {
+                    stats_mode = true;
+
+                    sender.send(RsyncSend::Stats(line.into()))
+                        .await
+                        .expect("Could not send through channel");
+
+                    continue;
+                }
+
+                // Message line
+                Self::parse_message(line, &sender).await;
+            }
+        }
+    }
+
+    //---------------------------------------
+    // Parse stderr async function
+    //---------------------------------------
+    async fn parse_stderr(mut stderr: ChildStderr, sender: Sender::<RsyncSend>) {
+        let mut buffer = [0u8; BUFFER_SIZE];
+
+        while let Ok(read) = stderr.read(&mut buffer).await {
+            // Break if stderr is empty
+            if read == 0 {
+                break;
+            }
+
+            // Read stderr and process line by line
+            let error = String::from_utf8_lossy(&buffer[..read]);
+
+            for line in error.lines().filter(|&line| !line.is_empty()) {
+                sender.send(RsyncSend::Error(case::capitalize_first(line)))
+                    .await
+                    .expect("Could not send through channel");
+            }
+        }
+    }
+
+    //---------------------------------------
+    // Rsync start function
+    //---------------------------------------
+    pub async fn rsync_start(&self, dry_run: bool) -> io::Result<()> {
+        // Get args
+        let profile = self.profile();
+
+        let args = profile.options()
+            .into_iter()
+            .chain(profile.quoted_filters(false))
+            .chain(dry_run.then_some("--dry-run".into()))
+            .chain(
+                [
+                    "--human-readable",
+                    &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
+                    "--info=backup,copy,del,flist2,misc,name,progress2,skip2,symsafe,stats2",
+                    "--debug=filter"
+                ]
+                .into_iter()
+                
+                .map(ToOwned::to_owned)
+            )
+            .chain([profile.source(), profile.destination()])
+            .collect::<Vec<_>>();
+
+        // Spawn tokio task to run rsync
+        let (sender, receiver) = async_channel::bounded(1);
+
+        let rsync_task = Self::runtime().spawn(
+            async move {
+                // Start rsync
+                let mut rsync_process = Command::new("rsync")
+                    .args(args)
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .kill_on_drop(true)
+                    .spawn()?;
+
+                // Get sdtout/stderr handles
+                let stdout = rsync_process.stdout.take()
+                    .ok_or_else(|| io::Error::other("Could not get stdout"))?;
+
+                let stderr = rsync_process.stderr.take()
+                    .ok_or_else(|| io::Error::other("Could not get stderr"))?;
+
+                // Send rsync process id
+                sender
+                    .send(RsyncSend::Start(rsync_process.id().map(|id| id as i32)))
+                    .await
+                    .expect("Could not send through channel");
+
+                // Spawn task to read stdout
+                let sender_out = sender.clone();
+
+                let stdout_task = tokio::spawn(Self::parse_stdout(stdout, sender_out));
+
+                // Spawn task to read stderr
+                let sender_err = sender.clone();
+
+                let stderr_task = tokio::spawn(Self::parse_stderr(stderr, sender_err));
+
+                // Wait for stdout, stderr and process
+                let (_, _, status_res) = tokio::join!(
+                    stdout_task,
+                    stderr_task,
+                    rsync_process.wait()
+                );
+
+                let code = status_res
+                    .map_or_else(|_| None, |status| status.code());
+
+                // Send rsync exit code
+                sender
+                    .send(RsyncSend::Exit(code))
+                    .await
+                    .expect("Could not send through channel");
+
+                Ok::<(), io::Error>(())
+            }
+        );
+
+        // Attach receiver for tokio task
+        let mut messages = RsyncMessages::new();
+        let mut sync_shown = false;
+
+        while let Ok(msg) = receiver.recv().await {
+            match msg {
+                RsyncSend::Start(id) => {
+                    self.ui_start(id);
+                }
+
+                RsyncSend::RecurseBegin(msg) => {
+                    self.ui_status(&msg);
+
+                    messages.push_message(RsyncMsgType::Info, msg);
+                }
+
+                RsyncSend::Recurse(msg) => {
+                    self.ui_bar_pulse();
+
+                    self.ui_message(&msg);
+                }
+
+                RsyncSend::RecurseEnd(msg) => {
+                    self.ui_status(&format!("Syncing to {}", profile.source()));
+                    sync_shown = true;
+
+                    self.ui_message(&msg);
+
+                    self.ui_bar_fraction(0.0);
+
+                    messages.push_message(RsyncMsgType::Info, msg);
+                }
+
+                RsyncSend::Progress(size, speed, progress) => {
+                    self.ui_transferred(&size);
+                    self.ui_speed(&speed);
+                    self.ui_bar_fraction(progress);
+                }
+
+                RsyncSend::Message(type_, msg) => {
+                    if !sync_shown {
+                        self.ui_status(&format!("Syncing to {}", profile.source()));
+                        sync_shown = true;
+                    }
+
+                    self.ui_message(&msg);
+
+                    messages.push_message(type_, msg);
+                }
+
+                RsyncSend::Stats(stat) => {
+                    messages.push_stat(stat);
+                }
+
+                RsyncSend::Error(error) => {
+                    messages.push_error(error);
+                }
+
+                RsyncSend::Exit(code) => {
+                    self.ui_exit_status(code, &messages);
+                }
+            }
+        }
+
+        rsync_task
+            .await
+            .expect("Failed to complete tokio task")
+    }
+
+    //---------------------------------------
+    // Rsync terminate function
+    //---------------------------------------
+    pub fn rsync_terminate(&self) -> Result<(), NixErrno> {
+        let imp = self.imp();
+
+        if let Some(pid) = imp.pid.get() {
+            // Resume rsync if paused
+            if self.state() == RsyncState::Paused {
+                nix_kill(pid, NixSignal::SIGCONT)?;
+
+                self.set_state(RsyncState::Running);
+            }
+
+            // Terminate rsync
+            nix_kill(pid, NixSignal::SIGTERM)?;
+        }
+
+        Ok(())
+    }
+
+    //---------------------------------------
+    // Rsync pause function
+    //---------------------------------------
+    pub fn rsync_pause(&self) -> Result<(), NixErrno> {
+        let imp = self.imp();
+
+        // Pause rsync if not paused
+        if self.state() == RsyncState::Running && let Some(pid) = imp.pid.get() {
+            nix_kill(pid, NixSignal::SIGSTOP)?;
+
+            self.set_state(RsyncState::Paused);
+        }
+
+        Ok(())
+    }
+
+    //---------------------------------------
+    // Rsync resume function
+    //---------------------------------------
+    pub fn rsync_resume(&self) -> Result<(), NixErrno> {
+        let imp = self.imp();
+
+        // Resume rsync if paused
+        if self.state() == RsyncState::Paused && let Some(pid) = imp.pid.get() {
+            nix_kill(pid, NixSignal::SIGCONT)?;
+
+            self.set_state(RsyncState::Running);
+        }
+
+        Ok(())
+    }
+
+    //---------------------------------------
+    // Rsync stats function
+    //---------------------------------------
+    pub fn rsync_stats(stats: &[String]) -> Option<RsyncStats> {
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"(?x)
+                Number\s*of\s*files:\s*(?P<sfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<sf>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<sl>[\d,.]+))?,?\s*(?:special:\s*(?P<ss>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*created\s*files:\s*(?P<cfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<cf>[\d,.]+))?,?\s*(?:dir:\s*(?P<cd>[\d,.]+))?,?\s*(?:link:\s*(?P<cl>[\d,.]+))?,?\s*(?:special:\s*(?P<cs>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*deleted\s*files:\s*(?P<dfiles>[\d,.]+)\s*\(?(?:reg:\s*(?P<df>[\d,.]+))?,?\s*(?:dir:\s*(?P<dd>[\d,.]+))?,?\s*(?:link:\s*(?P<dl>[\d,.]+))?,?\s*(?:special:\s*(?P<ds>[\d,.]+))?,?\s*\)?\n
+                Number\s*of\s*regular\s*files\s*transferred:\s*(?P<tfiles>[\d,.]+)\n
+                Total\s*file\s*size:\s*(?P<ssize>.+)\s*bytes\n
+                Total\s*transferred\s*file\s*size:\s*(?P<tsize>.+)\s*bytes\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                .*\n
+                Total\s*bytes\s*sent:\s*(?P<sbytes>.*?)\n
+                Total\s*bytes\s*received:\s*(?P<rbytes>.*?)\n
+                sent\s*.*?\s*bytes\s*received\s*.*?\s*bytes(?P<speed>.*?)\s*bytes
+            ")
+            .expect("Failed to compile Regex")
+        });
+
+        EXPR.captures(&stats.join("\n"))
+            .map(|caps| {
+                let regex_match = |m: &str| -> String {
+                    caps.name(m)
+                        .map_or("---", |m| m.as_str().trim_end_matches(',').trim())
+                        .to_owned()
+                };
+
+                RsyncStats {
+                    source_files: regex_match("sfiles"),
+                    created_files: regex_match("cfiles"),
+                    deleted_files: regex_match("dfiles"),
+                    transferred_files: regex_match("tfiles"),
+                    source_size: regex_match("ssize"),
+                    transferred_size: regex_match("tsize"),
+                    sent_bytes: regex_match("sbytes"),
+                    received_bytes: regex_match("rbytes"),
+                    speed: regex_match("speed")
+                }
+            })
+    }
+
+    //---------------------------------------
+    // Rsync error function
+    //---------------------------------------
+    pub fn rsync_error(code: i32, errors: &[String]) -> (String, String) {
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"^(?P<err>[^(]*).*")
+                .expect("Failed to compile Regex")
+        });
+
+        // Get detailed and main (last) errors
+        let Some((details, error)) = errors.split_at_checked(errors.len() - 1) else {
+            return ("Unknown error".into(), "n/a".into());
+        };
+
+        // Helper closure to extract errors
+        let extract_error = |msg: Option<&String>| -> String {
+            msg
+                .and_then(|msg| EXPR.captures(msg))
+                .and_then(|m| m.name("err"))
+                .map(|m| {
+                    let s = m.as_str().trim()
+                        .trim_end_matches('.')
+                        .replace("Rsync: ", "")
+                        .replace("Rsync error: ", "")
+                        .replace("Rsync warning: ", "");
+
+                    case::capitalize_first(&s)
+                })
+                .unwrap_or_else(|| "Unknown error".into())
+        };
+
+        // Get error string
+        let main_error = match code {
+            // Terminated by user
+            20 => "Terminated by user".into(),
+
+            // Other error
+            _ => extract_error(error.first())
+        };
+
+        let error_details = details.iter()
+            .map(|err| extract_error(Some(err)))
+            .collect::<Vec<String>>()
+            .join(" | ");
+
+        (main_error, error_details)
     }
 }

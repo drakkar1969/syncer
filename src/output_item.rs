@@ -4,7 +4,7 @@ use gtk::glib;
 
 use crate::{
     output_window::OutputObject,
-    rsync_process::RsyncMsgType
+    rsync_page::RsyncMsgType
 };
 
 //------------------------------------------------------------------------------
@@ -90,10 +90,10 @@ impl OutputItem {
                     Some("info-outline-symbolic")
                 }
             }
-            RsyncMsgType::f => Some("stats-file-symbolic"),
-            RsyncMsgType::d => Some("stats-dir-symbolic"),
-            RsyncMsgType::L => Some("stats-link-symbolic"),
-            RsyncMsgType::D | RsyncMsgType::S => Some("stats-special-symbolic"),
+            RsyncMsgType::File => Some("stats-file-symbolic"),
+            RsyncMsgType::Directory => Some("stats-dir-symbolic"),
+            RsyncMsgType::Link => Some("stats-link-symbolic"),
+            RsyncMsgType::Device | RsyncMsgType::Special => Some("stats-special-symbolic"),
             RsyncMsgType::None => None
         });
     }
