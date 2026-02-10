@@ -60,8 +60,6 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/output_window.ui")]
     pub struct OutputWindow {
         #[template_child]
-        pub(super) header_sub_label: TemplateChild<gtk::Label>,
-        #[template_child]
         pub(super) spinner: TemplateChild<adw::Spinner>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -87,6 +85,8 @@ mod imp {
         pub(super) item_factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
         pub(super) header_factory: TemplateChild<gtk::SignalListItemFactory>,
+        #[template_child]
+        pub(super) footer_label: TemplateChild<gtk::Label>,
 
         #[property(get, set, builder(OutputFilter::default()))]
         filter_type: Cell<OutputFilter>,
@@ -292,7 +292,7 @@ impl OutputWindow {
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
 
-                imp.header_sub_label.set_label(&format!("{n_items} item{}", if n_items == 1 { "" } else { "s" }));
+                imp.footer_label.set_label(&format!("{n_items} item{}", if n_items == 1 { "" } else { "s" }));
             }
         ));
 

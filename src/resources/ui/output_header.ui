@@ -6,7 +6,7 @@
     <property name="spacing">8</property>
     <child>
       <object class="GtkSeparator">
-        <property name="margin-top">8</property>
+        <property name="margin-top">4</property>
       </object>
     </child>
     <child>
