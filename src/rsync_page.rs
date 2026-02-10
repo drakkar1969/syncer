@@ -838,17 +838,17 @@ impl RsyncPage {
     pub fn rsync_terminate(&self) -> Result<(), NixErrno> {
         let imp = self.imp();
 
-        if let Some(pid) = imp.pid.get() {
-            // Resume rsync if paused
-            if self.state() == RsyncState::Paused {
-                nix_kill(pid, NixSignal::SIGCONT)?;
+        let pid = imp.pid.get().ok_or(NixErrno::ESRCH)?;
 
-                self.set_state(RsyncState::Running);
-            }
+        // Resume rsync if paused
+        if self.state() == RsyncState::Paused {
+            nix_kill(pid, NixSignal::SIGCONT)?;
 
-            // Terminate rsync
-            nix_kill(pid, NixSignal::SIGTERM)?;
+            self.set_state(RsyncState::Running);
         }
+
+        // Terminate rsync
+        nix_kill(pid, NixSignal::SIGTERM)?;
 
         Ok(())
     }
@@ -859,8 +859,10 @@ impl RsyncPage {
     pub fn rsync_pause(&self) -> Result<(), NixErrno> {
         let imp = self.imp();
 
+        let pid = imp.pid.get().ok_or(NixErrno::ESRCH)?;
+
         // Pause rsync if not paused
-        if self.state() == RsyncState::Running && let Some(pid) = imp.pid.get() {
+        if self.state() == RsyncState::Running {
             nix_kill(pid, NixSignal::SIGSTOP)?;
 
             self.set_state(RsyncState::Paused);
@@ -875,8 +877,10 @@ impl RsyncPage {
     pub fn rsync_resume(&self) -> Result<(), NixErrno> {
         let imp = self.imp();
 
+        let pid = imp.pid.get().ok_or(NixErrno::ESRCH)?;
+
         // Resume rsync if paused
-        if self.state() == RsyncState::Paused && let Some(pid) = imp.pid.get() {
+        if self.state() == RsyncState::Paused {
             nix_kill(pid, NixSignal::SIGCONT)?;
 
             self.set_state(RsyncState::Running);
