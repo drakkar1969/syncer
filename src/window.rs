@@ -149,7 +149,7 @@ mod imp {
                     imp.navigation_view.push_by_tag("rsync");
 
                     // Start rsync
-                    let _ = imp.rsync_page.rsync_start(dry_run).await;
+                    let _ = imp.rsync_page.start_rsync(dry_run).await;
 
                     imp.rsync_page.set_can_pop(true);
                 }

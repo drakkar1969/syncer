@@ -680,10 +680,10 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Rsync start function
+    // Start rsync function
     //---------------------------------------
     #[allow(clippy::future_not_send)]
-    pub async fn rsync_start(&self, dry_run: bool) -> io::Result<()> {
+    pub async fn start_rsync(&self, dry_run: bool) -> io::Result<()> {
         // Get args
         let profile = self.profile();
 
