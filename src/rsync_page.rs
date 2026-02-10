@@ -440,7 +440,7 @@ impl RsyncPage {
                     self.ui_status_format(&["warning", "heading"], "rsync-success-symbolic");
                     self.ui_status("Success: could not retrieve stats");
 
-                    self.ui_message("");
+                    self.ui_message("Transfer information not available");
                 }
             }
 
@@ -457,7 +457,7 @@ impl RsyncPage {
                 self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
                 self.ui_status("Unknown error");
 
-                self.ui_message("");
+                self.ui_message("Error details not available");
             }
         }
 
