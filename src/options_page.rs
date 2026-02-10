@@ -48,7 +48,9 @@ mod imp {
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
 
-        pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>
+        pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>,
+
+        pub(super) config_json: RefCell<String>,
     }
 
     //---------------------------------------
@@ -465,6 +467,9 @@ impl OptionsPage {
 
         let json_object: JsonMap<String, JsonValue> = from_str(&json_str)?;
 
+        // Store config
+        imp.config_json.replace(json_str);
+
         // Get profile list
         let profile_object = json_object.get("profiles")
             .and_then(|value| value.as_object())
@@ -516,6 +521,11 @@ impl OptionsPage {
 
         let json_str = to_string_pretty(&json_object)?;
 
-        fs::write(config_path, json_str.as_bytes())
+        // Save config only if different from stored config
+        if json_str != *imp.config_json.borrow() {
+            fs::write(config_path, json_str.as_bytes())
+        } else {
+            Ok(())
+        }
     }
 }
