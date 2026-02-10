@@ -471,6 +471,7 @@ impl RsyncPage {
             imp.button_stack.set_visible_child_name("empty");
         } else {
             imp.button_stack.set_visible_child_name("output");
+            imp.output_button.grab_focus();
 
             // Populate output window
             glib::idle_add_local_once(clone!(
