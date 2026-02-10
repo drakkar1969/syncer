@@ -931,7 +931,13 @@ impl RsyncPage {
                 let transferred_items = convert::num_to_string(
                     messages.messages.iter()
                         .filter(|(type_, _)| {
-                            [RsyncMsgType::File, RsyncMsgType::Link, RsyncMsgType::Device, RsyncMsgType::Special].contains(type_)
+                            [
+                                RsyncMsgType::File,
+                                RsyncMsgType::Link,
+                                RsyncMsgType::Device,
+                                RsyncMsgType::Special
+                            ]
+                            .contains(type_)
                         })
                         .count()
                 );
