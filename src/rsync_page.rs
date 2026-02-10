@@ -121,15 +121,6 @@ impl RsyncMessages {
     pub fn is_empty(&self) -> bool {
         self.messages.is_empty() && self.stats.is_empty() && self.errors.is_empty()
     }
-
-    pub fn transferred_items(&self) -> String {
-        self.messages.iter()
-            .filter(|(type_, _)| {
-                [RsyncMsgType::File, RsyncMsgType::Link, RsyncMsgType::Device, RsyncMsgType::Special].contains(type_)
-            })
-            .count()
-            .to_formatted_string(&SystemLocale::default().unwrap())
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -138,6 +129,7 @@ impl RsyncMessages {
 #[derive(Default, Debug)]
 pub struct RsyncStats {
     pub source_items: String,
+    pub transferred_items: String,
     pub source_size: String,
     pub transferred_size: String,
     pub speed: String
@@ -422,7 +414,7 @@ impl RsyncPage {
 
         imp.pid.set(None);
 
-        let stats_table = Self::rsync_stats(&messages.stats);
+        let stats_table = Self::rsync_stats(messages);
 
         // Show exit status
         match code {
@@ -437,7 +429,7 @@ impl RsyncPage {
                     );
 
                     let msg = format!("{} of {} items(s) transferred",
-                        messages.transferred_items(),
+                        stats.transferred_items,
                         stats.source_items
                     );
 
@@ -897,7 +889,7 @@ impl RsyncPage {
     //---------------------------------------
     // Rsync stats function
     //---------------------------------------
-    pub fn rsync_stats(stats: &[String]) -> Option<RsyncStats> {
+    pub fn rsync_stats(messages: &RsyncMessages) -> Option<RsyncStats> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
                 Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sfiles>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<slinks>[\d,.]+))?,?\s*(?:special:\s*(?P<sspecials>[\d,.]+))?,?\s*\)?\n
@@ -918,28 +910,35 @@ impl RsyncPage {
             .expect("Failed to compile Regex")
         });
 
-        EXPR.captures(&stats.join("\n"))
+        EXPR.captures(&messages.stats.join("\n"))
             .map(|caps| {
+                // Helper closure to extract regex match
                 let regex_match = |s: &str| -> String {
                     caps.name(s)
                         .map_or("0", |m| m.as_str().trim_end_matches(',').trim())
                         .to_owned()
                 };
 
-                let item_count = |v: &[&str]| -> String {
-                    v.into_iter()
-                        .map(|s| {
-                            regex_match(s)
-                                .replace(',', "")
-                                .parse::<i64>()
-                                .unwrap_or_default()
-                        })
-                        .sum::<i64>()
-                        .to_formatted_string(&SystemLocale::default().unwrap())
-                };
+                let source_items = ["sfiles", "slinks", "sspecials"].into_iter()
+                    .map(|s| {
+                        regex_match(s)
+                            .replace(',', "")
+                            .parse::<i64>()
+                            .unwrap_or_default()
+                    })
+                    .sum::<i64>()
+                    .to_formatted_string(&SystemLocale::default().unwrap());
+
+                let transferred_items = messages.messages.iter()
+                    .filter(|(type_, _)| {
+                        [RsyncMsgType::File, RsyncMsgType::Link, RsyncMsgType::Device, RsyncMsgType::Special].contains(type_)
+                    })
+                    .count()
+                    .to_formatted_string(&SystemLocale::default().unwrap());
 
                 RsyncStats {
-                    source_items: item_count(&["sfiles", "slinks", "sspecials"]),
+                    source_items,
+                    transferred_items,
                     source_size: regex_match("ssize"),
                     transferred_size: regex_match("tsize"),
                     speed: regex_match("speed")
