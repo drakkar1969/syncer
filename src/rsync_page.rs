@@ -957,14 +957,13 @@ impl RsyncPage {
         });
 
         // Get detailed and main (last) errors
-        let Some((details, error)) = errors.split_at_checked(errors.len() - 1) else {
+        let Some((error, details)) = errors.split_last() else {
             return ("Unknown error".into(), "n/a".into());
         };
 
         // Helper closure to extract errors
-        let extract_error = |msg: Option<&String>| -> String {
-            msg
-                .and_then(|msg| EXPR.captures(msg))
+        let extract_error = |msg: &str| -> String {
+            EXPR.captures(msg)
                 .and_then(|m| m.name("err"))
                 .map_or_else(|| "Unknown error".into(), |m| {
                     let s = m.as_str().trim()
@@ -983,11 +982,11 @@ impl RsyncPage {
             20 => "Terminated by user".into(),
 
             // Other error
-            _ => extract_error(error.first())
+            _ => extract_error(error)
         };
 
         let error_details = details.iter()
-            .map(|err| extract_error(Some(err)))
+            .map(|err| extract_error(err))
             .collect::<Vec<String>>()
             .join(" | ");
 
