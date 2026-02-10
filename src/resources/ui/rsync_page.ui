@@ -224,13 +224,8 @@
                       <object class="GtkButton" id="output_button">
                         <property name="halign">center</property>
                         <property name="valign">end</property>
-                        <property name="child">
-                          <object class="AdwButtonContent">
-                            <property name="icon-name">document-edit-symbolic</property>
-                            <property name="label">Rsync _Output</property>
-                            <property name="use-underline">true</property>
-                          </object>
-                        </property>
+                        <property name="label">Rsync _Output</property>
+                        <property name="use-underline">true</property>
                         <style>
                           <class name="pill"/>
                         </style>
