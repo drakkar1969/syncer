@@ -12,3 +12,30 @@ pub mod case {
         s
     }
 }
+
+//------------------------------------------------------------------------------
+// MODULE: Convert
+//------------------------------------------------------------------------------
+pub mod convert {
+    use std::sync::OnceLock;
+    use std::str::FromStr;
+
+    use num_format::{SystemLocale, ToFormattedString};
+
+    fn sys_locale() -> &'static SystemLocale {
+        static LOCALE: OnceLock<SystemLocale> = OnceLock::new();
+        LOCALE.get_or_init(|| {
+            SystemLocale::default().unwrap()
+        })
+    }
+
+    pub fn string_to_num<T: FromStr + Default>(s: &str) -> T {
+        s.replace(sys_locale().separator(), "")
+            .parse::<T>()
+            .unwrap_or_default()
+    }
+
+    pub fn num_to_string<T: ToFormattedString>(i: T) -> String {
+        i.to_formatted_string(sys_locale())
+    }
+}

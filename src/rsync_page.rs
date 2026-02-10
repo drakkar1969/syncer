@@ -23,12 +23,11 @@ use nix::{
     unistd::Pid as NixPid
 };
 use regex::Regex;
-use num_format::{SystemLocale, ToFormattedString};
 
 use crate::{
     profile_object::ProfileObject,
     output_window::OutputWindow,
-    utils::case
+    utils::{case, convert}
 };
 
 //------------------------------------------------------------------------------
@@ -919,22 +918,19 @@ impl RsyncPage {
                         .to_owned()
                 };
 
-                let source_items = ["sfiles", "slinks", "sspecials"].into_iter()
-                    .map(|s| {
-                        regex_match(s)
-                            .replace(',', "")
-                            .parse::<i64>()
-                            .unwrap_or_default()
-                    })
-                    .sum::<i64>()
-                    .to_formatted_string(&SystemLocale::default().unwrap());
+                let source_items = convert::num_to_string(
+                    ["sfiles", "slinks", "sspecials"].into_iter()
+                        .map(|s| convert::string_to_num::<i64>(&regex_match(s)))
+                        .sum::<i64>()
+                );
 
-                let transferred_items = messages.messages.iter()
-                    .filter(|(type_, _)| {
-                        [RsyncMsgType::File, RsyncMsgType::Link, RsyncMsgType::Device, RsyncMsgType::Special].contains(type_)
-                    })
-                    .count()
-                    .to_formatted_string(&SystemLocale::default().unwrap());
+                let transferred_items = convert::num_to_string(
+                    messages.messages.iter()
+                        .filter(|(type_, _)| {
+                            [RsyncMsgType::File, RsyncMsgType::Link, RsyncMsgType::Device, RsyncMsgType::Special].contains(type_)
+                        })
+                        .count()
+                );
 
                 RsyncStats {
                     source_items,
