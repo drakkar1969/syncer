@@ -448,7 +448,7 @@ impl RsyncPage {
                 let (error, details) = Self::rsync_error(code, &messages.errors);
 
                 self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
-                self.ui_status(&format!("{error} (code {code})"));
+                self.ui_status(&error);
 
                 self.ui_message(&details);
             }
@@ -961,37 +961,38 @@ impl RsyncPage {
                 .expect("Failed to compile Regex")
         });
 
-        // Get detailed and main (last) errors
-        let Some((error, details)) = errors.split_last() else {
-            return ("Unknown error".into(), "n/a".into());
-        };
-
         // Helper closure to extract errors
-        let extract_error = |msg: &str| -> String {
+        let format_error = |msg: &str| -> String {
             EXPR.captures(msg)
                 .and_then(|m| m.name("err"))
                 .map_or_else(|| "Unknown error".into(), |m| {
-                    let s = m.as_str().trim()
+                    let s = m.as_str()
                         .trim_end_matches('.')
                         .replace("Rsync: ", "")
                         .replace("Rsync error: ", "")
-                        .replace("Rsync warning: ", "");
+                        .replace("Rsync warning: ", "")
+                        .replace("[sender]", "");
 
-                    case::capitalize_first(&s)
+                    case::capitalize_first(s.trim())
                 })
         };
 
+        // Get detailed and main (last) errors
+        let Some((main, details)) = errors.split_last() else {
+            return ("Unknown error".into(), "n/a".into());
+        };
+
         // Get error string
-        let main_error = match code {
+        let main_error = format!("{} ({code})", match code {
             // Terminated by user
             20 => "Terminated by user".into(),
 
             // Other error
-            _ => extract_error(error)
-        };
+            _ => format_error(main)
+        });
 
         let error_details = details.iter()
-            .map(|err| extract_error(err))
+            .map(|err| format_error(err))
             .collect::<Vec<String>>()
             .join(" | ");
 
