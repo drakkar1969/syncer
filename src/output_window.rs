@@ -60,11 +60,14 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/output_window.ui")]
     pub struct OutputWindow {
         #[template_child]
-        pub(super) spinner: TemplateChild<adw::Spinner>,
-        #[template_child]
-        pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) filter_button: TemplateChild<gtk::MenuButton>,
+        #[template_child]
+        pub(super) search_bar: TemplateChild<gtk::SearchBar>,
+        #[template_child]
+        pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+
         #[template_child]
         pub(super) scroll_window: TemplateChild<gtk::ScrolledWindow>,
         #[template_child]
@@ -85,8 +88,11 @@ mod imp {
         pub(super) item_factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
         pub(super) header_factory: TemplateChild<gtk::SignalListItemFactory>,
+
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) spinner: TemplateChild<adw::Spinner>,
 
         #[property(get, set, builder(OutputFilter::default()))]
         filter_type: Cell<OutputFilter>,
@@ -147,11 +153,7 @@ mod imp {
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Search key binding
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if !imp.search_entry.has_focus() {
-                    imp.search_entry.grab_focus();
-                }
+                window.imp().search_bar.set_search_mode(true);
 
                 glib::Propagation::Stop
             });
@@ -188,6 +190,12 @@ impl OutputWindow {
                 }
             ));
         } else {
+            let n_items = imp.selection.n_items();
+
+            imp.footer_label.set_label(
+                &format!("{n_items} item{}", if n_items == 1 { "" } else { "s" })
+            );
+
             imp.spinner.set_visible(false);
         }
     }
@@ -269,13 +277,6 @@ impl OutputWindow {
             child.bind(&output_object.borrow());
         });
 
-        // Search entry search started signal
-        imp.search_entry.connect_search_started(|entry| {
-            if !entry.has_focus() {
-                entry.grab_focus();
-            }
-        });
-
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak(rename_to = window)] self,
@@ -283,16 +284,6 @@ impl OutputWindow {
                 window.show_spinner(true);
 
                 window.imp().filter.changed(gtk::FilterChange::Different);
-            }
-        ));
-
-        // Selection items changed signal
-        imp.selection.connect_items_changed(clone!(
-            #[weak] imp,
-            move |selection, _, _, _| {
-                let n_items = selection.n_items();
-
-                imp.footer_label.set_label(&format!("{n_items} item{}", if n_items == 1 { "" } else { "s" }));
             }
         ));
 
@@ -314,7 +305,13 @@ impl OutputWindow {
         let imp = self.imp();
 
         // Set search entry key capture widget
-        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+        imp.search_bar.set_key_capture_widget(Some(&imp.view.get()));
+
+        // Bind search button state to search bar visibility
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
+            .bidirectional()
+            .sync_create()
+            .build();
 
         // Set filter function
         imp.filter.set_filter_func(clone!(
@@ -357,7 +354,7 @@ impl OutputWindow {
                 #[weak] imp,
                 #[upgrade_or] glib::Propagation::Proceed,
                 move |_, _| {
-                    imp.search_entry.set_text("");
+                    imp.search_bar.set_search_mode(false);
                     imp.view.grab_focus();
 
                     glib::Propagation::Stop
@@ -432,7 +429,7 @@ impl OutputWindow {
         imp.stat_model.remove_all();
         imp.message_model.remove_all();
 
-        imp.search_entry.set_text("");
+        imp.search_bar.set_search_mode(false);
 
         self.set_filter_type(OutputFilter::default());
     }

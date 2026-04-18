@@ -1,3 +1,8 @@
+/* Global colors */
+:root {
+	--view-bg-color: var(--window-bg-color);
+}
+
 /* Flat dropdown */
 dropdown.flat button.toggle {
 	background-color: transparent;
@@ -23,15 +28,4 @@ image.bubble {
 image.bubble.accent {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
-}
-
-/* Scrolled windows */
-scrolledwindow > undershoot.bottom {
-	background-image: none;
-	box-shadow: none;
-}
-
-/* Card views */
-listview.card-list {
-	background-color: transparent;
 }

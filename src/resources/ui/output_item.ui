@@ -2,6 +2,10 @@
 <interface>
   <!--// OutputItem template //-->
   <template class="OutputItem" parent="GtkBox">
+    <property name="margin-top">1</property>
+    <property name="margin-bottom">1</property>
+    <property name="margin-start">8</property>
+    <property name="margin-end">8</property>
     <property name="spacing">8</property>
     <child>
       <object class="GtkImage" id="image">
