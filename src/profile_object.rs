@@ -49,9 +49,9 @@ impl CheckMode {
 #[repr(u32)]
 #[enum_type(name = "RecurseMode")]
 pub enum RecurseMode {
+    #[default]
     #[strum(props(Desc="Recurse into directories incrementally", Switches="-r"))]
     Incremental,
-    #[default]
     #[enum_value(name = "Non-Incremental")]
     #[strum(props(Desc="Recurse into directories (non-incremental)", Switches="-r --no-i-r"))]
     NonIncremental,
