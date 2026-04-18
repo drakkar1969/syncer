@@ -2,13 +2,35 @@
 <interface>
   <template class="GtkListItem">
     <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="name" type="ProfileObject">
-            <lookup name="item">GtkListItem</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="name" type="ProfileObject">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+            <property name="xalign">0</property>
+            <style>
+              <class name="heading"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="source" type="ProfileObject">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+            <property name="xalign">0</property>
+            <style>
+              <class name="caption"/>
+              <class name="dimmed"/>
+            </style>
+          </object>
+        </child>
       </object>
     </property>
   </template>
