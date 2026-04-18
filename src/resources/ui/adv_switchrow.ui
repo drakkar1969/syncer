@@ -2,6 +2,7 @@
 <interface>
   <!--// AdvSwitchRow template //-->
   <template class="AdvSwitchRow" parent="AdwActionRow">
+    <property name="use-underline">true</property>
     <property name="activatable-widget">switch</property>
     <child>
       <object class="GtkSwitch" id="switch">
