@@ -25,18 +25,6 @@ image.bubble.accent {
 	color: var(--accent-fg-color);
 }
 
-/* Round controls */
-entry.round {
-	border-radius: 9999px;
-	padding-right: 12px;
-}
-
-menubutton.round button.toggle {
-	border-radius: 9999px;
-	padding-left: 12px;
-	padding-right: 12px;
-}
-
 /* Scrolled windows */
 scrolledwindow > undershoot.bottom {
 	background-image: none;
