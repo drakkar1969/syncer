@@ -202,7 +202,7 @@
                 <child>
                   <object class="AdwActionRow" id="filter_row">
                     <property name="activatable">true</property>
-                    <property name="title">_Filters</property>
+                    <property name="title">_Filter Rules</property>
                     <property name="subtitle">Configure include/exclude filters</property>
                     <property name="use-underline">true</property>
                     <property name="action-name">navigation.push</property>

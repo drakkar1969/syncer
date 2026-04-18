@@ -335,7 +335,7 @@ impl FiltersPage {
         let dialog: adw::AlertDialog = builder.object("dialog")
             .expect("Could not get object from resource");
 
-        dialog.set_heading(Some(&format!("{action} Filter")));
+        dialog.set_heading(Some(&format!("{action} Filter Rule")));
         dialog.set_response_label("add", action);
 
         let rule_combo: adw::ComboRow = builder.object("rule_combo")

@@ -33,6 +33,7 @@
         <style>
           <class name="circular"/>
           <class name="flat"/>
+          <class name="destructive-action"/>
         </style>
       </object>
     </child>
