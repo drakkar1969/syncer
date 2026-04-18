@@ -276,7 +276,7 @@
     </section>
     <section>
       <submenu>
-        <attribute name="label">Profile</attribute>
+        <attribute name="label">Selected Profile</attribute>
         <section>
           <item>
             <attribute name="label">Rename…</attribute>

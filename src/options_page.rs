@@ -5,7 +5,7 @@ use std::env;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk};
 use glib::clone;
 
 use serde_json::{json, to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
@@ -68,6 +68,8 @@ mod imp {
             klass.bind_template();
 
             Self::install_profile_actions(klass);
+
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -212,6 +214,28 @@ mod imp {
 
                 dialog.present(Some(page));
             });
+        }
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // New profile key binding
+            klass.add_binding_action(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, "profile.new");
+
+            // Rename profile key binding
+            klass.add_binding_action(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, "profile.rename");
+
+            // Delete profile key binding
+            klass.add_binding_action(gdk::Key::D, gdk::ModifierType::CONTROL_MASK, "profile.delete");
+
+            // Duplicate profile key binding
+            klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, "profile.duplicate");
+
+            // Reset profile key binding
+            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "profile.reset");
+
+            // Delete all profiles key binding
+            klass.add_binding_action(gdk::Key::D, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "profile.delete-all");
         }
     }
 }

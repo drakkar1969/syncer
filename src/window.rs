@@ -199,7 +199,7 @@ mod imp {
 
                 let page = imp.status_stack.visible_child_name();
 
-                if page == Some("status".into()) || page == Some("main".into()) {
+                if page == Some("status".into()) {
                     imp.options_page.activate_action("profile.new", None)
                         .expect("Could not activate action 'new-profile'");
                 }
@@ -208,7 +208,7 @@ mod imp {
             });
 
             // Rsync show cmdline key binding
-            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
+            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::ALT_MASK, "rsync.show-cmdline");
         }
     }
 }

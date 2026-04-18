@@ -12,7 +12,7 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;ctrl&gt;R</property>
+            <property name="accelerator">&lt;alt&gt;R</property>
             <property name="title">Show Rsync Command Line</property>
           </object>
         </child>
@@ -37,6 +37,36 @@
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;N</property>
             <property name="title">New Profile</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;M</property>
+            <property name="title">Rename Profile</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;D</property>
+            <property name="title">Delete Profile</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;P</property>
+            <property name="title">Duplicate Profile</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;R</property>
+            <property name="title">Reset Profile to Defaults</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;D</property>
+            <property name="title">Delete All Profiles</property>
           </object>
         </child>
       </object>
