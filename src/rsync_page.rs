@@ -700,7 +700,6 @@ impl RsyncPage {
                     "--debug=filter"
                 ]
                 .into_iter()
-                
                 .map(ToOwned::to_owned)
             )
             .chain([profile.source(), profile.destination()])

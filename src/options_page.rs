@@ -519,13 +519,13 @@ impl OptionsPage {
         let json_str = to_string_pretty(&json_map)?;
 
         // Save config only if different from stored config
-        if json_str != *imp.config_json.borrow() {
+        if json_str == *imp.config_json.borrow() {
+            Ok(())
+        } else {
             let config_path = xdg::BaseDirectories::new()
                 .place_config_file("Syncer/config.json")?;
 
             fs::write(config_path, json_str.as_bytes())
-        } else {
-            Ok(())
         }
     }
 }
