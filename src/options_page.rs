@@ -44,6 +44,8 @@ mod imp {
         pub(super) check_mode_combo: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) recurse_mode_combo: TemplateChild<adw::ComboRow>,
+        #[template_child]
+        pub(super) filter_row: TemplateChild<adw::ActionRow>,
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
@@ -309,6 +311,19 @@ impl OptionsPage {
                             Some(RecurseMode::from_repr(index).unwrap_or_default())
                         })
                         .bidirectional()
+                        .sync_create()
+                        .build(),
+
+                    profile.bind_property("filters", &imp.filter_row.get(), "subtitle")
+                        .transform_to(|_, filters: Vec<String>| {
+                            let n_filters = filters.len();
+
+                            if n_filters == 0 {
+                                Some("No active filter rules".into())
+                            } else {
+                                Some(format!("{n_filters} active filter rule{}", if n_filters == 1 { "" } else { "s" }))
+                            }
+                        })
                         .sync_create()
                         .build()
                 ];
