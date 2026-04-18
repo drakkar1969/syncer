@@ -427,7 +427,7 @@ impl RsyncPage {
                         stats.source_size
                     );
 
-                    let msg = format!("{} of {} items(s) transferred",
+                    let msg = format!("{} of {} item(s) transferred",
                         stats.transferred_items,
                         stats.source_items
                     );
