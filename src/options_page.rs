@@ -465,17 +465,17 @@ impl OptionsPage {
 
         let json_str = fs::read_to_string(config_path)?;
 
-        let json_object: JsonMap<String, JsonValue> = from_str(&json_str)?;
+        let json_map: JsonMap<String, JsonValue> = from_str(&json_str)?;
 
         // Store config
         imp.config_json.replace(json_str);
 
         // Get profile list
-        let profile_object = json_object.get("profiles")
+        let profile_map = json_map.get("profiles")
             .and_then(|value| value.as_object())
             .ok_or_else(|| io::Error::other("Could not load profiles from config file"))?;
 
-        let profiles: Vec<ProfileObject> = profile_object.iter()
+        let profiles: Vec<ProfileObject> = profile_map.iter()
             .filter_map(|(name, value)| ProfileObject::from_json(name, value))
             .collect();
 
@@ -483,7 +483,7 @@ impl OptionsPage {
         imp.profile_model.splice(0, 0, &profiles);
 
         // Select current profile
-        if let Some(pos) = json_object.get("current-profile")
+        if let Some(pos) = json_map.get("current-profile")
             .and_then(|value| value.as_str().filter(|profile| !profile.is_empty()))
             .and_then(|current_profile| {
                 imp.profile_model.iter::<ProfileObject>()
@@ -506,23 +506,23 @@ impl OptionsPage {
             .and_downcast::<ProfileObject>()
             .map_or_else(String::new, |profile| profile.name());
 
-        let profiles_object: JsonMap<String, JsonValue> = imp.profile_model
+        let profiles_map: JsonMap<String, JsonValue> = imp.profile_model
             .iter::<ProfileObject>()
             .flatten()
             .map(|profile| profile.to_json())
             .collect();
 
-        let mut json_object = JsonMap::new();
-        json_object.insert(String::from("current-profile"), json!(current_profile));
-        json_object.insert(String::from("profiles"), profiles_object.into());
+        let mut json_map = JsonMap::new();
+        json_map.insert(String::from("current-profile"), json!(current_profile));
+        json_map.insert(String::from("profiles"), profiles_map.into());
 
-        let config_path = xdg::BaseDirectories::new()
-            .place_config_file("Syncer/config.json")?;
-
-        let json_str = to_string_pretty(&json_object)?;
+        let json_str = to_string_pretty(&json_map)?;
 
         // Save config only if different from stored config
         if json_str != *imp.config_json.borrow() {
+            let config_path = xdg::BaseDirectories::new()
+                .place_config_file("Syncer/config.json")?;
+
             fs::write(config_path, json_str.as_bytes())
         } else {
             Ok(())
