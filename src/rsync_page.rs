@@ -784,7 +784,7 @@ impl RsyncPage {
                 }
 
                 RsyncSend::RecurseEnd(msg) => {
-                    self.ui_status(&format!("Syncing to {}", profile.source()));
+                    self.ui_status(&format!("Syncing to {}", profile.destination()));
                     sync_shown = true;
 
                     self.ui_message(&msg);
