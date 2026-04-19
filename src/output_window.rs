@@ -346,26 +346,6 @@ impl OutputWindow {
                 }
             }
         ));
-
-        // Add keyboard shortcut to cancel search
-        let shortcut = gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(
-                #[weak] imp,
-                #[upgrade_or] glib::Propagation::Proceed,
-                move |_, _| {
-                    imp.search_bar.set_search_mode(false);
-                    imp.view.grab_focus();
-
-                    glib::Propagation::Stop
-                }
-            )))
-        );
-
-        let controller = gtk::ShortcutController::new();
-        controller.add_shortcut(shortcut);
-
-        imp.search_entry.add_controller(controller);
     }
 
     //---------------------------------------
