@@ -962,10 +962,10 @@ impl RsyncPage {
         });
 
         // Helper closure to extract errors
-        let format_error = |msg: &str| -> String {
+        let format_error = |msg: &str| -> Option<String> {
             EXPR.captures(msg)
                 .and_then(|m| m.name("err"))
-                .map_or_else(|| "Unknown error".into(), |m| {
+                .map(|m| {
                     let s = m.as_str()
                         .trim_end_matches('.')
                         .replace("Rsync: ", "")
@@ -988,11 +988,11 @@ impl RsyncPage {
             20 => "Terminated by user".into(),
 
             // Other error
-            _ => format_error(main)
+            _ => format_error(main).unwrap_or_else(|| "Unknown error".into())
         });
 
         let error_details = details.iter()
-            .map(|err| format_error(err))
+            .map(|err| format_error(err).unwrap_or_else(|| "n/a".into()))
             .collect::<Vec<String>>()
             .join(" | ");
 
