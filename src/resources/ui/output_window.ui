@@ -35,13 +35,13 @@
             </child>
             <child>
               <object class="GtkSearchBar" id="search_bar">
-                <child>
+                <property name="child">
                   <object class="GtkSearchEntry" id="search_entry">
                     <property name="width-request">350</property>
                     <property name="margin-end">6</property>
                     <property name="placeholder-text">Search</property>
                   </object>
-                </child>
+                </property>
               </object>
             </child>
           </object>
