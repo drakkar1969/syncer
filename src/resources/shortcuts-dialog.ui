@@ -12,7 +12,7 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;alt&gt;R</property>
+            <property name="accelerator">&lt;ctrl&gt;L</property>
             <property name="title">Show Rsync Command Line</property>
           </object>
         </child>

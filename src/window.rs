@@ -208,7 +208,7 @@ mod imp {
             });
 
             // Rsync show cmdline key binding
-            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::ALT_MASK, "rsync.show-cmdline");
+            klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
         }
     }
 }
