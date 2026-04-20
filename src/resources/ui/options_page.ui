@@ -17,9 +17,6 @@
             </child>
             <property name="title-widget">
               <object class="GtkDropDown" id="profile_dropdown">
-                <style>
-                  <class name="flat"/>
-                </style>
                 <property name="width-request">250</property>
                 <property name="model">
                   <object class="GListStore" id="profile_model">
