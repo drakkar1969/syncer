@@ -86,7 +86,7 @@
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>
-                        <property name="icon-name">folder-open-symbolic</property>
+                        <property name="icon-name">folder-symbolic</property>
                         <style>
                           <class name="bubble"/>
                         </style>
@@ -110,7 +110,7 @@
                     <child type="prefix">
                       <object class="GtkImage">
                         <property name="valign">center</property>
-                        <property name="icon-name">folder-open-symbolic</property>
+                        <property name="icon-name">folder-symbolic</property>
                         <style>
                           <class name="bubble"/>
                         </style>
