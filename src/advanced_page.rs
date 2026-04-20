@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
+use glib::clone;
 
 use crate::{
     profile_object::ProfileObject,
@@ -22,6 +23,8 @@ mod imp {
     #[properties(wrapper_type = super::AdvancedPage)]
     #[template(resource = "/com/github/Syncer/ui/advanced_page.ui")]
     pub struct AdvancedPage {
+        #[template_child]
+        pub(super) reset_button: TemplateChild<adw::ButtonRow>,
         #[template_child]
         pub(super) switches_box: TemplateChild<gtk::Box>,
 
@@ -108,6 +111,8 @@ impl AdvancedPage {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
+        let imp = self.imp();
+
         // Profile property notify signal
         self.connect_profile_notify(|page| {
             let imp = page.imp();
@@ -141,5 +146,31 @@ impl AdvancedPage {
                 imp.bindings.replace(Some(bindings));
             }
         });
+
+        // Reset button activated signal
+        imp.reset_button.connect_activated(clone!(
+            #[weak(rename_to = page)] self,
+            move |_| {
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Reset Advanced Options?")
+                    .body("Reset all options to their default values.")
+                    .default_response("reset")
+                    .build();
+
+                dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+                dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
+
+                dialog.connect_response(Some("reset"), clone!(
+                    #[weak] page,
+                    move |_, _| {
+                        if let Some(profile) = page.profile() {
+                            profile.reset_advanced();
+                        }
+                    })
+                );
+
+                dialog.present(Some(&page));
+            }
+        ));
     }
 }

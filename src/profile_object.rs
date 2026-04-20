@@ -297,6 +297,19 @@ impl ProfileObject {
     }
 
     //---------------------------------------
+    // Reset advanced function
+    //---------------------------------------
+    pub fn reset_advanced(&self) {
+        for property in self.list_properties() {
+            let nick = property.nick();
+
+            if IndexMap::from(BOOLEAN_OPTIONS).contains_key(nick) {
+                self.set_property_from_value(nick, property.default_value());
+            }
+        }
+    }
+
+    //---------------------------------------
     // Options function
     //---------------------------------------
     pub fn options(&self) -> Vec<String> {

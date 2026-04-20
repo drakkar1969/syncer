@@ -231,7 +231,7 @@ impl FiltersPage {
             }
         ));
 
-        // Delete button clicked signal
+        // Delete button activated signal
         imp.delete_button.connect_activated(clone!(
             #[weak(rename_to = page)] self,
             move |_| {
