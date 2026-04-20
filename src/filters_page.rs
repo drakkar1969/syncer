@@ -235,15 +235,31 @@ impl FiltersPage {
         imp.delete_button.connect_activated(clone!(
             #[weak(rename_to = page)] self,
             move |_| {
-                let imp = page.imp();
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Remove All Filter Rules?")
+                    .body("Permanently remove all filter rules from profile.")
+                    .default_response("remove")
+                    .build();
 
-                imp.internal_change.set(true);
+                dialog.add_responses(&[("cancel", "_Cancel"), ("remove", "_Remove")]);
+                dialog.set_response_appearance("remove", adw::ResponseAppearance::Destructive);
 
-                page.set_filters(vec![]);
+                dialog.connect_response(Some("remove"), clone!(
+                    #[weak] page,
+                    move |_, _| {
+                        let imp = page.imp();
 
-                page.listbox().remove_all();
+                        imp.internal_change.set(true);
 
-                imp.internal_change.set(false);
+                        page.set_filters(vec![]);
+
+                        page.listbox().remove_all();
+
+                        imp.internal_change.set(false);
+                    })
+                );
+
+                dialog.present(Some(&page));
             }
         ));
     }
