@@ -110,9 +110,9 @@ mod imp {
         #[property(get, set)]
         name: RefCell<String>,
 
-        #[property(get, set, default = "")]
+        #[property(get, set)]
         source: RefCell<String>,
-        #[property(get, set, default = "")]
+        #[property(get, set)]
         destination: RefCell<String>,
 
         #[property(get, set, default = CheckMode::default(), construct, builder(CheckMode::default()))]
@@ -179,8 +179,12 @@ impl ProfileObject {
     // New function
     //---------------------------------------
     pub fn new(name: &str) -> Self {
+        let mut home_path = glib::home_dir().to_string_lossy().into_owned();
+        home_path.push('/');
+
         glib::Object::builder()
             .property("name", name)
+            .property("source", home_path)
             .build()
     }
 
