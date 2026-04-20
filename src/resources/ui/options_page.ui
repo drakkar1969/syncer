@@ -8,6 +8,13 @@
       <object class="AdwToolbarView">
         <child type="top">
           <object class="AdwHeaderBar">
+            <child>
+              <object class="GtkButton" id="new_profile_button">
+                <property name="icon-name">document-edit-symbolic</property>
+                <property name="tooltip-text">New Profile…</property>
+                <property name="action-name">profile.new</property>
+              </object>
+            </child>
             <property name="title-widget">
               <object class="GtkDropDown" id="profile_dropdown">
                 <style>
