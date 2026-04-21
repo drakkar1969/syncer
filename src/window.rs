@@ -174,8 +174,7 @@ mod imp {
                     .expect("Could not downcast to 'ProfileObject'");
 
                 // Init command line dialog
-                let options = profile.options().into_iter()
-                    .chain(profile.quoted_filters(true))
+                let options = profile.options(true).into_iter()
                     .collect::<Vec<String>>()
                     .join(" ");
 
