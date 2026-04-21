@@ -688,7 +688,7 @@ impl RsyncPage {
         // Get args
         let profile = self.profile();
 
-        let args = profile.options()
+        let args: Vec<String> = profile.options()
             .into_iter()
             .chain(profile.quoted_filters(false))
             .chain(dry_run.then_some("--dry-run".into()))
@@ -703,7 +703,7 @@ impl RsyncPage {
                 .map(ToOwned::to_owned)
             )
             .chain([profile.source(), profile.destination()])
-            .collect::<Vec<_>>();
+            .collect();
 
         self.imp().dry_run.set(dry_run);
 
