@@ -237,7 +237,7 @@ impl FiltersPage {
             move |_| {
                 let dialog = adw::AlertDialog::builder()
                     .heading("Remove All Filter Rules?")
-                    .body("Permanently remove all filter rules from profile.")
+                    .body("Permanently remove all rules from profile.")
                     .default_response("remove")
                     .build();
 
