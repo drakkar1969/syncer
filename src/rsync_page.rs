@@ -803,7 +803,7 @@ impl RsyncPage {
 
                 RsyncSend::Message(type_, msg) => {
                     if !sync_shown {
-                        self.ui_status(&format!("Syncing to {}", profile.source()));
+                        self.ui_status(&format!("Syncing to {}", profile.destination()));
                         sync_shown = true;
                     }
 
