@@ -1,8 +1,9 @@
-use std::cell::{Cell, RefCell};
+use std::cell::{RefCell, OnceCell};
+use std::marker::PhantomData;
 
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use gtk::glib;
+use gtk::{gio, glib};
 use glib::{clone, closure_local, translate::IntoGlib};
 
 use strum::{EnumIter, EnumProperty, FromRepr, IntoEnumIterator};
@@ -66,12 +67,12 @@ mod imp {
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
-        #[property(get, set)]
-        filters: RefCell<Vec<String>>,
+        #[property(get = Self::filters, set = Self::set_filters)]
+        filters: PhantomData<Vec<String>>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>,
 
-        pub(super) internal_change: Cell<bool>,
+        pub(super) filter_model: OnceCell<gio::ListStore>,
     }
 
     //---------------------------------------
@@ -105,11 +106,45 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
     impl WidgetImpl for FiltersPage {}
     impl NavigationPageImpl for FiltersPage {}
+
+    impl FiltersPage {
+        //---------------------------------------
+        // Property getters/setters
+        //---------------------------------------
+        fn filters(&self) -> Vec<String> {
+            self.filter_model.get().unwrap()
+                .iter::<FilterRow>()
+                .flatten()
+                .map(|row| row.filter())
+                .collect()
+        }
+
+        fn set_filters(&self, filters: Vec<String>) {
+            let rows: Vec<FilterRow> = filters.iter()
+                .map(|filter| {
+                    let (rule_str, pattern) = filter
+                        .trim_start_matches("-f")
+                        .trim_matches(['"', '\''])
+                        .split_once(' ')
+                        .expect("Failed to split filter");
+
+                    let rule = RsyncFilterRule::iter()
+                        .find(|rule| rule.rule() == Some(rule_str))
+                        .expect("Failed to find filter rule");
+
+                    self.obj().new_filter_row(rule, pattern)
+                })
+                .collect();
+
+            self.filter_model.get().unwrap().splice(0, 0, &rows);
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -122,21 +157,6 @@ glib::wrapper! {
 }
 
 impl FiltersPage {
-    //---------------------------------------
-    // Listbox function
-    //---------------------------------------
-    fn listbox(&self) -> gtk::ListBox {
-        self.imp().filters_group.first_child()
-            .and_downcast::<gtk::Box>()
-            .expect("Could not downcast to 'GtkBox'")
-            .last_child()
-            .and_downcast::<gtk::Box>()
-            .expect("Could not downcast to 'GtkBox'")
-            .first_child()
-            .and_downcast::<gtk::ListBox>()
-            .expect("Could not downcast to 'GtkListBox'")
-    }
-
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -174,39 +194,6 @@ impl FiltersPage {
             }
         });
 
-        // Filters property notify signal
-        self.connect_filters_notify(|page| {
-            let imp = page.imp();
-
-            let filters = page.filters();
-
-            if !imp.internal_change.get() {
-                let listbox = page.listbox();
-
-                // Remove all filter rows
-                listbox.remove_all();
-
-                // Create new filter rows
-                for filter in &filters {
-                    let (rule_str, pattern) = filter
-                        .trim_start_matches("-f")
-                        .trim_matches(['"', '\''])
-                        .split_once(' ')
-                        .expect("Failed to split filter");
-
-                    let rule = RsyncFilterRule::iter()
-                        .find(|rule| rule.rule() == Some(rule_str))
-                        .expect("Failed to find filter rule");
-
-                    let row = page.new_filter_row(rule, pattern);
-
-                    listbox.append(&row);
-                }
-            }
-
-            imp.delete_button.set_sensitive(!filters.is_empty());
-        });
-
         // Add button activated signal
         imp.add_button.connect_activated(clone!(
             #[weak(rename_to = page)] self,
@@ -214,18 +201,9 @@ impl FiltersPage {
                 page.filter_dialog("Add", None, clone!(
                     #[weak] page,
                     move |rule, pattern| {
-                        let imp = page.imp();
-
                         let row = page.new_filter_row(rule, pattern);
-                        page.listbox().append(&row);
 
-                        imp.internal_change.set(true);
-
-                        let mut filters = page.filters();
-                        filters.push(row.filter());
-                        page.set_filters(filters);
-
-                        imp.internal_change.set(false);
+                        page.imp().filter_model.get().unwrap().append(&row);
                     }
                 ));
             }
@@ -247,15 +225,7 @@ impl FiltersPage {
                 dialog.connect_response(Some("remove"), clone!(
                     #[weak] page,
                     move |_, _| {
-                        let imp = page.imp();
-
-                        imp.internal_change.set(true);
-
-                        page.set_filters(vec![]);
-
-                        page.listbox().remove_all();
-
-                        imp.internal_change.set(false);
+                        page.imp().filter_model.get().unwrap().remove_all();
                     })
                 );
 
@@ -265,9 +235,40 @@ impl FiltersPage {
     }
 
     //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind filters preferences group to model
+        let model = gio::ListStore::new::<FilterRow>();
+
+        imp.filters_group.bind_model(Some(&model), |obj| {
+            obj
+                .downcast_ref::<FilterRow>()
+                .expect("Could not downcast to 'FilterRow'")
+                .clone()
+                .into()
+        });
+
+        // Connect model items changed signal
+        model.connect_items_changed(clone!(
+            #[weak(rename_to = page)] self,
+            move |_, _, _, _| {
+                page.notify_filters();
+            }
+        ));
+
+        // Store model
+        imp.filter_model.set(model).unwrap();
+    }
+
+    //---------------------------------------
     // New filter row function
     //---------------------------------------
     fn new_filter_row(&self, rule: RsyncFilterRule, pattern: &str) -> FilterRow {
+        let imp = self.imp();
+
         let row = FilterRow::new(rule, pattern);
 
         row.connect_closure("modified", false, closure_local!(
@@ -276,65 +277,46 @@ impl FiltersPage {
                 page.filter_dialog("Modify", Some((row.rule(), &row.pattern())), clone!(
                     #[weak] page,
                     move |rule, pattern| {
-                        let imp = page.imp();
+                        let model = page.imp().filter_model.get().unwrap();
 
-                        imp.internal_change.set(true);
+                        let pos = row.index() as u32;
 
-                        row.set_rule(rule);
-                        row.set_pattern(pattern);
+                        let obj = model
+                            .item(pos)
+                            .and_downcast::<FilterRow>()
+                            .expect("Could not downcast to 'FilterRow'");
 
-                        let pos = row.index() as usize;
+                        obj.set_rule(rule);
+                        obj.set_pattern(pattern);
 
-                        let mut filters = page.filters();
-                        filters.remove(pos);
-                        filters.insert(pos, row.filter());
-                        page.set_filters(filters);
-
-                        imp.internal_change.set(false);
+                        model.items_changed(pos, 1, 1);
                     }
                 ));
             }
         ));
 
         row.connect_closure("deleted", false, closure_local!(
-            #[weak(rename_to = page)] self,
+            #[weak] imp,
             move |row: FilterRow| {
-                let imp = page.imp();
-
-                imp.internal_change.set(true);
-
-                let pos = row.index();
-
-                let mut filters = page.filters();
-                filters.remove(pos as usize);
-                page.set_filters(filters);
-
-                page.listbox().remove(&row);
-
-                imp.internal_change.set(false);
+                imp.filter_model.get().unwrap().remove(row.index() as u32);
             }
         ));
 
         row.connect_closure("drop", false, closure_local!(
-            #[weak(rename_to = page)] self,
+            #[weak] imp,
             move |row: FilterRow, drag_row: FilterRow| {
-                let imp = page.imp();
+                let model = imp.filter_model.get().unwrap();
 
-                imp.internal_change.set(true);
+                let old_pos = drag_row.index() as u32;
+                let new_pos = row.index() as u32;
 
-                let old_pos = drag_row.index();
-                let new_pos = row.index();
+                let obj = model.item(old_pos)
+                    .and_downcast::<FilterRow>()
+                    .expect("Could not downcast to 'FilterRow'");
 
-                let mut filters = page.filters();
-                let filter = filters.remove(old_pos as usize);
-                filters.insert(new_pos as usize, filter);
-                page.set_filters(filters);
+                model.remove(old_pos);
 
-                let listbox = page.listbox();
-                listbox.remove(&drag_row);
-                listbox.insert(&drag_row, new_pos);
-
-                imp.internal_change.set(false);
+                model.insert(new_pos, &obj);
             }
         ));
 
