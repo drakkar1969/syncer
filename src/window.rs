@@ -159,30 +159,35 @@ mod imp {
             klass.install_action("rsync.show-cmdline", None, |window, _, _| {
                 let imp = window.imp();
 
-                // Build command line dialog
-                let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/rsync_cmdline_dialog.ui");
-
-                let dialog: adw::AlertDialog = builder.object("dialog")
-                    .expect("Could not get object from resource");
-
-                let label: gtk::Label = builder.object("label")
-                    .expect("Could not get object from resource");
-
-                // Get profile
+                // Get profile options
                 let profile = imp.options_page.profile_dropdown().selected_item()
                     .and_downcast::<ProfileObject>()
                     .expect("Could not downcast to 'ProfileObject'");
 
-                // Init command line dialog
                 let options = profile.options(true).into_iter()
                     .collect::<Vec<String>>()
                     .join(" ");
 
-                label.set_label(&format!("rsync {} \"{}\" \"{}\"",
-                    options,
-                    profile.source(),
-                    profile.destination()
-                ));
+                // Build command line dialog
+                let dialog = adw::AlertDialog::builder()
+                    .width_request(450)
+                    .heading("Rsync Command Line")
+                    .body(
+                        format!("rsync {} \"{}\" \"{}\"",
+                            options,
+                            profile.source(),
+                            profile.destination()
+                        )
+                    )
+                    .default_response("copy")
+                    .close_response("close")
+                    .build();
+
+                dialog.add_responses(&[("close", "C_lose"), ("copy", "_Copy")]);
+
+                dialog.connect_response(Some("copy"), |dialog, _| {
+                    dialog.clipboard().set_text(&dialog.body());
+                });
 
                 dialog.present(Some(window));
             });
