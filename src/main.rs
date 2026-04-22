@@ -6,6 +6,7 @@ mod advanced_page;
 mod adv_switchrow;
 mod filters_page;
 mod filter_row;
+mod filter_dialog;
 mod rsync_page;
 mod output_window;
 mod output_item;

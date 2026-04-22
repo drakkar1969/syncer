@@ -10,7 +10,8 @@ use strum::{EnumIter, EnumProperty, FromRepr, IntoEnumIterator};
 
 use crate::{
     profile_object::ProfileObject,
-    filter_row::FilterRow
+    filter_row::FilterRow,
+    filter_dialog::FilterDialog
 };
 
 //------------------------------------------------------------------------------
@@ -328,41 +329,10 @@ impl FiltersPage {
     //---------------------------------------
     fn filter_dialog<F>(&self, action: &str, filter: Option<(RsyncFilterRule, &str)>, f: F)
     where F: Fn(RsyncFilterRule, &str) + 'static {
-        let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/filter_dialog.ui");
+        let dialog = FilterDialog::new(action, filter);
 
-        let dialog: adw::AlertDialog = builder.object("dialog")
-            .expect("Could not get object from resource");
-
-        dialog.set_heading(Some(&format!("{action} Filter Rule")));
-        dialog.set_response_label("add", action);
-
-        let rule_combo: adw::ComboRow = builder.object("rule_combo")
-            .expect("Could not get object from resource");
-
-        let pattern_entry: adw::EntryRow = builder.object("pattern_entry")
-            .expect("Could not get object from resource");
-
-        pattern_entry.connect_changed(clone!(
-            #[weak] dialog,
-            move |entry| {
-                dialog.set_response_enabled("add", !entry.text().is_empty());
-            }
-        ));
-
-        if let Some((rule, pattern)) = filter {
-            rule_combo.set_selected(rule.value());
-            pattern_entry.set_text(pattern);
-        } else {
-            rule_combo.set_selected(RsyncFilterRule::default().value());
-        }
-
-        dialog.connect_response(Some("add"), move |_, _| {
-            let rule = rule_combo.selected_item()
-                .and_downcast::<adw::EnumListItem>()
-                .and_then(|item| RsyncFilterRule::from_repr(item.value() as u32))
-                .unwrap_or_default();
-
-            f(rule, &pattern_entry.text());
+        dialog.connect_response(Some("add"), move |dialog, _| {
+            f(dialog.rule(), &dialog.pattern());
         });
 
         dialog.present(Some(self));
