@@ -10,7 +10,10 @@ use glib::clone;
 
 use serde_json::{json, to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
-use crate::profile_object::{CheckMode, RecurseMode, ProfileObject};
+use crate::{
+    profile_object::{CheckMode, RecurseMode, ProfileObject},
+    profile_dialog::ProfileDialog
+};
 
 //------------------------------------------------------------------------------
 // MODULE: OptionsPage
@@ -438,54 +441,19 @@ impl OptionsPage {
     //---------------------------------------
     // Profile dialog function
     //---------------------------------------
-    fn profile_dialog<F>(&self, response: &str, default: Option<&str>, f: F)
+    fn profile_dialog<F>(&self, action: &str, name: Option<&str>, f: F)
     where F: Fn(&str) + 'static {
         let imp = self.imp();
 
-        let builder = gtk::Builder::from_resource("/com/github/Syncer/ui/builder/profile_dialog.ui");
+        let profile_list: Vec<String> = imp.profile_model.iter::<ProfileObject>()
+            .flatten()
+            .map(|profile| profile.name())
+            .collect();
 
-        let dialog: adw::AlertDialog = builder.object("dialog")
-            .expect("Could not get object from resource");
+        let dialog = ProfileDialog::new(action, name, profile_list);
 
-        dialog.set_heading(Some(&format!("{response} Profile")));
-        dialog.set_response_label("add", response);
-
-        let profile_entry: adw::EntryRow = builder.object("profile_entry")
-            .expect("Could not get object from resource");
-
-        let error_label: gtk::Label = builder.object("error_label")
-            .expect("Could not get object from resource");
-
-        profile_entry.connect_changed(clone!(
-            #[weak] imp,
-            #[weak] dialog,
-            move |entry| {
-                let profile_name = entry.text();
-
-                let existing_profile = imp.profile_model.iter::<ProfileObject>()
-                    .flatten()
-                    .map(|profile| profile.name())
-                    .find(|name| name.eq_ignore_ascii_case(&profile_name))
-                    .unwrap_or_default();
-
-                if existing_profile.is_empty() {
-                    error_label.set_label("");
-                } else {
-                    error_label.set_label(&format!("Profile {existing_profile} already exists"));
-                }
-
-                dialog.set_response_enabled("add",
-                    existing_profile.is_empty() && !profile_name.is_empty()
-                );
-            }
-        ));
-
-        if let Some(text) = default {
-            profile_entry.set_text(&format!("{text}-1"));
-        }
-
-        dialog.connect_response(Some("add"), move |_, _| {
-            f(&profile_entry.text());
+        dialog.connect_response(Some("add"), move |dialog, _| {
+            f(&dialog.profile_name());
         });
 
         dialog.present(Some(self));

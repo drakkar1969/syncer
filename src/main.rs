@@ -1,6 +1,7 @@
 mod app;
 mod window;
 mod profile_object;
+mod profile_dialog;
 mod options_page;
 mod advanced_page;
 mod adv_switchrow;

@@ -22,7 +22,6 @@
   <gresource prefix="/com/github/Syncer/">
     <file compressed="true">style.css</file>
     <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
-    <file compressed="true">ui/builder/profile_dialog.ui</file>
     <file compressed="true">ui/builder/rsync_cmdline_dialog.ui</file>
     <file compressed="true">ui/options_page/profile_item.ui</file>
     <file compressed="true">ui/options_page/profile_list_item.ui</file>
@@ -35,6 +34,7 @@
     <file compressed="true">ui/output_header.ui</file>
     <file compressed="true">ui/output_item.ui</file>
     <file compressed="true">ui/output_window.ui</file>
+    <file compressed="true">ui/profile_dialog.ui</file>
     <file compressed="true">ui/rsync_page.ui</file>
     <file compressed="true">ui/window.ui</file>
   </gresource>
