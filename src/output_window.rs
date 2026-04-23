@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::time::Duration;
 
 use adw::subclass::prelude::*;
@@ -96,6 +96,8 @@ mod imp {
 
         #[property(get, set, builder(OutputFilter::default()))]
         filter_type: Cell<OutputFilter>,
+
+        pub(super) search_term: RefCell<String>,
     }
 
     //---------------------------------------
@@ -280,10 +282,14 @@ impl OutputWindow {
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak(rename_to = window)] self,
-            move |_| {
+            move |entry| {
+                let imp = window.imp();
+
+                imp.search_term.replace(entry.text().to_ascii_lowercase());
+
                 window.show_spinner(true);
 
-                window.imp().filter.changed(gtk::FilterChange::Different);
+                imp.filter.changed(gtk::FilterChange::Different);
             }
         ));
 
@@ -327,12 +333,14 @@ impl OutputWindow {
                 let tag = output_object.tag;
                 let msg = &output_object.msg;
 
-                let search = imp.search_entry.text();
+                let search_term = imp.search_term.borrow();
 
                 // Return if message text doesn’t contain the search string (ignore case)
-                if !msg.to_ascii_lowercase().contains(&search.to_ascii_lowercase()) {
-                    return false;
-                }
+                if !search_term.is_empty()
+                    && !msg.to_ascii_lowercase().contains(&*search_term) {
+                        println!("CHECKING");
+                        return false;
+                    }
 
                 match window.filter_type() {
                     OutputFilter::All => true,
