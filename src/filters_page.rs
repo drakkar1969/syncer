@@ -143,7 +143,9 @@ mod imp {
                 })
                 .collect();
 
-            self.filter_model.get().unwrap().splice(0, 0, &rows);
+            let filter_model = self.filter_model.get().unwrap();
+
+            filter_model.splice(0, filter_model.n_items(), &rows);
         }
     }
 }
