@@ -75,24 +75,24 @@ impl RecurseMode {
 }
 
 //------------------------------------------------------------------------------
-// DATA: Advanced Switches
+// DATA: Advanced Options
 //------------------------------------------------------------------------------
-const BOOLEAN_OPTIONS: [(&str, (&str, Option<&str>)); 15] = [
-    ("preserve-time", ("-t", None)),
-    ("preserve-permissions", ("-p", None)),
-    ("preserve-owner", ("-o", None)),
-    ("preserve-group", ("-g", None)),
-    ("numeric-ids", ("--numeric-ids", None)),
-    ("preserve-symlinks", ("-l", None)),
-    ("preserve-hardlinks", ("-H", None)),
-    ("preserve-devices", ("-D", None)),
-    ("one-filesystem", ("-x", None)),
-    ("delete-destination", ("--delete", None)),
-    ("existing", ("--existing", None)),
-    ("ignore-existing", ("--ignore-existing", None)),
-    ("skip-newer", ("-u", None)),
-    ("partial", ("--partial", None)),
-    ("backup", ("-b", None)),
+const ADVANCED_OPTIONS: [(&str, &str); 15] = [
+    ("preserve-time", "-t"),
+    ("preserve-permissions", "-p"),
+    ("preserve-owner", "-o"),
+    ("preserve-group", "-g"),
+    ("numeric-ids", "--numeric-ids"),
+    ("preserve-symlinks", "-l"),
+    ("preserve-hardlinks", "-H"),
+    ("preserve-devices", "-D"),
+    ("one-filesystem", "-x"),
+    ("delete-destination", "--delete"),
+    ("existing", "--existing"),
+    ("ignore-existing", "--ignore-existing"),
+    ("skip-newer", "-u"),
+    ("partial", "--partial"),
+    ("backup", "-b"),
 ];
 
 //------------------------------------------------------------------------------
@@ -307,7 +307,7 @@ impl ProfileObject {
         for property in self.list_properties() {
             let nick = property.nick();
 
-            if IndexMap::from(BOOLEAN_OPTIONS).contains_key(nick) {
+            if IndexMap::from(ADVANCED_OPTIONS).contains_key(nick) {
                 self.set_property_from_value(nick, property.default_value());
             }
         }
@@ -331,15 +331,13 @@ impl ProfileObject {
         }
 
         // Advanced options
-        let mut advanced: Vec<String> = IndexMap::from(BOOLEAN_OPTIONS).iter()
-            .filter_map(|(&nick, &(arg, off_arg))| {
+        let mut advanced: Vec<String> = IndexMap::from(ADVANCED_OPTIONS).iter()
+            .filter_map(|(&nick, &arg)| {
                 let value = self.property_value(nick)
                     .get::<bool>()
                     .ok()?;
 
-                value.then_some(arg)
-                    .or(off_arg)
-                    .map(ToOwned::to_owned)
+                value.then_some(arg).map(ToOwned::to_owned)
             })
             .collect();
 
