@@ -91,7 +91,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
-            obj.setup_widgets();
         }
     }
 
@@ -332,12 +331,22 @@ impl OptionsPage {
                         .sync_create()
                         .build(),
 
+                    profile.bind_property("check-mode", &imp.check_mode_combo.get(), "subtitle")
+                        .transform_to(|_, mode: CheckMode| mode.desc())
+                        .sync_create()
+                        .build(),
+
                     profile.bind_property("recurse-mode", &imp.recurse_mode_combo.get(), "selected")
                         .transform_to(|_, mode: RecurseMode| Some(mode.value()))
                         .transform_from(|_, index: u32| {
                             Some(RecurseMode::from_repr(index).unwrap_or_default())
                         })
                         .bidirectional()
+                        .sync_create()
+                        .build(),
+
+                    profile.bind_property("recurse-mode", &imp.recurse_mode_combo.get(), "subtitle")
+                        .transform_to(|_, mode: RecurseMode| mode.desc())
                         .sync_create()
                         .build(),
 
@@ -409,33 +418,6 @@ impl OptionsPage {
         imp.destination_row.connect_activated(|row| {
             Self::select_folder(row, false);
         });
-    }
-
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind check mode combo selected item to subtitle
-        imp.check_mode_combo.bind_property("selected-item", &imp.check_mode_combo.get(), "subtitle")
-            .transform_to(|_, obj: Option<glib::Object>| {
-                let item = obj.and_downcast::<adw::EnumListItem>()?;
-
-                CheckMode::from_repr(item.value() as u32)?.desc()
-            })
-            .sync_create()
-            .build();
-
-        // Bind recurse mode combo selected item to subtitle
-        imp.recurse_mode_combo.bind_property("selected-item", &imp.recurse_mode_combo.get(), "subtitle")
-            .transform_to(|_, obj: Option<glib::Object>| {
-                let item = obj.and_downcast::<adw::EnumListItem>()?;
-
-                RecurseMode::from_repr(item.value() as u32)?.desc()
-            })
-            .sync_create()
-            .build();
     }
 
     //---------------------------------------
