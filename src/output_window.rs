@@ -338,7 +338,6 @@ impl OutputWindow {
                 // Return if message text doesn’t contain the search string (ignore case)
                 if !search_term.is_empty()
                     && !msg.to_ascii_lowercase().contains(&*search_term) {
-                        println!("CHECKING");
                         return false;
                     }
 
