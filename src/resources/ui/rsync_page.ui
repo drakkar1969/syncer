@@ -183,7 +183,7 @@
                       <object class="GtkStackPage">
                         <property name="name">rsync</property>
                         <property name="child">
-                          <object class="GtkBox" id="button_box">
+                          <object class="GtkBox">
                             <property name="halign">center</property>
                             <property name="valign">end</property>
                             <property name="homogeneous">true</property>
@@ -225,14 +225,30 @@
                       <object class="GtkStackPage">
                         <property name="name">output</property>
                         <property name="child">
-                          <object class="GtkButton" id="output_button">
+                          <object class="GtkBox">
                             <property name="halign">center</property>
                             <property name="valign">end</property>
-                            <property name="label">Rsync _Output</property>
-                            <property name="use-underline">true</property>
-                            <style>
-                              <class name="pill"/>
-                            </style>
+                            <property name="homogeneous">true</property>
+                            <property name="spacing">36</property>
+                            <child>
+                              <object class="GtkButton" id="close_button">
+                                <property name="label">_Close</property>
+                                <property name="use-underline">true</property>
+                                <property name="action-name">navigation.pop</property>
+                                <style>
+                                  <class name="pill"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="output_button">
+                                <property name="label">Rsync _Output</property>
+                                <property name="use-underline">true</property>
+                                <style>
+                                  <class name="pill"/>
+                                </style>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>

@@ -467,10 +467,12 @@ impl RsyncPage {
         }
 
         // Show details
+        imp.button_stack.set_visible_child_name("output");
+
         if messages.is_empty() {
-            imp.button_stack.set_visible_child_name("empty");
+            imp.output_button.set_visible(false);
         } else {
-            imp.button_stack.set_visible_child_name("output");
+            imp.output_button.set_visible(true);
             imp.output_button.grab_focus();
 
             // Populate output window
