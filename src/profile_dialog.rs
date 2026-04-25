@@ -82,7 +82,7 @@ impl ProfileDialog {
     //---------------------------------------
     pub fn new(action: &str, name: Option<&str>, profile_list: Vec<String>) -> Self {
         let profile_name = name
-            .map_or_else(|| String::new(), |name| format!("{name}-1"));
+            .map_or_else(String::new, |name| format!("{name}-1"));
 
         let dialog: Self = glib::Object::builder()
             .property("heading", format!("{action} Profile"))
