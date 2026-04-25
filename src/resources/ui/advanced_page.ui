@@ -155,9 +155,9 @@
                   <object class="AdwPreferencesGroup">
                     <child>
                       <object class="AdwButtonRow" id="reset_button">
-                        <property name="title">Reset to De_fault</property>
+                        <property name="title">Reset All to De_fault</property>
                         <property name="use-underline">true</property>
-                        <property name="start-icon-name">view-refresh-symbolic</property>
+                        <property name="start-icon-name">edit-undo-symbolic</property>
                         <style>
                           <class name="destructive-action"/>
                         </style>
