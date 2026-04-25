@@ -322,7 +322,6 @@ impl OutputWindow {
         // Set filter function
         imp.filter.set_filter_func(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] imp,
             #[upgrade_or] false,
             move |obj| {
                 let output_object = obj
@@ -333,7 +332,7 @@ impl OutputWindow {
                 let tag = output_object.tag;
                 let msg = &output_object.msg;
 
-                let search_term = imp.search_term.borrow();
+                let search_term = window.imp().search_term.borrow();
 
                 // Return if message text doesn’t contain the search string (ignore case)
                 if !search_term.is_empty()
