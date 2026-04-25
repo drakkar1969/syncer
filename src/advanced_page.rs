@@ -7,7 +7,7 @@ use glib::clone;
 
 use crate::{
     profile_object::ProfileObject,
-    adv_switchrow::AdvSwitchRow
+    advanced_switch::AdvancedSwitch
 };
 
 //------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ mod imp {
         type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
-            AdvSwitchRow::ensure_type();
+            AdvancedSwitch::ensure_type();
 
             klass.bind_template();
         }
@@ -85,7 +85,7 @@ impl AdvancedPage {
     //---------------------------------------
     // Switches helper function
     //---------------------------------------
-    fn switches(&self) -> Vec<AdvSwitchRow> {
+    fn switches(&self) -> Vec<AdvancedSwitch> {
         let imp = self.imp();
 
         let mut switches = vec![];
@@ -95,7 +95,7 @@ impl AdvancedPage {
         while let Some(group) = child.and_downcast_ref::<adw::PreferencesGroup>() {
             let mut i = 0;
 
-            while let Some(switch) = group.row(i).and_downcast_ref::<AdvSwitchRow>() {
+            while let Some(switch) = group.row(i).and_downcast_ref::<AdvancedSwitch>() {
                 switches.push(switch.clone());
 
                 i += 1;

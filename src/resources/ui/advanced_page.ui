@@ -25,14 +25,14 @@
                   <object class="AdwPreferencesGroup">
                     <property name="title">Advanced Options</property>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Preserve _Time</property>
                         <property name="subtitle">Preserve modification times [ -t ]</property>
                         <property name="nick">preserve-time</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Preserve _Permissions</property>
                         <property name="subtitle">Preserve permissions [ -p ]</property>
                         <property name="nick">preserve-permissions</property>
@@ -43,21 +43,21 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Preserve _Owner</property>
                         <property name="subtitle">Preserve owner [ -o ]</property>
                         <property name="nick">preserve-owner</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Preserve _Group</property>
                         <property name="subtitle">Preserve group [ -g ]</property>
                         <property name="nick">preserve-group</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Keep _Numeric IDs</property>
                         <property name="subtitle">Do not map numeric uid/gid to user and group names [ --numeric-ids ]</property>
                         <property name="nick">numeric-ids</property>
@@ -68,21 +68,21 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Preserve Sym_links</property>
                         <property name="subtitle">Copy symlinks as symlinks [ -l ]</property>
                         <property name="nick">preserve-symlinks</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Preserve _Hardlinks</property>
                         <property name="subtitle">Copy hardlinks as hardlinks [ -H ]</property>
                         <property name="nick">preserve-hardlinks</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Preserve De_vices</property>
                         <property name="subtitle">Preserve device and special files [ -D ]</property>
                         <property name="nick">preserve-devices</property>
@@ -93,7 +93,7 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Do Not Leave Files_ystem</property>
                         <property name="subtitle">Do not cross filesystem boundaries [ -x ]</property>
                         <property name="nick">one-filesystem</property>
@@ -104,28 +104,28 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">_Delete on Destination</property>
                         <property name="subtitle">Delete extraneous files on destination [ --delete ]</property>
                         <property name="nick">delete-destination</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">_Existing Only</property>
                         <property name="subtitle">Skip creating new files and directories on destination [ --existing ]</property>
                         <property name="nick">existing</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">_Ignore Existing</property>
                         <property name="subtitle">Skip files (not directories) that exist on destination [ --ignore-existing ]</property>
                         <property name="nick">ignore-existing</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">_Skip Newer</property>
                         <property name="subtitle">Skip files that are newer on destination [ -u ]</property>
                         <property name="nick">skip-newer</property>
@@ -136,14 +136,14 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">Pa_rtial Transfers</property>
                         <property name="subtitle">Keep partially transferred files on destination [ --partial ]</property>
                         <property name="nick">partial</property>
                       </object>
                     </child>
                     <child>
-                      <object class="AdvSwitchRow">
+                      <object class="AdvancedSwitch">
                         <property name="title">_Backup Files</property>
                         <property name="subtitle">Make backups of existing files on destination [ -b ]</property>
                         <property name="nick">backup</property>

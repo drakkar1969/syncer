@@ -5,7 +5,7 @@ use adw::prelude::*;
 use gtk::glib;
 
 //------------------------------------------------------------------------------
-// MODULE: AdvSwitchRow
+// MODULE: AdvancedSwitch
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -14,9 +14,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::AdvSwitchRow)]
-    #[template(resource = "/com/github/Syncer/ui/adv_switchrow.ui")]
-    pub struct AdvSwitchRow {
+    #[properties(wrapper_type = super::AdvancedSwitch)]
+    #[template(resource = "/com/github/Syncer/ui/advanced_switch.ui")]
+    pub struct AdvancedSwitch {
         #[template_child]
         pub(super) switch: TemplateChild<gtk::Switch>,
 
@@ -31,9 +31,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for AdvSwitchRow {
-        const NAME: &'static str = "AdvSwitchRow";
-        type Type = super::AdvSwitchRow;
+    impl ObjectSubclass for AdvancedSwitch {
+        const NAME: &'static str = "AdvancedSwitch";
+        type Type = super::AdvancedSwitch;
         type ParentType = adw::ActionRow;
 
         fn class_init(klass: &mut Self::Class) {
@@ -46,7 +46,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for AdvSwitchRow {
+    impl ObjectImpl for AdvancedSwitch {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -59,22 +59,22 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for AdvSwitchRow {}
-    impl ListBoxRowImpl for AdvSwitchRow {}
-    impl PreferencesRowImpl for AdvSwitchRow {}
-    impl ActionRowImpl for AdvSwitchRow {}
+    impl WidgetImpl for AdvancedSwitch {}
+    impl ListBoxRowImpl for AdvancedSwitch {}
+    impl PreferencesRowImpl for AdvancedSwitch {}
+    impl ActionRowImpl for AdvancedSwitch {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: AdvSwitchRow
+// IMPLEMENTATION: AdvancedSwitch
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct AdvSwitchRow(ObjectSubclass<imp::AdvSwitchRow>)
+    pub struct AdvancedSwitch(ObjectSubclass<imp::AdvancedSwitch>)
         @extends adw::ActionRow, adw::PreferencesRow, gtk::ListBoxRow, gtk::Widget,
         @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl AdvSwitchRow {
+impl AdvancedSwitch {
     //---------------------------------------
     // Setup widgets
     //---------------------------------------

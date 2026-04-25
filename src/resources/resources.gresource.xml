@@ -25,7 +25,7 @@
     <file compressed="true">ui/options_page/profile_item.ui</file>
     <file compressed="true">ui/options_page/profile_list_item.ui</file>
     <file compressed="true">ui/advanced_page.ui</file>
-    <file compressed="true">ui/adv_switchrow.ui</file>
+    <file compressed="true">ui/advanced_switch.ui</file>
     <file compressed="true">ui/filter_dialog.ui</file>
     <file compressed="true">ui/filter_row.ui</file>
     <file compressed="true">ui/filters_page.ui</file>

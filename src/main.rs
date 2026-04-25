@@ -4,7 +4,7 @@ mod profile_object;
 mod profile_dialog;
 mod options_page;
 mod advanced_page;
-mod adv_switchrow;
+mod advanced_switch;
 mod filters_page;
 mod filter_row;
 mod filter_dialog;
