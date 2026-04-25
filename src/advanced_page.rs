@@ -128,7 +128,7 @@ impl AdvancedPage {
                 // Bind profile property to widgets
                 let mut bindings: Vec<glib::Binding> = page.switches().iter()
                     .map(|switch| {
-                        profile.bind_property(&switch.prop_name(), switch, "active")
+                        profile.bind_property(&switch.nick(), switch, "active")
                             .bidirectional()
                             .sync_create()
                             .build()

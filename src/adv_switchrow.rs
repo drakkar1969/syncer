@@ -24,7 +24,7 @@ mod imp {
         active: Cell<bool>,
 
         #[property(get, set)]
-        prop_name: RefCell<String>,
+        nick: RefCell<String>,
     }
 
     //---------------------------------------
