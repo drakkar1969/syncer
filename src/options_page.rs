@@ -48,6 +48,8 @@ mod imp {
         #[template_child]
         pub(super) recurse_mode_combo: TemplateChild<adw::ComboRow>,
         #[template_child]
+        pub(super) advanced_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
         pub(super) filter_row: TemplateChild<adw::ActionRow>,
 
         #[property(get, set, nullable)]
@@ -347,6 +349,19 @@ impl OptionsPage {
 
                     profile.bind_property("recurse-mode", &imp.recurse_mode_combo.get(), "subtitle")
                         .transform_to(|_, mode: RecurseMode| mode.desc())
+                        .sync_create()
+                        .build(),
+
+                    profile.bind_property("adv-modified", &imp.advanced_row.get(), "subtitle")
+                        .transform_to(|_, modified: bool| {
+                            Some(
+                                if modified {
+                                    "User-defined options"
+                                } else {
+                                    "Default options"
+                                }
+                            )
+                        })
                         .sync_create()
                         .build(),
 

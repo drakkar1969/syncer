@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::marker::PhantomData;
 
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
@@ -152,6 +153,9 @@ mod imp {
         partial: Cell<bool>,
         #[property(get, set, default = false, construct)]
         backup: Cell<bool>,
+
+        #[property(get = Self::adv_modified)]
+        adv_modified: PhantomData<bool>,
     }
 
     //---------------------------------------
@@ -165,6 +169,31 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for ProfileObject {}
+
+    impl ProfileObject {
+        //---------------------------------------
+        // Property getter
+        //---------------------------------------
+        fn adv_modified(&self) -> bool {
+            let obj = self.obj();
+
+            let mut modified = false;
+
+            for (nick, _) in ADVANCED_OPTIONS {
+                let default = obj.find_property(nick)
+                    .map(|property| property.default_value().get::<bool>());
+
+                let value = obj.property_value(nick).get::<bool>();
+
+                if default != Some(value) {
+                    modified = true;
+                    break;
+                }
+            }
+
+            modified
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -182,10 +211,18 @@ impl ProfileObject {
         let mut home_path = glib::home_dir().to_string_lossy().into_owned();
         home_path.push('/');
 
-        glib::Object::builder()
+        let profile: Self = glib::Object::builder()
             .property("name", name)
             .property("source", home_path)
-            .build()
+            .build();
+
+        for (nick, _) in ADVANCED_OPTIONS {
+            profile.connect_notify(Some(nick), |obj, _| {
+                obj.notify_adv_modified();
+            });
+        }
+
+        profile
     }
 
     //---------------------------------------
@@ -193,6 +230,8 @@ impl ProfileObject {
     //---------------------------------------
     pub fn from_json(name: &str, json_value: &JsonValue) -> Option<Self> {
         let obj = Self::new(name);
+
+        let advanced_map = IndexMap::from(ADVANCED_OPTIONS);
 
         let json_map = json_value.as_object()?;
 
@@ -225,7 +264,9 @@ impl ProfileObject {
                         }
                     },
                     JsonValue::Bool(b) => {
-                        obj.set_property(key, b);
+                        if advanced_map.contains_key(key.as_str()) {
+                            obj.set_property(key, b);
+                        }
                     }
                     _ => {}
                 }
@@ -241,7 +282,9 @@ impl ProfileObject {
     pub fn to_json(&self) -> (String, JsonValue) {
         let mut json_map: JsonMap<String, JsonValue> = self.list_properties()
             .iter()
-            .filter(|&prop| prop.nick() != "name")
+            .filter(|&prop| {
+                prop.nick() != "name" && prop.nick() != "adv-modified"
+            })
             .map(|prop| {
                 let value = self.property_value(prop.nick());
 
