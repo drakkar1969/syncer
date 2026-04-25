@@ -8,7 +8,7 @@ use gtk::{gdk, glib};
 use glib::clone;
 use glib::subclass::Signal;
 
-use crate::filters_page::RsyncFilterRule;
+use crate::filters_page::FilterRule;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterRow
@@ -28,8 +28,8 @@ mod imp {
         #[template_child]
         pub(super) delete_button: TemplateChild<gtk::Button>,
 
-        #[property(get, set, builder(RsyncFilterRule::default()))]
-        rule: Cell<RsyncFilterRule>,
+        #[property(get, set, builder(FilterRule::default()))]
+        rule: Cell<FilterRule>,
         #[property(get, set)]
         pattern: RefCell<String>,
 
@@ -99,7 +99,7 @@ mod imp {
         //---------------------------------------
         fn filter(&self) -> String {
             let rule_str = self.rule.get().rule()
-                .expect("Could not get rule from 'RsyncFilterRule'");
+                .expect("Could not get rule from 'FilterRule'");
 
             format!("-f'{} {}'", rule_str, self.pattern.borrow())
         }
@@ -119,7 +119,7 @@ impl FilterRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(rule: RsyncFilterRule, pattern: &str) -> Self {
+    pub fn new(rule: FilterRule, pattern: &str) -> Self {
         glib::Object::builder()
             .property("rule", rule)
             .property("pattern", pattern)
@@ -155,7 +155,7 @@ impl FilterRow {
     fn setup_widgets(&self) {
         // Bind properties to widget
         self.bind_property("rule", self, "title")
-            .transform_to(|_, rule: RsyncFilterRule| Some(format!("{rule:?}")))
+            .transform_to(|_, rule: FilterRule| Some(format!("{rule:?}")))
             .sync_create()
             .build();
 

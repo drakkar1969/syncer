@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::glib;
 use glib::clone;
 
-use crate::filters_page::RsyncFilterRule;
+use crate::filters_page::FilterRule;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterDialog
@@ -25,8 +25,8 @@ mod imp {
         #[template_child]
         pub(super) pattern_entry: TemplateChild<adw::EntryRow>,
 
-        #[property(get, set, builder(RsyncFilterRule::default()))]
-        rule: Cell<RsyncFilterRule>,
+        #[property(get, set, builder(FilterRule::default()))]
+        rule: Cell<FilterRule>,
         #[property(get, set)]
         pattern: RefCell<String>,
     }
@@ -82,7 +82,7 @@ impl FilterDialog {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(action: &str, filter: Option<(RsyncFilterRule, &str)>) -> Self {
+    pub fn new(action: &str, filter: Option<(FilterRule, &str)>) -> Self {
         let (rule, pattern) = filter.unwrap_or_default();
 
         let dialog: Self = glib::Object::builder()

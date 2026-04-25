@@ -15,12 +15,12 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
-// ENUM: RsyncFilterRule
+// ENUM: FilterRule
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, EnumProperty, FromRepr)]
 #[repr(u32)]
-#[enum_type(name = "RsyncFilterRule")]
-pub enum RsyncFilterRule {
+#[enum_type(name = "FilterRule")]
+pub enum FilterRule {
     #[strum(props(Rule="-"))]
     Exclude,
     #[strum(props(Rule="+"))]
@@ -36,7 +36,7 @@ pub enum RsyncFilterRule {
     Risk
 }
 
-impl RsyncFilterRule {
+impl FilterRule {
     pub fn value(self) -> u32 {
         self.into_glib() as u32
     }
@@ -86,7 +86,7 @@ mod imp {
         type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
-            RsyncFilterRule::ensure_type();
+            FilterRule::ensure_type();
 
             klass.bind_template();
         }
@@ -135,7 +135,7 @@ mod imp {
                         .split_once(' ')
                         .expect("Failed to split filter");
 
-                    let rule = RsyncFilterRule::iter()
+                    let rule = FilterRule::iter()
                         .find(|rule| rule.rule() == Some(rule_str))
                         .expect("Failed to find filter rule");
 
@@ -269,7 +269,7 @@ impl FiltersPage {
     //---------------------------------------
     // New filter row function
     //---------------------------------------
-    fn new_filter_row(&self, rule: RsyncFilterRule, pattern: &str) -> FilterRow {
+    fn new_filter_row(&self, rule: FilterRule, pattern: &str) -> FilterRow {
         let imp = self.imp();
 
         let row = FilterRow::new(rule, pattern);
@@ -329,8 +329,8 @@ impl FiltersPage {
     //---------------------------------------
     // Filter dialog function
     //---------------------------------------
-    fn filter_dialog<F>(&self, action: &str, filter: Option<(RsyncFilterRule, &str)>, f: F)
-    where F: Fn(RsyncFilterRule, &str) + 'static {
+    fn filter_dialog<F>(&self, action: &str, filter: Option<(FilterRule, &str)>, f: F)
+    where F: Fn(FilterRule, &str) + 'static {
         let dialog = FilterDialog::new(action, filter);
 
         dialog.connect_response(Some("add"), move |dialog, _| {
