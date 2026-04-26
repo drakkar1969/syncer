@@ -2,11 +2,9 @@ use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::sync::OnceLock;
 
-use adw::prelude::*;
-use adw::subclass::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gdk, glib};
-use glib::clone;
-use glib::subclass::Signal;
+use glib::{clone, subclass::Signal};
 
 use crate::filters_page::FilterRule;
 

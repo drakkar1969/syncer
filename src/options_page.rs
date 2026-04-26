@@ -3,8 +3,7 @@ use std::io;
 use std::fs;
 use std::env;
 
-use adw::subclass::prelude::*;
-use adw::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gio, glib, gdk};
 use glib::clone;
 

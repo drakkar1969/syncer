@@ -1,9 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 
-use gtk::subclass::prelude::*;
-use gtk::prelude::ObjectExt;
-use gtk::glib;
+use gtk::{prelude::ObjectExt, subclass::prelude::*, glib};
 use glib::translate::IntoGlib;
 
 use strum::{EnumProperty, FromRepr};

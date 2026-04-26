@@ -1,8 +1,7 @@
 use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
 
-use adw::subclass::prelude::*;
-use adw::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gio, glib};
 use glib::{clone, closure_local, translate::IntoGlib};
 

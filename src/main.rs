@@ -14,8 +14,7 @@ mod output_item;
 mod output_header;
 mod utils;
 
-use gtk::prelude::*;
-use gtk::{gio, glib};
+use gtk::{prelude::*, gio, glib};
 
 use app::Application;
 

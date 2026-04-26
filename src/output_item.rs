@@ -1,6 +1,4 @@
-use gtk::subclass::prelude::*;
-use gtk::prelude::WidgetExt;
-use gtk::glib;
+use gtk::{prelude::WidgetExt, subclass::prelude::*, glib};
 
 use crate::{
     output_window::OutputObject,

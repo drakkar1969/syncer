@@ -5,8 +5,7 @@ use std::time::Duration;
 use std::io;
 use std::process::Stdio;
 
-use adw::subclass::prelude::*;
-use adw::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use gtk::glib;
 use glib::clone;
 

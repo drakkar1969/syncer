@@ -1,5 +1,4 @@
-use gtk::subclass::prelude::*;
-use gtk::glib;
+use gtk::{subclass::prelude::*, glib};
 
 use crate::{
     output_window::OutputObject,

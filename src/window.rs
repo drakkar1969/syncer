@@ -1,7 +1,6 @@
 use std::cell::Cell;
 
-use adw::subclass::prelude::*;
-use adw::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gio, gdk, glib};
 use glib::{clone, VariantTy};
 

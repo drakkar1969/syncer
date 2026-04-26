@@ -2,8 +2,7 @@ use std::cell::{Cell, RefCell};
 use std::time::Duration;
 
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
-use gtk::{gio, glib, gdk};
+use gtk::{prelude::*, gio, glib, gdk};
 use glib::{clone, BoxedAnyObject};
 
 use crate::{
