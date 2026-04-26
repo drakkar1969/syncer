@@ -15,11 +15,11 @@ use serde_json::{json, Map as JsonMap, Value as JsonValue};
 #[repr(u32)]
 #[enum_type(name = "CheckMode")]
 pub enum CheckMode {
-    #[strum(props(Desc="No check performed (all files updated)", Switch="--ignore-times"))]
-    Ignore,
     #[default]
     #[strum(props(Desc="Check file size and modification time"))]
     Default,
+    #[strum(props(Desc="No check performed (all files updated)", Switch="--ignore-times"))]
+    Ignore,
     #[enum_value(name = "Size Only")]
     #[strum(props(Desc="Check file size only", Switch="--size-only"))]
     SizeOnly,
