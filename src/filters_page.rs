@@ -128,18 +128,16 @@ mod imp {
 
         fn set_filters(&self, filters: Vec<String>) {
             let rows: Vec<FilterRow> = filters.iter()
-                .map(|filter| {
-                    let (rule_str, pattern) = filter
+                .filter_map(|filter| {
+                    filter
                         .trim_start_matches("-f")
                         .trim_matches(['"', '\''])
                         .split_once(' ')
-                        .expect("Failed to split filter");
-
-                    let rule = FilterRule::iter()
-                        .find(|rule| rule.rule() == Some(rule_str))
-                        .expect("Failed to find filter rule");
-
-                    self.obj().new_filter_row(rule, pattern)
+                        .and_then(|(s, pattern)| {
+                            FilterRule::iter()
+                                .find(|rule| rule.rule() == Some(s))
+                                .map(|rule| self.obj().new_filter_row(rule, pattern))
+                        })
                 })
                 .collect();
 
