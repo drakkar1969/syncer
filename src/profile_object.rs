@@ -1,19 +1,21 @@
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
+use std::str::FromStr;
 
 use gtk::{prelude::ObjectExt, subclass::prelude::*, glib};
 use glib::translate::IntoGlib;
 
-use strum::{EnumProperty, FromRepr};
+use strum::{EnumProperty, FromRepr, AsRefStr, EnumString};
 use indexmap::IndexMap;
 use serde_json::{json, Map as JsonMap, Value as JsonValue};
 
 //------------------------------------------------------------------------------
 // ENUM: CheckMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumProperty, FromRepr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumProperty, FromRepr, AsRefStr, EnumString)]
 #[repr(u32)]
 #[enum_type(name = "CheckMode")]
+#[strum(serialize_all = "kebab-case")]
 pub enum CheckMode {
     #[default]
     #[strum(props(Desc="Check file size and modification time"))]
@@ -44,9 +46,10 @@ impl CheckMode {
 //------------------------------------------------------------------------------
 // ENUM: RecurseMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumProperty, FromRepr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumProperty, FromRepr, AsRefStr, EnumString)]
 #[repr(u32)]
 #[enum_type(name = "RecurseMode")]
+#[strum(serialize_all = "kebab-case")]
 pub enum RecurseMode {
     #[default]
     #[strum(props(Desc="Recurse into directories incrementally", Switches="-r"))]
@@ -243,22 +246,20 @@ impl ProfileObject {
 
                         obj.set_property(key, vec);
                     }
+                    JsonValue::String(s) if key == "check-mode" => {
+                        let mode = CheckMode::from_str(s)
+                            .unwrap_or_default();
+
+                        obj.set_property(key, mode);
+                    },
+                    JsonValue::String(s) if key == "recurse-mode" => {
+                        let mode = RecurseMode::from_str(s)
+                            .unwrap_or_default();
+
+                        obj.set_property(key, mode);
+                    },
                     JsonValue::String(s) => {
                         obj.set_property(key, s);
-                    },
-                    JsonValue::Number(i) if key == "check-mode" => {
-                        let mode = i.as_u64()
-                            .and_then(|i| CheckMode::from_repr(i as u32))
-                            .unwrap_or_default();
-
-                        obj.set_property(key, mode);
-                    },
-                    JsonValue::Number(i) if key == "recurse-mode" => {
-                        let mode = i.as_u64()
-                            .and_then(|i| RecurseMode::from_repr(i as u32))
-                            .unwrap_or_default();
-
-                        obj.set_property(key, mode);
                     },
                     JsonValue::Bool(b) if advanced_map.contains_key(key.as_str()) => {
                         obj.set_property(key, b);
@@ -277,22 +278,20 @@ impl ProfileObject {
     pub fn to_json(&self) -> (String, JsonValue) {
         let mut json_map: JsonMap<String, JsonValue> = self.list_properties()
             .iter()
-            .filter(|&prop| {
-                prop.nick() != "name" && prop.nick() != "adv-modified"
-            })
+            .filter(|&prop| !["name", "adv-modified"].contains(&prop.nick()))
             .map(|prop| {
                 let value = self.property_value(prop.nick());
 
                 let json_value = if let Ok(v) = value.get::<Vec<String>>() {
                     json!(v)
+                } else if let Ok(mode) = value.get::<CheckMode>() {
+                    json!(mode.as_ref())
+                } else if let Ok(mode) = value.get::<RecurseMode>() {
+                    json!(mode.as_ref())
                 } else if let Ok(s) = value.get::<String>() {
                     json!(s)
                 } else if let Ok(b) = value.get::<bool>() {
                     json!(b)
-                } else if let Ok(mode) = value.get::<CheckMode>() {
-                    json!(mode.value())
-                } else if let Ok(mode) = value.get::<RecurseMode>() {
-                    json!(mode.value())
                 } else {
                     json!(null)
                 };
