@@ -3,47 +3,13 @@ use std::marker::PhantomData;
 
 use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gio, glib};
-use glib::{clone, closure_local, translate::IntoGlib};
-
-use strum::{EnumIter, EnumProperty, FromRepr, IntoEnumIterator};
+use glib::{clone, closure_local};
 
 use crate::{
     profile_object::ProfileObject,
-    filter_row::FilterRow,
+    filter_row::{FilterRow, FilterRule},
     filter_dialog::FilterDialog
 };
-
-//------------------------------------------------------------------------------
-// ENUM: FilterRule
-//------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, EnumProperty, FromRepr)]
-#[repr(u32)]
-#[enum_type(name = "FilterRule")]
-pub enum FilterRule {
-    #[strum(props(Rule="-"))]
-    Exclude,
-    #[strum(props(Rule="+"))]
-    Include,
-    #[default]
-    #[strum(props(Rule="H"))]
-    Hide,
-    #[strum(props(Rule="S"))]
-    Show,
-    #[strum(props(Rule="P"))]
-    Protect,
-    #[strum(props(Rule="R"))]
-    Risk
-}
-
-impl FilterRule {
-    pub fn value(self) -> u32 {
-        self.into_glib() as u32
-    }
-
-    pub fn rule<'a>(self) -> Option<&'a str> {
-        self.get_str("Rule")
-    }
-}
 
 //------------------------------------------------------------------------------
 // MODULE: FiltersPage
@@ -127,17 +93,8 @@ mod imp {
 
         fn set_filters(&self, filters: Vec<String>) {
             let rows: Vec<FilterRow> = filters.iter()
-                .filter_map(|filter| {
-                    filter
-                        .trim_start_matches("-f")
-                        .trim_matches(['"', '\''])
-                        .split_once(' ')
-                        .and_then(|(s, pattern)| {
-                            FilterRule::iter()
-                                .find(|rule| rule.rule() == Some(s))
-                                .map(|rule| self.obj().new_filter_row(rule, pattern))
-                        })
-                })
+                .filter_map(|filter| FilterRow::filter_to_props(filter))
+                .map(|(rule, pattern)| self.obj().new_filter_row(rule, pattern))
                 .collect();
 
             let filter_model = self.filter_model.get().unwrap();

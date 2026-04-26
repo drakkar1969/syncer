@@ -4,7 +4,7 @@ use adw::{prelude::*, subclass::prelude::*};
 use gtk::glib;
 use glib::clone;
 
-use crate::filters_page::FilterRule;
+use crate::filter_row::FilterRule;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterDialog

@@ -4,9 +4,41 @@ use std::sync::OnceLock;
 
 use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gdk, glib};
-use glib::{clone, subclass::Signal};
+use glib::{clone, subclass::Signal, translate::IntoGlib};
 
-use crate::filters_page::FilterRule;
+use strum::{EnumIter, EnumProperty, FromRepr, IntoEnumIterator};
+
+//------------------------------------------------------------------------------
+// ENUM: FilterRule
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, EnumProperty, FromRepr)]
+#[repr(u32)]
+#[enum_type(name = "FilterRule")]
+pub enum FilterRule {
+    #[strum(props(Rule="-"))]
+    Exclude,
+    #[strum(props(Rule="+"))]
+    Include,
+    #[default]
+    #[strum(props(Rule="H"))]
+    Hide,
+    #[strum(props(Rule="S"))]
+    Show,
+    #[strum(props(Rule="P"))]
+    Protect,
+    #[strum(props(Rule="R"))]
+    Risk
+}
+
+impl FilterRule {
+    pub fn value(self) -> u32 {
+        self.into_glib() as u32
+    }
+
+    pub fn rule<'a>(self) -> Option<&'a str> {
+        self.get_str("Rule")
+    }
+}
 
 //------------------------------------------------------------------------------
 // MODULE: FilterRow
@@ -122,6 +154,21 @@ impl FilterRow {
             .property("rule", rule)
             .property("pattern", pattern)
             .build()
+    }
+
+    //---------------------------------------
+    // Public helper methods
+    //---------------------------------------
+    pub fn filter_to_props(filter: &str) -> Option<(FilterRule, &str)> {
+        filter
+            .trim_start_matches("-f")
+            .trim_matches(['"', '\''])
+            .split_once(' ')
+            .and_then(|(s, pattern)| {
+                FilterRule::iter()
+                    .find(|rule| rule.rule() == Some(s))
+                    .zip(Some(pattern))
+            })
     }
 
     //---------------------------------------
