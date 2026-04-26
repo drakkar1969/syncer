@@ -283,8 +283,6 @@
         <attribute name="label">New Profile…</attribute>
         <attribute name="action">profile.new</attribute>
       </item>
-    </section>
-    <section>
       <submenu>
         <attribute name="label">Selected Profile</attribute>
         <section>
@@ -308,8 +306,6 @@
           </item>
         </section>
       </submenu>
-    </section>
-    <section>
       <item>
         <attribute name="label">Delete All Profiles…</attribute>
         <attribute name="action">profile.delete-all</attribute>
