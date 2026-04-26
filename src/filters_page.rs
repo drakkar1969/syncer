@@ -92,14 +92,13 @@ mod imp {
         }
 
         fn set_filters(&self, filters: Vec<String>) {
-            let rows: Vec<FilterRow> = filters.iter()
-                .filter_map(|filter| FilterRow::filter_to_props(filter))
-                .map(|(rule, pattern)| self.obj().new_filter_row(rule, pattern))
-                .collect();
+            self.filter_model.get().unwrap().remove_all();
 
-            let filter_model = self.filter_model.get().unwrap();
-
-            filter_model.splice(0, filter_model.n_items(), &rows);
+            for filter in filters {
+                if let Some(row) = FilterRow::from_filter(&filter) {
+                    self.obj().add_filter_row(&row);
+                }
+            }
         }
     }
 }
@@ -158,9 +157,7 @@ impl FiltersPage {
                 page.filter_dialog("Add", None, clone!(
                     #[weak] page,
                     move |rule, pattern| {
-                        let row = page.new_filter_row(rule, pattern);
-
-                        page.imp().filter_model.get().unwrap().append(&row);
+                        page.add_filter_row(&FilterRow::new(rule, pattern));
                     }
                 ));
             }
@@ -221,21 +218,19 @@ impl FiltersPage {
     }
 
     //---------------------------------------
-    // New filter row function
+    // Add filter row function
     //---------------------------------------
-    fn new_filter_row(&self, rule: FilterRule, pattern: &str) -> FilterRow {
+    fn add_filter_row(&self, row: &FilterRow) {
         let imp = self.imp();
 
-        let row = FilterRow::new(rule, pattern);
+        let model = imp.filter_model.get().unwrap();
 
         row.connect_closure("modified", false, closure_local!(
             #[weak(rename_to = page)] self,
+            #[weak] model,
             move |row: FilterRow| {
                 page.filter_dialog("Modify", Some((row.rule(), &row.pattern())), clone!(
-                    #[weak] page,
                     move |rule, pattern| {
-                        let model = page.imp().filter_model.get().unwrap();
-
                         let pos = row.index() as u32;
 
                         let obj = model
@@ -253,17 +248,15 @@ impl FiltersPage {
         ));
 
         row.connect_closure("deleted", false, closure_local!(
-            #[weak] imp,
+            #[weak] model,
             move |row: FilterRow| {
-                imp.filter_model.get().unwrap().remove(row.index() as u32);
+                model.remove(row.index() as u32);
             }
         ));
 
         row.connect_closure("drop", false, closure_local!(
-            #[weak] imp,
+            #[weak] model,
             move |row: FilterRow, drag_row: FilterRow| {
-                let model = imp.filter_model.get().unwrap();
-
                 let old_pos = drag_row.index() as u32;
                 let new_pos = row.index() as u32;
 
@@ -277,7 +270,7 @@ impl FiltersPage {
             }
         ));
 
-        row
+        model.append(row);
     }
 
     //---------------------------------------

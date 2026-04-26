@@ -157,9 +157,9 @@ impl FilterRow {
     }
 
     //---------------------------------------
-    // Public helper methods
+    // From filter function
     //---------------------------------------
-    pub fn filter_to_props(filter: &str) -> Option<(FilterRule, &str)> {
+    pub fn from_filter(filter: &str) -> Option<Self> {
         filter
             .trim_start_matches("-f")
             .trim_matches(['"', '\''])
@@ -167,7 +167,7 @@ impl FilterRow {
             .and_then(|(s, pattern)| {
                 FilterRule::iter()
                     .find(|rule| rule.rule() == Some(s))
-                    .zip(Some(pattern))
+                    .map(|rule| Self::new(rule, pattern))
             })
     }
 
