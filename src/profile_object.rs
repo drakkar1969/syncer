@@ -246,25 +246,22 @@ impl ProfileObject {
                     JsonValue::String(s) => {
                         obj.set_property(key, s);
                     },
-                    JsonValue::Number(i) => {
-                        if key == "check-mode" {
-                            let mode = i.as_u64()
-                                .and_then(|i| CheckMode::from_repr(i as u32))
-                                .unwrap_or_default();
+                    JsonValue::Number(i) if key == "check-mode" => {
+                        let mode = i.as_u64()
+                            .and_then(|i| CheckMode::from_repr(i as u32))
+                            .unwrap_or_default();
 
-                            obj.set_property(key, mode);
-                        } else if key == "recurse-mode" {
-                            let mode = i.as_u64()
-                                .and_then(|i| RecurseMode::from_repr(i as u32))
-                                .unwrap_or_default();
-
-                            obj.set_property(key, mode);
-                        }
+                        obj.set_property(key, mode);
                     },
-                    JsonValue::Bool(b) => {
-                        if advanced_map.contains_key(key.as_str()) {
-                            obj.set_property(key, b);
-                        }
+                    JsonValue::Number(i) if key == "recurse-mode" => {
+                        let mode = i.as_u64()
+                            .and_then(|i| RecurseMode::from_repr(i as u32))
+                            .unwrap_or_default();
+
+                        obj.set_property(key, mode);
+                    },
+                    JsonValue::Bool(b) if advanced_map.contains_key(key.as_str()) => {
+                        obj.set_property(key, b);
                     }
                     _ => {}
                 }
