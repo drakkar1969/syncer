@@ -112,9 +112,9 @@ mod imp {
         #[property(get, set)]
         name: RefCell<String>,
 
-        #[property(get, set)]
+        #[property(get, set, default = Self::default_source().as_ref(), construct)]
         source: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, default = "", construct)]
         destination: RefCell<String>,
 
         #[property(get, set, default = CheckMode::default(), construct, builder(CheckMode::default()))]
@@ -173,6 +173,16 @@ mod imp {
 
     impl ProfileObject {
         //---------------------------------------
+        // Property default value
+        //---------------------------------------
+        fn default_source() -> String {
+            let mut home_path = glib::home_dir().to_string_lossy().into_owned();
+            home_path.push('/');
+
+            home_path
+        }
+
+        //---------------------------------------
         // Property getter
         //---------------------------------------
         fn adv_modified(&self) -> bool {
@@ -209,12 +219,8 @@ impl ProfileObject {
     // New function
     //---------------------------------------
     pub fn new(name: &str) -> Self {
-        let mut home_path = glib::home_dir().to_string_lossy().into_owned();
-        home_path.push('/');
-
         let profile: Self = glib::Object::builder()
             .property("name", name)
-            .property("source", home_path)
             .build();
 
         for (nick, _) in ADVANCED_OPTIONS {
