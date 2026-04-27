@@ -537,13 +537,11 @@ impl RsyncPage {
                     sender.send(RsyncSend::Message(RsyncMsgType::Info, msg))
                         .await
                         .expect("Could not send through channel");
-                } else {
-                    if let Some(type_) = flags.get(1..2)
-                        .and_then(|type_| RsyncMsgType::from_str(type_).ok()) {
-                            sender.send(RsyncSend::Message(type_, msg.into()))
-                                .await
-                                .expect("Could not send through channel");
-                        }
+                } else if let Some(type_) = flags.get(1..2)
+                    .and_then(|type_| RsyncMsgType::from_str(type_).ok()) {
+                        sender.send(RsyncSend::Message(type_, msg.into()))
+                            .await
+                            .expect("Could not send through channel");
                 }
             } else {
                 let msg = case::capitalize_first(line);
