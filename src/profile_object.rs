@@ -337,7 +337,7 @@ impl ProfileObject {
         for property in self.list_properties() {
             let nick = property.nick();
 
-            if nick != "name" {
+            if !["name", "adv-modified"].contains(&nick) {
                 self.set_property_from_value(nick, property.default_value());
             }
         }
