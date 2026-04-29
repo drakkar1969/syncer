@@ -1,19 +1,21 @@
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::sync::OnceLock;
+use std::str::FromStr;
 
 use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gdk, glib};
 use glib::{clone, subclass::Signal, translate::IntoGlib};
 
-use strum::{EnumIter, EnumProperty, FromRepr, IntoEnumIterator};
+use strum::{EnumProperty, FromRepr, EnumString, AsRefStr};
 
 //------------------------------------------------------------------------------
 // ENUM: FilterRule
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, EnumProperty, FromRepr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumProperty, FromRepr, EnumString, AsRefStr)]
 #[repr(u32)]
 #[enum_type(name = "FilterRule")]
+#[strum(serialize_all = "kebab-case")]
 pub enum FilterRule {
     #[strum(props(Rule="-"))]
     Exclude,
@@ -128,10 +130,9 @@ mod imp {
         // Filter property getter
         //---------------------------------------
         fn filter(&self) -> String {
-            let rule_str = self.rule.get().rule()
-                .expect("Could not get rule from 'FilterRule'");
+            let rule = self.rule.get();
 
-            format!("-f'{} {}'", rule_str, self.pattern.borrow())
+            format!("{} {}", rule.as_ref(), self.pattern.borrow())
         }
     }
 }
@@ -161,12 +162,9 @@ impl FilterRow {
     //---------------------------------------
     pub fn from_filter(filter: &str) -> Option<Self> {
         filter
-            .trim_start_matches("-f")
-            .trim_matches(['"', '\''])
             .split_once(' ')
             .and_then(|(s, pattern)| {
-                FilterRule::iter()
-                    .find(|rule| rule.rule() == Some(s))
+                FilterRule::from_str(s).ok()
                     .map(|rule| Self::new(rule, pattern))
             })
     }

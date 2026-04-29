@@ -9,6 +9,8 @@ use strum::{EnumProperty, FromRepr, AsRefStr, EnumString};
 use indexmap::IndexMap;
 use serde_json::{json, Map as JsonMap, Value as JsonValue};
 
+use crate::filter_row::FilterRule;
+
 //------------------------------------------------------------------------------
 // ENUM: CheckMode
 //------------------------------------------------------------------------------
@@ -389,10 +391,20 @@ impl ProfileObject {
         options.append(&mut advanced);
 
         // Filters
-        let replace = if quoted { "'" } else { "" };
+        let quote_char = if quoted { "'" } else { "" };
 
         let mut filters: Vec<String> = self.filters().into_iter()
-            .map(|filter| filter.replace(['\'', '"'], replace))
+            .filter_map(|filter| {
+                filter
+                    .split_once(' ')
+                    .and_then(|(s, pattern)| {
+                        FilterRule::from_str(s).ok()
+                            .and_then(|rule| rule.get_str("Rule"))
+                            .map(|rule| {
+                                format!("-f{quote_char}{rule} {pattern}{quote_char}")
+                            })
+                    })
+            })
             .collect();
 
         options.append(&mut filters);
