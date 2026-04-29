@@ -324,7 +324,7 @@ impl ProfileObject {
         for property in self.list_properties() {
             let nick = property.nick();
 
-            if nick != "name" {
+            if !["name", "adv-modified"].contains(&nick) {
                 dup_obj.set_property_from_value(nick, &self.property_value(nick));
             }
         }
