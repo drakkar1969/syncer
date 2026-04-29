@@ -168,7 +168,9 @@ impl AppWindow {
         imp.rsync_page.connect_state_notify(clone!(
             #[weak(rename_to = window)] self,
             move |page| {
-                if page.state() == RsyncState::Stopped && window.imp().close_request.get() {
+                let imp = window.imp();
+
+                if page.state() == RsyncState::Stopped && imp.close_request.get() {
                     window.close();
                 }
             }
