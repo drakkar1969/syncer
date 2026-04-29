@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gdk, glib};
-use glib::{clone, subclass::Signal, translate::IntoGlib};
+use glib::{clone, subclass::Signal};
 
 use strum::{EnumProperty, FromRepr, EnumString, AsRefStr};
 
@@ -30,16 +30,6 @@ pub enum FilterRule {
     Protect,
     #[strum(props(Rule="R"))]
     Risk
-}
-
-impl FilterRule {
-    pub fn value(self) -> u32 {
-        self.into_glib() as u32
-    }
-
-    pub fn rule<'a>(self) -> Option<&'a str> {
-        self.get_str("Rule")
-    }
 }
 
 //------------------------------------------------------------------------------
