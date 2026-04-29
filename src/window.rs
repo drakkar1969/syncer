@@ -2,11 +2,10 @@ use std::cell::Cell;
 
 use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gio, glib};
-use glib::{clone, VariantTy};
+use glib::clone;
 
 use crate::{
     Application,
-    profile_object::ProfileObject,
     options_page::OptionsPage,
     advanced_page::AdvancedPage,
     filters_page::FiltersPage,
@@ -54,11 +53,7 @@ mod imp {
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
-            ProfileObject::ensure_type();
-
             klass.bind_template();
-
-            Self::install_rsync_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -118,41 +113,6 @@ mod imp {
 
     impl ApplicationWindowImpl for AppWindow {}
     impl AdwApplicationWindowImpl for AppWindow {}
-
-    impl AppWindow {
-        //---------------------------------------
-        // Install rsync actions
-        //---------------------------------------
-        fn install_rsync_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Rsync start action
-            klass.install_action_async("rsync.start", Some(VariantTy::BOOLEAN),
-                async |window, _, param| {
-                    let imp = window.imp();
-
-                    // Get dry run
-                    let dry_run = param
-                        .and_then(|param| param.get::<bool>())
-                        .expect("Could not get bool from variant");
-
-                    // Get profile
-                    let profile = imp.options_page.profile_dropdown().selected_item()
-                        .and_downcast::<ProfileObject>()
-                        .expect("Could not downcast to 'ProfileObject'");
-
-                    // Show rsync page
-                    imp.rsync_page.set_can_pop(false);
-                    imp.rsync_page.set_profile(profile);
-
-                    imp.navigation_view.push_by_tag("rsync");
-
-                    // Start rsync
-                    let _ = imp.rsync_page.start_rsync(dry_run).await;
-
-                    imp.rsync_page.set_can_pop(true);
-                }
-            );
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -222,6 +182,9 @@ impl AppWindow {
         let imp = self.imp();
 
         let profile_dropdown = imp.options_page.profile_dropdown();
+
+        // Set options page widget properties
+        imp.options_page.set_rsync_page(imp.rsync_page.get());
 
         // Bind selected profile to options page
         profile_dropdown.bind_property("selected-item", &imp.options_page.get(), "profile")

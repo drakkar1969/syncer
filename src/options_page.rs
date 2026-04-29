@@ -5,13 +5,14 @@ use std::env;
 
 use adw::{prelude::*, subclass::prelude::*};
 use gtk::{gio, glib, gdk};
-use glib::clone;
+use glib::{clone, VariantTy};
 
 use serde_json::{json, to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
 use crate::{
     profile_object::{CheckMode, RecurseMode, ProfileObject},
-    profile_dialog::ProfileDialog
+    profile_dialog::ProfileDialog,
+    rsync_page::RsyncPage
 };
 
 //------------------------------------------------------------------------------
@@ -53,6 +54,9 @@ mod imp {
 
         #[property(get, set, nullable)]
         profile: RefCell<Option<ProfileObject>>,
+
+        #[property(get, set)]
+        rsync_page: RefCell<RsyncPage>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>,
 
@@ -224,10 +228,36 @@ mod imp {
         // Install rsync actions
         //---------------------------------------
         fn install_rsync_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Rsync start action
+            klass.install_action_async("rsync.start", Some(VariantTy::BOOLEAN),
+                async |page, _, param| {
+                    if let Some(profile) = page.profile() {
+                        // Get dry run
+                        let dry_run = param
+                            .and_then(|param| param.get::<bool>())
+                            .expect("Could not get bool from variant");
+
+                        // Show rsync page
+                        let rsync_page = page.rsync_page();
+
+                        rsync_page.set_can_pop(false);
+                        rsync_page.set_profile(profile);
+
+                        page.activate_action("navigation.push", Some(&"rsync".to_variant()))
+                            .expect("Could not activate 'navigation.push' action");
+
+                        // Start rsync
+                        let _ = rsync_page.start_rsync(dry_run).await;
+
+                        rsync_page.set_can_pop(true);
+                    }
+                }
+            );
+
             // Rsync show cmdline action
-            klass.install_action("rsync.show-cmdline", None, |window, _, _| {
-                // Get profile options
-                if let Some(profile) = window.profile() {
+            klass.install_action("rsync.show-cmdline", None, |page, _, _| {
+                if let Some(profile) = page.profile() {
+                    // Get profile options
                     let options = profile.options(true).into_iter()
                         .collect::<Vec<String>>()
                         .join(" ");
@@ -253,7 +283,7 @@ mod imp {
                         dialog.clipboard().set_text(&dialog.body());
                     });
 
-                    dialog.present(Some(window));
+                    dialog.present(Some(page));
                 }
             });
         }

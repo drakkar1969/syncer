@@ -996,3 +996,12 @@ impl RsyncPage {
         (main_error, error_details)
     }
 }
+
+impl Default for RsyncPage {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
+    }
+}
