@@ -1,7 +1,7 @@
 use std::cell::Cell;
 
 use adw::{prelude::*, subclass::prelude::*};
-use gtk::{gio, gdk, glib};
+use gtk::{gio, glib};
 use glib::{clone, VariantTy};
 
 use crate::{
@@ -59,8 +59,6 @@ mod imp {
             klass.bind_template();
 
             Self::install_rsync_actions(klass);
-
-            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -153,25 +151,6 @@ mod imp {
                     imp.rsync_page.set_can_pop(true);
                 }
             );
-        }
-
-        //---------------------------------------
-        // Bind shortcuts
-        //---------------------------------------
-        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // New profile key binding
-            klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                let page = imp.status_stack.visible_child_name();
-
-                if page == Some("status".into()) {
-                    imp.options_page.activate_action("profile.new", None)
-                        .expect("Could not activate action 'new-profile'");
-                }
-
-                glib::Propagation::Stop
-            });
         }
     }
 }
