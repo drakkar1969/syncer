@@ -153,43 +153,6 @@ mod imp {
                     imp.rsync_page.set_can_pop(true);
                 }
             );
-
-            // Rsync show cmdline action
-            klass.install_action("rsync.show-cmdline", None, |window, _, _| {
-                let imp = window.imp();
-
-                // Get profile options
-                let profile = imp.options_page.profile_dropdown().selected_item()
-                    .and_downcast::<ProfileObject>()
-                    .expect("Could not downcast to 'ProfileObject'");
-
-                let options = profile.options(true).into_iter()
-                    .collect::<Vec<String>>()
-                    .join(" ");
-
-                // Build command line dialog
-                let dialog = adw::AlertDialog::builder()
-                    .width_request(450)
-                    .heading("Rsync Command Line")
-                    .body(
-                        format!("rsync {} \"{}\" \"{}\"",
-                            options,
-                            profile.source(),
-                            profile.destination()
-                        )
-                    )
-                    .default_response("copy")
-                    .close_response("close")
-                    .build();
-
-                dialog.add_responses(&[("close", "C_lose"), ("copy", "_Copy")]);
-
-                dialog.connect_response(Some("copy"), |dialog, _| {
-                    dialog.clipboard().set_text(&dialog.body());
-                });
-
-                dialog.present(Some(window));
-            });
         }
 
         //---------------------------------------
@@ -209,9 +172,6 @@ mod imp {
 
                 glib::Propagation::Stop
             });
-
-            // Rsync show cmdline key binding
-            klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK, "rsync.show-cmdline");
         }
     }
 }
