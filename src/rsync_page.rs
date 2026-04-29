@@ -692,13 +692,13 @@ impl RsyncPage {
             .chain(
                 [
                     "--human-readable",
-                    &format!("--out-format={ITEMIZE_TAG}%i %n%L"),
                     "--info=backup,copy,del,flist2,misc,name,progress2,skip2,symsafe,stats2",
                     "--debug=filter"
                 ]
                 .into_iter()
                 .map(ToOwned::to_owned)
             )
+            .chain([format!("--out-format={ITEMIZE_TAG}%i %n%L")])
             .chain([profile.source(), profile.destination()])
             .collect();
 
