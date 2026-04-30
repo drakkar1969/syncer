@@ -3,7 +3,6 @@ use std::marker::PhantomData;
 use std::str::FromStr;
 
 use gtk::{prelude::ObjectExt, subclass::prelude::*, glib};
-use glib::translate::IntoGlib;
 
 use strum::{EnumProperty, FromRepr, AsRefStr, EnumString};
 use indexmap::IndexMap;
@@ -32,10 +31,6 @@ pub enum CheckMode {
 }
 
 impl CheckMode {
-    pub fn value(self) -> u32 {
-        self.into_glib() as u32
-    }
-
     pub fn desc<'a>(self) -> Option<&'a str> {
         self.get_str("Desc")
     }
@@ -65,10 +60,6 @@ pub enum RecurseMode {
 }
 
 impl RecurseMode {
-    pub fn value(self) -> u32 {
-        self.into_glib() as u32
-    }
-
     pub fn desc<'a>(self) -> Option<&'a str> {
         self.get_str("Desc")
     }

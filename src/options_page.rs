@@ -397,10 +397,6 @@ impl OptionsPage {
                         .build(),
 
                     profile.bind_property("check-mode", &imp.check_mode_combo.get(), "selected")
-                        .transform_to(|_, mode: CheckMode| Some(mode.value()))
-                        .transform_from(|_, index: u32| {
-                            Some(CheckMode::from_repr(index).unwrap_or_default())
-                        })
                         .bidirectional()
                         .sync_create()
                         .build(),
@@ -411,10 +407,6 @@ impl OptionsPage {
                         .build(),
 
                     profile.bind_property("recurse-mode", &imp.recurse_mode_combo.get(), "selected")
-                        .transform_to(|_, mode: RecurseMode| Some(mode.value()))
-                        .transform_from(|_, index: u32| {
-                            Some(RecurseMode::from_repr(index).unwrap_or_default())
-                        })
                         .bidirectional()
                         .sync_create()
                         .build(),
