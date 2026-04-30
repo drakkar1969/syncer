@@ -361,44 +361,40 @@ impl ProfileObject {
 
         // Recurse mode
         if let Some(mode) = self.recurse_mode().switches() {
-            let switches: Vec<String> = mode.split(' ')
-                .map(ToOwned::to_owned)
-                .collect();
-
-            options.extend_from_slice(&switches);
+            options.extend(
+                mode.split(' ').map(ToOwned::to_owned)
+            );
         }
 
         // Advanced options
-        let mut advanced: Vec<String> = IndexMap::from(ADVANCED_OPTIONS).iter()
-            .filter_map(|(&nick, &arg)| {
-                let value = self.property_value(nick)
-                    .get::<bool>()
-                    .ok()?;
+        options.extend(
+            IndexMap::from(ADVANCED_OPTIONS).iter()
+                .filter_map(|(&nick, &arg)| {
+                    let value = self.property_value(nick)
+                        .get::<bool>()
+                        .ok()?;
 
-                value.then_some(arg).map(ToOwned::to_owned)
-            })
-            .collect();
-
-        options.append(&mut advanced);
+                    value.then_some(arg).map(ToOwned::to_owned)
+                })
+        );
 
         // Filters
         let quote_char = if quoted { "'" } else { "" };
 
-        let mut filters: Vec<String> = self.filters().into_iter()
-            .filter_map(|filter| {
-                filter
-                    .split_once(' ')
-                    .and_then(|(s, pattern)| {
-                        FilterRule::from_str(s).ok()
-                            .and_then(|rule| rule.get_str("Rule"))
-                            .map(|rule| {
-                                format!("-f{quote_char}{rule} {pattern}{quote_char}")
-                            })
-                    })
-            })
-            .collect();
-
-        options.append(&mut filters);
+        options.extend(
+            self.filters().into_iter()
+                .filter_map(|filter| {
+                    filter
+                        .split_once(' ')
+                        .and_then(|(s, pattern)| {
+                            FilterRule::from_str(s).ok()
+                                .and_then(|rule| rule.get_str("Rule"))
+                                .map(|rule| {
+                                    format!("-f{quote_char}{rule} {pattern}{quote_char}")
+                                })
+                        })
+                })
+        );
 
         options
     }
