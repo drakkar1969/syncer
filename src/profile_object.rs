@@ -110,9 +110,9 @@ mod imp {
         #[property(get, set, default = "", construct)]
         destination: RefCell<String>,
 
-        #[property(get, set, default = CheckMode::default(), construct, builder(CheckMode::default()))]
+        #[property(get, set, construct, builder(CheckMode::default()))]
         check_mode: Cell<CheckMode>,
-        #[property(get, set, default = RecurseMode::default(), construct, builder(RecurseMode::default()))]
+        #[property(get, set, construct, builder(RecurseMode::default()))]
         recurse_mode: Cell<RecurseMode>,
         #[property(get, set, construct)]
         filters: RefCell<Vec<String>>,
