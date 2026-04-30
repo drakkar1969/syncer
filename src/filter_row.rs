@@ -188,7 +188,6 @@ impl FilterRow {
     fn setup_widgets(&self) {
         // Bind properties to widget
         self.bind_property("rule", self, "title")
-            .transform_to(|_, rule: FilterRule| Some(format!("{rule:?}")))
             .sync_create()
             .build();
 
