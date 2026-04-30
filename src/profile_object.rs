@@ -169,7 +169,7 @@ mod imp {
         // Property default value
         //---------------------------------------
         fn default_source() -> String {
-            let mut home_path = glib::home_dir().to_string_lossy().into_owned();
+            let mut home_path = glib::home_dir().display().to_string();
             home_path.push('/');
 
             home_path
