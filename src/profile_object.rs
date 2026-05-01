@@ -278,24 +278,23 @@ impl ProfileObject {
         let mut json_map: JsonMap<String, JsonValue> = self.list_properties()
             .iter()
             .filter(|&prop| !["name", "adv-modified"].contains(&prop.nick()))
-            .map(|prop| {
+            .filter_map(|prop| {
+                let name = prop.name().to_owned();
                 let value = self.property_value(prop.nick());
 
-                let json_value = if let Ok(v) = value.get::<Vec<String>>() {
-                    json!(v)
+                if let Ok(v) = value.get::<Vec<String>>() {
+                    Some((name, json!(v)))
                 } else if let Ok(mode) = value.get::<CheckMode>() {
-                    json!(mode.as_ref())
+                    Some((name, json!(mode.as_ref())))
                 } else if let Ok(mode) = value.get::<RecurseMode>() {
-                    json!(mode.as_ref())
+                    Some((name, json!(mode.as_ref())))
                 } else if let Ok(s) = value.get::<String>() {
-                    json!(s)
+                    Some((name, json!(s)))
                 } else if let Ok(b) = value.get::<bool>() {
-                    json!(b)
+                    Some((name, json!(b)))
                 } else {
-                    json!(null)
-                };
-
-                (prop.name().to_owned(), json_value)
+                    None
+                }
             })
             .collect();
 
