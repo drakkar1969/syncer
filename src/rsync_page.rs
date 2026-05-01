@@ -162,6 +162,10 @@ mod imp {
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) progress_bar: TemplateChild<gtk::ProgressBar>,
+        #[template_child]
+        pub(super) source_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) filters_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) button_stack: TemplateChild<gtk::Stack>,
@@ -340,10 +344,13 @@ impl RsyncPage {
     // UI start function
     //---------------------------------------
     fn ui_start(&self, id: Option<i32>) {
-        self.imp().pid.set(id.map(NixPid::from_raw));
+        let imp = self.imp();
+
+        imp.pid.set(id.map(NixPid::from_raw));
 
         self.set_state(RsyncState::Running);
 
+        // Show pause and terminate buttons
         glib::timeout_add_local_once(Duration::from_millis(150), clone!(
             #[weak(rename_to = page)] self,
             move || {
@@ -352,6 +359,24 @@ impl RsyncPage {
                 }
             }
         ));
+
+        // Show source folder and filters
+        let profile = self.profile();
+
+        let filters = if profile.filters().is_empty() {
+            "None".into()
+        } else {
+            profile.filters().iter()
+                .filter_map(|filter| filter.split_once(' '))
+                .map(|(rule, pattern)| {
+                    format!("{} {pattern}", case::capitalize_first(rule))
+                })
+                .collect::<Vec<String>>()
+                .join(" \u{2022} ")
+        };
+
+        imp.source_label.set_label(&profile.source());
+        imp.filters_label.set_markup(&filters);
     }
 
     //---------------------------------------

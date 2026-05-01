@@ -60,7 +60,45 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkBox" id="source_box">
+                            <property name="spacing">10</property>
+                            <property name="tooltip-text">Source Folder</property>
+                            <child>
+                              <object class="GtkImage" id="source_image">
+                                <property name="icon-name">folder-download-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="source_label">
+                                <property name="xalign">0</property>
+                                <property name="ellipsize">middle</property>
+                                <style>
+                                  <class name="heading"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="filters_box">
+                            <property name="spacing">10</property>
+                            <property name="tooltip-text">Filter Rules</property>
+                            <child>
+                              <object class="GtkImage" id="filters_image">
+                                <property name="icon-name">options-filter-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="filters_label">
+                                <property name="xalign">0</property>
+                                <property name="ellipsize">end</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkBox" id="status_box">
+                            <property name="margin-top">20</property>
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkImage" id="status_image">
@@ -102,7 +140,7 @@
                         <child>
                           <object class="GtkCenterBox">
                             <property name="hexpand">true</property>
-                            <property name="margin-top">16</property>
+                            <property name="margin-top">20</property>
                             <property name="start-widget">
                               <object class="GtkBox">
                                 <property name="spacing">10</property>
