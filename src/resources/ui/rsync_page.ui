@@ -235,6 +235,7 @@
                                     <property name="use-underline">true</property>
                                   </object>
                                 </property>
+                                <property name="action-name">rsync.pause</property>
                                 <style>
                                   <class name="pill"/>
                                 </style>
@@ -249,6 +250,7 @@
                                     <property name="use-underline">true</property>
                                   </object>
                                 </property>
+                                <property name="action-name">rsync.stop</property>
                                 <style>
                                   <class name="pill"/>
                                   <class name="destructive-action"/>
@@ -282,6 +284,7 @@
                               <object class="GtkButton" id="output_button">
                                 <property name="label">Rsync _Output</property>
                                 <property name="use-underline">true</property>
+                                <property name="action-name">rsync.output</property>
                                 <style>
                                   <class name="pill"/>
                                 </style>

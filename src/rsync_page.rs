@@ -201,6 +201,8 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -231,6 +233,36 @@ mod imp {
             self.obj().ui_reset();
         }
     }
+
+    impl RsyncPage {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Pause rsync action
+            klass.install_action("rsync.pause", None, |page, _, _| {
+                if page.state() == RsyncState::Paused {
+                    let _ = page.rsync_resume();
+                } else if page.state() == RsyncState::Running {
+                    let _ = page.rsync_pause();
+                }
+            });
+
+            // Stop rsync action
+            klass.install_action("rsync.stop", None, |page, _, _| {
+                let _ = page.rsync_terminate();
+            });
+
+            // Rsync output action
+            klass.install_action("rsync.output", None, |page, _, _| {
+                let parent = page.root()
+                    .and_downcast::<gtk::Window>()
+                    .expect("Could not downcast to 'GtkWindow'");
+
+                page.imp().output_window.borrow().display(&parent);
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -247,8 +279,6 @@ impl RsyncPage {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        let imp = self.imp();
-
         // Profile property notify signal
         self.connect_profile_notify(|page| {
             // Set page title
@@ -286,38 +316,6 @@ impl RsyncPage {
             }
 
         });
-
-        // Pause button clicked signal
-        imp.pause_button.connect_clicked(clone!(
-            #[weak(rename_to = page)] self,
-            move|_| {
-                if page.state() == RsyncState::Paused {
-                    let _ = page.rsync_resume();
-                } else if page.state() == RsyncState::Running {
-                    let _ = page.rsync_pause();
-                }
-            }
-        ));
-
-        // Stop button clicked signal
-        imp.stop_button.connect_clicked(clone!(
-            #[weak(rename_to = page)] self,
-            move|_| {
-                let _ = page.rsync_terminate();
-            }
-        ));
-
-        // Output button clicked signal
-        imp.output_button.connect_clicked(clone!(
-            #[weak(rename_to = page)] self,
-            move|_| {
-                let parent = page.root()
-                    .and_downcast::<gtk::Window>()
-                    .expect("Could not downcast to 'GtkWindow'");
-
-                page.imp().output_window.borrow().display(&parent);
-            }
-        ));
     }
 
     //---------------------------------------
