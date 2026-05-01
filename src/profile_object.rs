@@ -238,31 +238,36 @@ impl ProfileObject {
         for (key, value) in json_map {
             if obj.has_property(key) {
                 match value {
-                    JsonValue::Array(v) => {
-                        let vec: Vec<String> = v.iter()
-                            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
-                            .collect();
+                    JsonValue::Array(v) => 
+                        if key == "filters" {
+                            let vec: Vec<String> = v.iter()
+                                .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                                .collect();
 
-                        obj.set_property(key, vec);
-                    }
-                    JsonValue::String(s) if key == "check-mode" => {
-                        let mode = CheckMode::from_str(s)
-                            .unwrap_or_default();
+                            obj.set_property(key, vec);
+                        }
+                    JsonValue::String(s)
+                        if key == "check-mode" => {
+                            let mode = CheckMode::from_str(s)
+                                .unwrap_or_default();
 
-                        obj.set_property(key, mode);
-                    },
-                    JsonValue::String(s) if key == "recurse-mode" => {
-                        let mode = RecurseMode::from_str(s)
-                            .unwrap_or_default();
+                            obj.set_property(key, mode);
+                        },
+                    JsonValue::String(s)
+                        if key == "recurse-mode" => {
+                            let mode = RecurseMode::from_str(s)
+                                .unwrap_or_default();
 
-                        obj.set_property(key, mode);
-                    },
-                    JsonValue::String(s) => {
-                        obj.set_property(key, s);
-                    },
-                    JsonValue::Bool(b) if advanced_map.contains_key(key.as_str()) => {
-                        obj.set_property(key, b);
-                    }
+                            obj.set_property(key, mode);
+                        },
+                    JsonValue::String(s) => 
+                        if ["source", "destination"].contains(&key.as_str()) {
+                            obj.set_property(key, s);
+                        },
+                    JsonValue::Bool(b)
+                        if advanced_map.contains_key(key.as_str()) => {
+                            obj.set_property(key, b);
+                        }
                     _ => {}
                 }
             }
