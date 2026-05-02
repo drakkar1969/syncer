@@ -394,8 +394,10 @@ impl OutputWindow {
             async move {
                 while let Ok(chunk) = receiver.recv().await {
                     // Add messages to model
-                    let messages: Vec<BoxedAnyObject> = chunk.iter()
-                        .map(|(flag, msg)| BoxedAnyObject::new(OutputObject::new(*flag, msg)))
+                    let messages: Vec<BoxedAnyObject> = chunk.into_iter()
+                        .map(|(flag, msg)| BoxedAnyObject::new(
+                            OutputObject::new(flag, &msg)
+                        ))
                         .collect();
 
                     imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
