@@ -142,7 +142,7 @@
         <attribute name="target">files</attribute>
       </item>
       <item>
-        <attribute name="label">Dirs</attribute>
+        <attribute name="label">Directories</attribute>
         <attribute name="action">filter.type</attribute>
         <attribute name="target">dirs</attribute>
       </item>
