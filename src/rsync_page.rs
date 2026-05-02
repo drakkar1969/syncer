@@ -281,8 +281,30 @@ impl RsyncPage {
     fn setup_signals(&self) {
         // Profile property notify signal
         self.connect_profile_notify(|page| {
+            let imp = page.imp();
+
+            let profile = page.profile();
+
             // Set page title
-            page.set_title(&page.profile().name());
+            page.set_title(&profile.name());
+
+            // Set source folder
+            imp.source_label.set_label(&profile.source());
+
+            // Set filter rules
+            let filters = if profile.filters().is_empty() {
+                "None".into()
+            } else {
+                profile.filters().iter()
+                    .filter_map(|filter| filter.split_once(' '))
+                    .map(|(rule, pattern)| {
+                        format!("{} {pattern}", case::capitalize_first(rule))
+                    })
+                    .collect::<Vec<String>>()
+                    .join(" \u{2022} ")
+            };
+
+            imp.filters_label.set_markup(&filters);
         });
 
         // State property notify signal
@@ -357,24 +379,6 @@ impl RsyncPage {
                 }
             }
         ));
-
-        // Show source folder and filters
-        let profile = self.profile();
-
-        let filters = if profile.filters().is_empty() {
-            "None".into()
-        } else {
-            profile.filters().iter()
-                .filter_map(|filter| filter.split_once(' '))
-                .map(|(rule, pattern)| {
-                    format!("{} {pattern}", case::capitalize_first(rule))
-                })
-                .collect::<Vec<String>>()
-                .join(" \u{2022} ")
-        };
-
-        imp.source_label.set_label(&profile.source());
-        imp.filters_label.set_markup(&filters);
     }
 
     //---------------------------------------
