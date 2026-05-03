@@ -63,6 +63,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_defaults();
             obj.setup_signals();
         }
     }
@@ -104,6 +105,22 @@ impl AdvancedPage {
         }
 
         switches
+    }
+
+    //---------------------------------------
+    // Setup defaults
+    //---------------------------------------
+    fn setup_defaults(&self) {
+        let profile = ProfileObject::default();
+
+        // Set default property for switches
+        for switch in self.switches() {
+            let default = profile.find_property(&switch.nick())
+                .and_then(|prop| prop.default_value().get::<bool>().ok())
+                .expect("Could not get default value for property");
+
+            switch.set_default(default);
+        }
     }
 
     //---------------------------------------

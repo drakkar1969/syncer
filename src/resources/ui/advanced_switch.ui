@@ -5,9 +5,32 @@
     <property name="use-underline">true</property>
     <property name="activatable-widget">switch</property>
     <child>
-      <object class="GtkSwitch" id="switch">
+      <object class="GtkBox">
         <property name="valign">center</property>
-        <property name="can-focus">false</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkBox" id="reset_box">
+            <property name="visible">false</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkButton" id="reset_button">
+                <property name="icon-name">edit-undo-symbolic</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="switch">
+            <property name="valign">center</property>
+            <property name="can-focus">false</property>
+          </object>
+        </child>
       </object>
     </child>
   </template>
