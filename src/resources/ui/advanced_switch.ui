@@ -7,22 +7,11 @@
     <child>
       <object class="GtkBox">
         <property name="valign">center</property>
-        <property name="spacing">10</property>
+        <property name="spacing">16</property>
         <child>
-          <object class="GtkBox" id="reset_box">
+          <object class="GtkImage" id="reset_image">
             <property name="visible">false</property>
-            <property name="spacing">6</property>
-            <child>
-              <object class="GtkButton" id="reset_button">
-                <property name="icon-name">edit-undo-symbolic</property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkSeparator"/>
-            </child>
+            <property name="icon-name">document-edit-symbolic</property>
           </object>
         </child>
         <child>
