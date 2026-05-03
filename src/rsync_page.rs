@@ -304,7 +304,7 @@ impl RsyncPage {
                     .join(" \u{2022} ")
             };
 
-            imp.filters_label.set_markup(&filters);
+            imp.filters_label.set_label(&filters);
         });
 
         // State property notify signal
@@ -314,13 +314,11 @@ impl RsyncPage {
             match page.state() {
                 RsyncState::Stopped => {
                     imp.stop_button.set_sensitive(false);
-
                     imp.pause_button.set_sensitive(false);
                 }
 
                 RsyncState::Running => {
                     imp.stop_button.set_sensitive(true);
-
                     imp.pause_button.set_sensitive(true);
 
                     imp.pause_content.set_icon_name("media-playback-pause-symbolic");
@@ -329,7 +327,6 @@ impl RsyncPage {
 
                 RsyncState::Paused => {
                     imp.stop_button.set_sensitive(true);
-
                     imp.pause_button.set_sensitive(true);
 
                     imp.pause_content.set_icon_name("media-playback-start-symbolic");
@@ -363,13 +360,7 @@ impl RsyncPage {
     //---------------------------------------
     // UI start function
     //---------------------------------------
-    fn ui_start(&self, id: Option<i32>) {
-        let imp = self.imp();
-
-        imp.pid.set(id.map(NixPid::from_raw));
-
-        self.set_state(RsyncState::Running);
-
+    fn ui_start(&self) {
         // Show pause and terminate buttons
         glib::timeout_add_local_once(Duration::from_millis(150), clone!(
             #[weak(rename_to = page)] self,
@@ -435,10 +426,6 @@ impl RsyncPage {
     fn ui_exit_status(&self, code: Option<i32>, messages: &RsyncMessages) {
         let imp = self.imp();
 
-        self.set_state(RsyncState::Stopped);
-
-        imp.pid.set(None);
-
         let stats_table = Self::rsync_stats(messages);
 
         // Show exit status
@@ -471,7 +458,7 @@ impl RsyncPage {
             }
 
             Some(code) => {
-                let (error, details) = Self::rsync_error(code, &messages.errors);
+                let (error, details) = Self::rsync_errors(code, &messages.errors);
 
                 self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
                 self.ui_status(&error);
@@ -792,9 +779,15 @@ impl RsyncPage {
         let mut sync_shown = false;
 
         while let Ok(msg) = receiver.recv().await {
+            let imp = self.imp();
+
             match msg {
                 RsyncSend::Start(id) => {
-                    self.ui_start(id);
+                    imp.pid.set(id.map(NixPid::from_raw));
+
+                    self.set_state(RsyncState::Running);
+
+                    self.ui_start();
                 }
 
                 RsyncSend::RecurseBegin(msg) => {
@@ -828,7 +821,9 @@ impl RsyncPage {
 
                 RsyncSend::Message(type_, msg) => {
                     if !sync_shown {
-                        self.ui_status(&format!("Syncing to {}", profile.destination()));
+                        self.ui_status(
+                            &format!("Syncing to {}", profile.destination())
+                        );
                         sync_shown = true;
                     }
 
@@ -846,6 +841,10 @@ impl RsyncPage {
                 }
 
                 RsyncSend::Exit(code) => {
+                    self.set_state(RsyncState::Stopped);
+
+                    imp.pid.set(None);
+
                     self.ui_exit_status(code, &messages);
                 }
             }
@@ -977,9 +976,9 @@ impl RsyncPage {
     }
 
     //---------------------------------------
-    // Rsync error function
+    // Rsync errors function
     //---------------------------------------
-    pub fn rsync_error(code: i32, errors: &[String]) -> (String, String) {
+    pub fn rsync_errors(code: i32, errors: &[String]) -> (String, String) {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"^(?P<err>[^(]*).*")
                 .expect("Failed to compile Regex")
