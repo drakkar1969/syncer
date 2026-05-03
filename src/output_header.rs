@@ -2,7 +2,7 @@ use gtk::{subclass::prelude::*, glib};
 
 use crate::{
     output_window::OutputObject,
-    rsync_page::RsyncMsgType
+    rsync_page::RsyncMsg
 };
 
 //------------------------------------------------------------------------------
@@ -60,8 +60,8 @@ impl OutputHeader {
     pub fn bind(&self, obj: &OutputObject) {
         self.imp().label.set_label(
             match obj.tag {
-                RsyncMsgType::Error => "Errors",
-                RsyncMsgType::Stat => "Statistics",
+                RsyncMsg::Error => "Errors",
+                RsyncMsg::Stat => "Statistics",
                 _ => "Output",
             }
         );

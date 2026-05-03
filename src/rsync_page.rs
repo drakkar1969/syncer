@@ -59,7 +59,7 @@ enum RsyncSend {
     Recurse(String),
     RecurseEnd(String),
     Progress(String, String, f64),
-    Message(RsyncMsgType, String),
+    Message(RsyncMsg, String),
     Stats(String),
     Error(String),
     Exit(Option<i32>)
@@ -70,8 +70,8 @@ enum RsyncSend {
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, glib::Enum, EnumString)]
 #[repr(u32)]
-#[enum_type(name = "RsyncMsgType")]
-pub enum RsyncMsgType {
+#[enum_type(name = "RsyncMsg")]
+pub enum RsyncMsg {
     Stat,
     Error,
     Info,
@@ -94,7 +94,7 @@ pub enum RsyncMsgType {
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
 pub struct RsyncOutput {
-    pub messages: Vec<(RsyncMsgType, String)>,
+    pub messages: Vec<(RsyncMsg, String)>,
     pub stats: Vec<String>,
     pub errors: Vec<String>
 }
@@ -104,7 +104,7 @@ impl RsyncOutput {
         Self::default()
     }
 
-    pub fn push_message(&mut self, type_: RsyncMsgType, msg: String) {
+    pub fn push_message(&mut self, type_: RsyncMsg, msg: String) {
         self.messages.push((type_, msg));
     }
 
@@ -548,11 +548,11 @@ impl RsyncPage {
                         msg
                     );
 
-                    sender.send(RsyncSend::Message(RsyncMsgType::Info, msg))
+                    sender.send(RsyncSend::Message(RsyncMsg::Info, msg))
                         .await
                         .expect("Could not send through channel");
                 } else if let Some(type_) = flags.get(1..2)
-                    .and_then(|type_| RsyncMsgType::from_str(type_).ok()) {
+                    .and_then(|type_| RsyncMsg::from_str(type_).ok()) {
                         sender.send(RsyncSend::Message(type_, msg.into()))
                             .await
                             .expect("Could not send through channel");
@@ -560,7 +560,7 @@ impl RsyncPage {
             } else {
                 let msg = case::capitalize_first(line);
 
-                sender.send(RsyncSend::Message(RsyncMsgType::Info, msg))
+                sender.send(RsyncSend::Message(RsyncMsg::Info, msg))
                     .await
                     .expect("Could not send through channel");
             }
@@ -793,7 +793,7 @@ impl RsyncPage {
                 RsyncSend::RecurseBegin(msg) => {
                     self.ui_status(&msg);
 
-                    output.push_message(RsyncMsgType::Info, msg);
+                    output.push_message(RsyncMsg::Info, msg);
                 }
 
                 RsyncSend::Recurse(msg) => {
@@ -806,7 +806,7 @@ impl RsyncPage {
 
                     self.ui_message(&msg);
 
-                    output.push_message(RsyncMsgType::Info, msg);
+                    output.push_message(RsyncMsg::Info, msg);
                 }
 
                 RsyncSend::Progress(size, speed, progress) => {
@@ -955,10 +955,10 @@ impl RsyncPage {
                     output.messages.iter()
                         .filter(|(type_, _)| {
                             [
-                                RsyncMsgType::File,
-                                RsyncMsgType::Link,
-                                RsyncMsgType::Device,
-                                RsyncMsgType::Special
+                                RsyncMsg::File,
+                                RsyncMsg::Link,
+                                RsyncMsg::Device,
+                                RsyncMsg::Special
                             ]
                             .contains(type_)
                         })

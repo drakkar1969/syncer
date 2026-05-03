@@ -8,7 +8,7 @@ use glib::{clone, BoxedAnyObject};
 use crate::{
     output_item::OutputItem,
     output_header::OutputHeader,
-    rsync_page::{RsyncMsgType, RsyncOutput}
+    rsync_page::{RsyncMsg, RsyncOutput}
 };
 
 //------------------------------------------------------------------------------
@@ -16,12 +16,12 @@ use crate::{
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
 pub struct OutputObject {
-    pub tag: RsyncMsgType,
+    pub tag: RsyncMsg,
     pub msg: String
 }
 
 impl OutputObject {
-    pub fn new(tag: RsyncMsgType, msg: &str) -> Self {
+    pub fn new(tag: RsyncMsg, msg: &str) -> Self {
         Self {
             tag,
             msg: msg.to_owned()
@@ -341,12 +341,12 @@ impl OutputWindow {
 
                 match window.filter_type() {
                     OutputFilter::All => true,
-                    OutputFilter::Info => tag == RsyncMsgType::Info,
-                    OutputFilter::Files => tag == RsyncMsgType::File,
-                    OutputFilter::Dirs => tag == RsyncMsgType::Directory,
-                    OutputFilter::Links => tag == RsyncMsgType::Link,
+                    OutputFilter::Info => tag == RsyncMsg::Info,
+                    OutputFilter::Files => tag == RsyncMsg::File,
+                    OutputFilter::Dirs => tag == RsyncMsg::Directory,
+                    OutputFilter::Links => tag == RsyncMsg::Link,
                     OutputFilter::Specials => {
-                        tag == RsyncMsgType::Device || tag == RsyncMsgType::Special
+                        tag == RsyncMsg::Device || tag == RsyncMsg::Special
                     }
                 }
             }
@@ -361,14 +361,14 @@ impl OutputWindow {
 
         // Add errors to model
         let errors: Vec<BoxedAnyObject> = output.errors.iter()
-            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsgType::Error, msg)))
+            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Error, msg)))
             .collect();
 
         imp.error_model.splice(0, 0, &errors);
 
         // Add stats to model
         let stats: Vec<BoxedAnyObject> = output.stats.iter()
-            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsgType::Stat, msg)))
+            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Stat, msg)))
             .collect();
 
         imp.stat_model.splice(0, 0, &stats);

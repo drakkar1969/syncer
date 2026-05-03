@@ -2,7 +2,7 @@ use gtk::{prelude::WidgetExt, subclass::prelude::*, glib};
 
 use crate::{
     output_window::OutputObject,
-    rsync_page::RsyncMsgType
+    rsync_page::RsyncMsg
 };
 
 //------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ impl OutputItem {
         imp.label.set_label(msg);
 
         self.set_css_classes(
-            if obj.tag == RsyncMsgType::Error {
+            if obj.tag == RsyncMsg::Error {
                 &["error"]
             } else {
                 &[]
@@ -75,9 +75,9 @@ impl OutputItem {
         );
 
         imp.image.set_icon_name(match obj.tag {
-            RsyncMsgType::Error => Some("rsync-error-symbolic"),
-            RsyncMsgType::Stat => Some("stats-symbolic"),
-            RsyncMsgType::Info => {
+            RsyncMsg::Error => Some("rsync-error-symbolic"),
+            RsyncMsg::Stat => Some("stats-symbolic"),
+            RsyncMsg::Info => {
                 let msg_lower = msg.to_ascii_lowercase();
 
                 if msg_lower.starts_with("deleting") {
@@ -88,11 +88,11 @@ impl OutputItem {
                     Some("info-outline-symbolic")
                 }
             }
-            RsyncMsgType::File => Some("stats-file-symbolic"),
-            RsyncMsgType::Directory => Some("stats-dir-symbolic"),
-            RsyncMsgType::Link => Some("stats-link-symbolic"),
-            RsyncMsgType::Device | RsyncMsgType::Special => Some("stats-special-symbolic"),
-            RsyncMsgType::None => None
+            RsyncMsg::File => Some("stats-file-symbolic"),
+            RsyncMsg::Directory => Some("stats-dir-symbolic"),
+            RsyncMsg::Link => Some("stats-link-symbolic"),
+            RsyncMsg::Device | RsyncMsg::Special => Some("stats-special-symbolic"),
+            RsyncMsg::None => None
         });
     }
 }
