@@ -90,16 +90,16 @@ pub enum RsyncMsgType {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: RsyncMessages
+// STRUCT: RsyncOutput
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
-pub struct RsyncMessages {
+pub struct RsyncOutput {
     pub messages: Vec<(RsyncMsgType, String)>,
     pub stats: Vec<String>,
     pub errors: Vec<String>
 }
 
-impl RsyncMessages {
+impl RsyncOutput {
     pub fn new() -> Self {
         Self::default()
     }
@@ -354,7 +354,7 @@ impl RsyncPage {
 
         imp.button_stack.set_visible_child_name("empty");
 
-        imp.output_window.borrow().clear_messages();
+        imp.output_window.borrow().clear();
     }
 
     //---------------------------------------
@@ -423,10 +423,10 @@ impl RsyncPage {
     //---------------------------------------
     // UI exit status function
     //---------------------------------------
-    fn ui_exit_status(&self, code: Option<i32>, messages: &RsyncMessages) {
+    fn ui_exit_status(&self, code: Option<i32>, output: &RsyncOutput) {
         let imp = self.imp();
 
-        let stats_table = Self::rsync_stats(messages);
+        let stats_table = Self::rsync_stats(output);
 
         // Show exit status
         match code {
@@ -458,7 +458,7 @@ impl RsyncPage {
             }
 
             Some(code) => {
-                let (error, details) = Self::rsync_errors(code, &messages.errors);
+                let (error, details) = Self::rsync_errors(code, &output.errors);
 
                 self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
                 self.ui_status(&error);
@@ -482,7 +482,7 @@ impl RsyncPage {
         // Show details
         imp.button_stack.set_visible_child_name("output");
 
-        if messages.is_empty() {
+        if output.is_empty() {
             imp.output_button.set_visible(false);
         } else {
             imp.output_button.set_visible(true);
@@ -491,9 +491,9 @@ impl RsyncPage {
             // Populate output window
             glib::idle_add_local_once(clone!(
                 #[weak] imp,
-                #[strong] messages,
+                #[strong] output,
                 move || {
-                    imp.output_window.borrow().load_messages(&messages);
+                    imp.output_window.borrow().load(&output);
                 }
             ));
         }
@@ -775,7 +775,7 @@ impl RsyncPage {
         );
 
         // Attach receiver for tokio task
-        let mut messages = RsyncMessages::new();
+        let mut output = RsyncOutput::new();
         let mut sync_shown = false;
 
         while let Ok(msg) = receiver.recv().await {
@@ -793,7 +793,7 @@ impl RsyncPage {
                 RsyncSend::RecurseBegin(msg) => {
                     self.ui_status(&msg);
 
-                    messages.push_message(RsyncMsgType::Info, msg);
+                    output.push_message(RsyncMsgType::Info, msg);
                 }
 
                 RsyncSend::Recurse(msg) => {
@@ -806,7 +806,7 @@ impl RsyncPage {
 
                     self.ui_message(&msg);
 
-                    messages.push_message(RsyncMsgType::Info, msg);
+                    output.push_message(RsyncMsgType::Info, msg);
                 }
 
                 RsyncSend::Progress(size, speed, progress) => {
@@ -829,15 +829,15 @@ impl RsyncPage {
 
                     self.ui_message(&msg);
 
-                    messages.push_message(type_, msg);
+                    output.push_message(type_, msg);
                 }
 
                 RsyncSend::Stats(stat) => {
-                    messages.push_stat(stat);
+                    output.push_stat(stat);
                 }
 
                 RsyncSend::Error(error) => {
-                    messages.push_error(error);
+                    output.push_error(error);
                 }
 
                 RsyncSend::Exit(code) => {
@@ -845,7 +845,7 @@ impl RsyncPage {
 
                     imp.pid.set(None);
 
-                    self.ui_exit_status(code, &messages);
+                    self.ui_exit_status(code, &output);
                 }
             }
         }
@@ -915,7 +915,7 @@ impl RsyncPage {
     //---------------------------------------
     // Rsync stats function
     //---------------------------------------
-    pub fn rsync_stats(messages: &RsyncMessages) -> Option<RsyncStats> {
+    pub fn rsync_stats(output: &RsyncOutput) -> Option<RsyncStats> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"(?x)
                 Number\s*of\s*files:\s*(?P<st>[\d,.]+)\s*\(?(?:reg:\s*(?P<sfiles>[\d,.]+))?,?\s*(?:dir:\s*(?P<sd>[\d,.]+))?,?\s*(?:link:\s*(?P<slinks>[\d,.]+))?,?\s*(?:special:\s*(?P<sspecials>[\d,.]+))?,?\s*\)?\n
@@ -936,7 +936,7 @@ impl RsyncPage {
             .expect("Failed to compile Regex")
         });
 
-        EXPR.captures(&messages.stats.join("\n"))
+        EXPR.captures(&output.stats.join("\n"))
             .map(|caps| {
                 // Helper closure to extract regex match
                 let regex_match = |s: &str| -> String {
@@ -952,7 +952,7 @@ impl RsyncPage {
                 );
 
                 let transferred_items = convert::num_to_string(
-                    messages.messages.iter()
+                    output.messages.iter()
                         .filter(|(type_, _)| {
                             [
                                 RsyncMsgType::File,

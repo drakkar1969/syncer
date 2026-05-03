@@ -8,7 +8,7 @@ use glib::{clone, BoxedAnyObject};
 use crate::{
     output_item::OutputItem,
     output_header::OutputHeader,
-    rsync_page::{RsyncMsgType, RsyncMessages}
+    rsync_page::{RsyncMsgType, RsyncOutput}
 };
 
 //------------------------------------------------------------------------------
@@ -333,7 +333,7 @@ impl OutputWindow {
 
                 let search_term = window.imp().search_term.borrow();
 
-                // Return if message text doesn’t contain the search string (ignore case)
+                // Return if output text doesn’t contain the search string (ignore case)
                 if !search_term.is_empty()
                     && !msg.to_ascii_lowercase().contains(&*search_term) {
                         return false;
@@ -354,20 +354,20 @@ impl OutputWindow {
     }
 
     //---------------------------------------
-    // Load messages function
+    // Load function
     //---------------------------------------
-    pub fn load_messages(&self, messages: &RsyncMessages) {
+    pub fn load(&self, output: &RsyncOutput) {
         let imp = self.imp();
 
         // Add errors to model
-        let errors: Vec<BoxedAnyObject> = messages.errors.iter()
+        let errors: Vec<BoxedAnyObject> = output.errors.iter()
             .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsgType::Error, msg)))
             .collect();
 
         imp.error_model.splice(0, 0, &errors);
 
         // Add stats to model
-        let stats: Vec<BoxedAnyObject> = messages.stats.iter()
+        let stats: Vec<BoxedAnyObject> = output.stats.iter()
             .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsgType::Stat, msg)))
             .collect();
 
@@ -376,7 +376,7 @@ impl OutputWindow {
         // Spawn task to process messages
         let (sender, receiver) = async_channel::bounded(10);
 
-        let messages = messages.messages.clone();
+        let messages = output.messages.clone();
 
         gio::spawn_blocking(
             move || {
@@ -407,9 +407,9 @@ impl OutputWindow {
     }
 
     //---------------------------------------
-    // Clear messages function
+    // Clear function
     //---------------------------------------
-    pub fn clear_messages(&self) {
+    pub fn clear(&self) {
         let imp = self.imp();
 
         imp.error_model.remove_all();
