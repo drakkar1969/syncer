@@ -114,6 +114,7 @@
                                 <property name="ellipsize">end</property>
                                 <property name="single-line-mode">true</property>
                                 <style>
+                                  <class name="heading"/>
                                   <class name="numeric"/>
                                 </style>
                               </object>

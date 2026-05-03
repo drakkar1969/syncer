@@ -343,7 +343,7 @@ impl RsyncPage {
     fn ui_reset(&self) {
         let imp = self.imp();
 
-        self.ui_status_format(&[], "rsync-status-symbolic");
+        self.ui_status_format(&["heading"], "rsync-status-symbolic");
         self.ui_status("");
 
         self.ui_message("");
