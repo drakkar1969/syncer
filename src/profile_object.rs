@@ -185,11 +185,13 @@ mod imp {
 
             for (nick, _) in ADVANCED_OPTIONS {
                 let default = obj.find_property(nick)
-                    .map(|property| property.default_value().get::<bool>());
+                    .expect("Could not get profile property")
+                    .default_value()
+                    .get::<bool>();
 
                 let value = obj.property_value(nick).get::<bool>();
 
-                if default != Some(value) {
+                if default != value {
                     modified = true;
                     break;
                 }
@@ -238,8 +240,8 @@ impl ProfileObject {
         for (key, value) in json_map {
             if obj.has_property(key) {
                 match value {
-                    JsonValue::Array(v) => 
-                        if key == "filters" {
+                    JsonValue::Array(v)
+                        if key == "filters" => {
                             let vec: Vec<String> = v.iter()
                                 .filter_map(|value| value.as_str().map(ToOwned::to_owned))
                                 .collect();
@@ -260,8 +262,8 @@ impl ProfileObject {
 
                             obj.set_property(key, mode);
                         },
-                    JsonValue::String(s) => 
-                        if ["source", "destination"].contains(&key.as_str()) {
+                    JsonValue::String(s)
+                        if ["source", "destination"].contains(&key.as_str()) => {
                             obj.set_property(key, s);
                         },
                     JsonValue::Bool(b)
