@@ -390,14 +390,12 @@ impl ProfileObject {
         options.extend(
             self.filters().into_iter()
                 .filter_map(|filter| {
-                    filter
-                        .split_once(' ')
-                        .and_then(|(s, pattern)| {
-                            FilterRule::from_str(s).ok()
-                                .and_then(|rule| rule.get_str("Rule"))
-                                .map(|rule| {
-                                    format!("-f{quote_char}{rule} {pattern}{quote_char}")
-                                })
+                    let (s, pattern) = filter.split_once(' ')?;
+
+                    FilterRule::from_str(s).ok()?
+                        .get_str("Rule")
+                        .map(|rule| {
+                            format!("-f{quote_char}{rule} {pattern}{quote_char}")
                         })
                 })
         );

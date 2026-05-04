@@ -151,12 +151,10 @@ impl FilterRow {
     // From filter function
     //---------------------------------------
     pub fn from_filter(filter: &str) -> Option<Self> {
-        filter
-            .split_once(' ')
-            .and_then(|(s, pattern)| {
-                FilterRule::from_str(s).ok()
-                    .map(|rule| Self::new(rule, pattern))
-            })
+        let (s, pattern) = filter.split_once(' ')?;
+
+        FilterRule::from_str(s).ok()
+            .map(|rule| Self::new(rule, pattern))
     }
 
     //---------------------------------------

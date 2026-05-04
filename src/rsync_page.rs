@@ -976,8 +976,8 @@ impl RsyncPage {
 
         // Helper closure to extract errors
         let format_error = |msg: &str| -> Option<String> {
-            EXPR.captures(msg)
-                .and_then(|m| m.name("err"))
+            EXPR.captures(msg)?
+                .name("err")
                 .map(|m| {
                     let s = m.as_str()
                         .trim_end_matches('.')
