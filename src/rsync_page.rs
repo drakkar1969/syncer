@@ -25,7 +25,7 @@ use regex::Regex;
 
 use crate::{
     profile_object::ProfileObject,
-    output_window::OutputWindow,
+    output_page::OutputPage,
     utils::{case, convert}
 };
 
@@ -179,12 +179,12 @@ mod imp {
         pub(super) output_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
-        profile: RefCell<ProfileObject>,
+        output_page: RefCell<OutputPage>,
 
+        #[property(get, set)]
+        profile: RefCell<ProfileObject>,
         #[property(get, set, construct, builder(RsyncState::default()))]
         state: Cell<RsyncState>,
-
-        pub(super) output_window: RefCell<OutputWindow>,
 
         pub(super) dry_run: Cell<bool>,
         pub(super) pid: Cell<Option<NixPid>>,
@@ -225,14 +225,7 @@ mod imp {
     }
 
     impl WidgetImpl for RsyncPage {}
-    impl NavigationPageImpl for RsyncPage {
-        //---------------------------------------
-        // Hidden function
-        //---------------------------------------
-        fn hidden(&self) {
-            self.obj().ui_reset();
-        }
-    }
+    impl NavigationPageImpl for RsyncPage {}
 
     impl RsyncPage {
         //---------------------------------------
@@ -255,11 +248,8 @@ mod imp {
 
             // Rsync output action
             klass.install_action("rsync.output", None, |page, _, _| {
-                let parent = page.root()
-                    .and_downcast::<gtk::Window>()
-                    .expect("Could not downcast to 'GtkWindow'");
-
-                page.imp().output_window.borrow().display(&parent);
+                page.activate_action("navigation.push", Some(&"output".to_variant()))
+                    .expect("Could not activate 'navigation.push' action");
             });
         }
     }
@@ -340,7 +330,7 @@ impl RsyncPage {
     //---------------------------------------
     // UI reset function
     //---------------------------------------
-    fn ui_reset(&self) {
+    pub fn ui_reset(&self) {
         let imp = self.imp();
 
         self.ui_status_format(&["heading"], "rsync-status-symbolic");
@@ -354,7 +344,7 @@ impl RsyncPage {
 
         imp.button_stack.set_visible_child_name("empty");
 
-        imp.output_window.borrow().clear();
+        self.output_page().clear();
     }
 
     //---------------------------------------
@@ -490,10 +480,10 @@ impl RsyncPage {
 
             // Populate output window
             glib::idle_add_local_once(clone!(
-                #[weak] imp,
+                #[weak(rename_to = page)] self,
                 #[strong] output,
                 move || {
-                    imp.output_window.borrow().load(&output);
+                    page.output_page().load(&output);
                 }
             ));
         }

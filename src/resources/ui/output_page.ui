@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// OutputWindow template //-->
-  <template class="OutputWindow" parent="AdwWindow">
-    <property name="default-width">800</property>
-    <property name="default-height">660</property>
-    <property name="modal">true</property>
-    <property name="hide-on-close">true</property>
-    <property name="title">Rsync Output</property>
-    <property name="content">
+  <!--// OutputPage template //-->
+  <template class="OutputPage" parent="AdwNavigationPage">
+    <property name="title">Output</property>
+    <property name="tag">output</property>
+    <property name="child">
       <object class="AdwToolbarView">
-        <property name="top-bar-style">raised</property>
         <property name="bottom-bar-style">raised</property>
+        <property name="top-bar-style">raised</property>
         <child type="top">
           <object class="GtkBox">
             <property name="orientation">vertical</property>

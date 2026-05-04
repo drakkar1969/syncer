@@ -9,7 +9,8 @@ use crate::{
     options_page::OptionsPage,
     advanced_page::AdvancedPage,
     filters_page::FiltersPage,
-    rsync_page::{RsyncPage, RsyncState}
+    rsync_page::{RsyncPage, RsyncState},
+    output_page::OutputPage
 };
 
 //------------------------------------------------------------------------------
@@ -39,6 +40,8 @@ mod imp {
         pub(super) filters_page: TemplateChild<FiltersPage>,
         #[template_child]
         pub(super) rsync_page: TemplateChild<RsyncPage>,
+        #[template_child]
+        pub(super) output_page: TemplateChild<OutputPage>,
 
         pub(super) close_request: Cell<bool>,
     }
@@ -175,6 +178,16 @@ impl AppWindow {
                 }
             }
         ));
+
+        // Navigation view popped signal
+        imp.navigation_view.connect_popped(clone!(
+            #[weak] imp,
+            move |_, page| {
+                if page.tag() == imp.rsync_page.tag() {
+                    imp.rsync_page.ui_reset();
+                }
+            }
+        ));
     }
 
     //---------------------------------------
@@ -185,8 +198,10 @@ impl AppWindow {
 
         let profile_dropdown = imp.options_page.profile_dropdown();
 
-        // Set options page widget properties
+        // Set page widget properties
         imp.options_page.set_rsync_page(imp.rsync_page.get());
+
+        imp.rsync_page.set_output_page(imp.output_page.get());
 
         // Bind selected profile to options page
         profile_dropdown.bind_property("selected-item", &imp.options_page.get(), "profile")

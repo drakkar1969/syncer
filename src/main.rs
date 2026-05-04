@@ -9,7 +9,7 @@ mod filters_page;
 mod filter_row;
 mod filter_dialog;
 mod rsync_page;
-mod output_window;
+mod output_page;
 mod output_item;
 mod output_header;
 mod utils;

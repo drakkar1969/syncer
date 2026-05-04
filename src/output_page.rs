@@ -1,8 +1,8 @@
 use std::cell::{Cell, RefCell};
 use std::time::Duration;
 
-use adw::subclass::prelude::*;
-use gtk::{prelude::*, gio, glib, gdk};
+use adw::{prelude::*, subclass::prelude::*};
+use gtk::{glib, gio, gdk};
 use glib::{clone, BoxedAnyObject};
 
 use crate::{
@@ -46,7 +46,7 @@ pub enum OutputFilter {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: OutputWindow
+// MODULE: OutputPage
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -55,9 +55,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::OutputWindow)]
-    #[template(resource = "/com/github/Syncer/ui/output_window.ui")]
-    pub struct OutputWindow {
+    #[properties(wrapper_type = super::OutputPage)]
+    #[template(resource = "/com/github/Syncer/ui/output_page.ui")]
+    pub struct OutputPage {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
@@ -80,9 +80,9 @@ mod imp {
         #[template_child]
         pub(super) message_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub(super) filter: TemplateChild<gtk::CustomFilter>,
-        #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
+        #[template_child]
+        pub(super) filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) item_factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
@@ -97,16 +97,18 @@ mod imp {
         filter_type: Cell<OutputFilter>,
 
         pub(super) search_term: RefCell<String>,
+
+        pub(super) shown: Cell<bool>,
     }
 
     //---------------------------------------
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for OutputWindow {
-        const NAME: &'static str = "OutputWindow";
-        type Type = super::OutputWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for OutputPage {
+        const NAME: &'static str = "OutputPage";
+        type Type = super::OutputPage;
+        type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -121,7 +123,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for OutputWindow {
+    impl ObjectImpl for OutputPage {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -135,11 +137,31 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for OutputWindow {}
-    impl WindowImpl for OutputWindow {}
-    impl AdwWindowImpl for OutputWindow {}
+    impl WidgetImpl for OutputPage {}
+    impl NavigationPageImpl for OutputPage {
+        //---------------------------------------
+        // Shown function
+        //---------------------------------------
+        fn shown(&self) {
+            if !self.shown.get() {
+                // Scroll to start
+                glib::idle_add_local_once(clone!(
+                    #[weak(rename_to = imp)] self,
+                    move || {
+                        let v_adjust = imp.scroll_window.vadjustment();
+                        v_adjust.set_value(v_adjust.lower());
+                    }
+                ));
 
-    impl OutputWindow {
+                self.shown.set(true);
+
+                // Set initial focus on view
+                self.view.grab_focus();
+            }
+        }
+    }
+
+    impl OutputPage {
         //---------------------------------------
         // Install actions
         //---------------------------------------
@@ -158,23 +180,20 @@ mod imp {
 
                 glib::Propagation::Stop
             });
-
-            // Close window key binding
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
         }
     }
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: OutputWindow
+// IMPLEMENTATION: OutputPage
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct OutputWindow(ObjectSubclass<imp::OutputWindow>)
-    @extends adw::Window, gtk::Window, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct OutputPage(ObjectSubclass<imp::OutputPage>)
+        @extends adw::NavigationPage, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl OutputWindow {
+impl OutputPage {
     //---------------------------------------
     // Show spinner function
     //---------------------------------------
@@ -200,6 +219,7 @@ impl OutputWindow {
             imp.spinner.set_visible(false);
         }
     }
+
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -419,33 +439,12 @@ impl OutputWindow {
         imp.search_bar.set_search_mode(false);
 
         self.set_filter_type(OutputFilter::default());
-    }
 
-    //---------------------------------------
-    // Display function
-    //---------------------------------------
-    pub fn display(&self, window: &gtk::Window) {
-        let imp = self.imp();
-
-        self.set_transient_for(Some(window));
-
-        self.present();
-
-        // Set initial focus on view
-        imp.view.grab_focus();
-
-        // Scroll to start
-        glib::idle_add_local_once(clone!(
-            #[weak] imp,
-            move || {
-                let v_adjust = imp.scroll_window.vadjustment();
-                v_adjust.set_value(v_adjust.lower());
-            }
-        ));
+        imp.shown.set(false);
     }
 }
 
-impl Default for OutputWindow {
+impl Default for OutputPage {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

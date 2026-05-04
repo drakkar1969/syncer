@@ -1,7 +1,7 @@
 use gtk::{subclass::prelude::*, glib};
 
 use crate::{
-    output_window::OutputObject,
+    output_page::OutputObject,
     rsync_page::RsyncMsg
 };
 
