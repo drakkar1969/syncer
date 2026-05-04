@@ -276,21 +276,6 @@
                             <property name="homogeneous">true</property>
                             <property name="spacing">36</property>
                             <child>
-                              <object class="GtkButton" id="back_button">
-                                <property name="action-name">navigation.pop</property>
-                                <property name="child">
-                                  <object class="AdwButtonContent">
-                                    <property name="icon-name">go-previous-symbolic</property>
-                                    <property name="label">_Back</property>
-                                    <property name="use-underline">true</property>
-                                  </object>
-                                </property>
-                                <style>
-                                  <class name="pill"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child>
                               <object class="GtkButton" id="output_button">
                                 <property name="action-name">rsync.output</property>
                                 <property name="child">
