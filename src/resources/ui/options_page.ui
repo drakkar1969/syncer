@@ -240,10 +240,15 @@
                     <property name="spacing">36</property>
                     <child>
                       <object class="GtkButton" id="dryrun_button">
-                        <property name="label">Dr_y Run</property>
-                        <property name="use-underline">true</property>
                         <property name="action-name">rsync.start</property>
                         <property name="action-target">true</property>
+                        <property name="child">
+                          <object class="AdwButtonContent">
+                            <property name="icon-name">info-outline-symbolic</property>
+                            <property name="label">Dr_y Run</property>
+                            <property name="use-underline">true</property>
+                          </object>
+                        </property>
                         <style>
                           <class name="pill"/>
                         </style>
