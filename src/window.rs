@@ -196,14 +196,14 @@ impl AppWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        let profile_dropdown = imp.options_page.profile_dropdown();
-
         // Set page widget properties
         imp.options_page.set_rsync_page(imp.rsync_page.get());
 
         imp.rsync_page.set_output_page(imp.output_page.get());
 
         // Bind selected profile to options page
+        let profile_dropdown = imp.options_page.profile_dropdown();
+
         profile_dropdown.bind_property("selected-item", &imp.options_page.get(), "profile")
             .sync_create()
             .build();
