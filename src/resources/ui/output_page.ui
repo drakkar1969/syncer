@@ -2,7 +2,7 @@
 <interface>
   <!--// OutputPage template //-->
   <template class="OutputPage" parent="AdwNavigationPage">
-    <property name="title">Output</property>
+    <property name="title">Rsync Output</property>
     <property name="tag">output</property>
     <property name="child">
       <object class="AdwToolbarView">
