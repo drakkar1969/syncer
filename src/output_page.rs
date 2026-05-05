@@ -16,8 +16,8 @@ use crate::{
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
 pub struct OutputObject {
-    pub tag: RsyncMsg,
-    pub msg: String
+    tag: RsyncMsg,
+    msg: String
 }
 
 impl OutputObject {
@@ -26,6 +26,14 @@ impl OutputObject {
             tag,
             msg: msg.to_owned()
         }
+    }
+
+    pub fn tag(&self) -> RsyncMsg {
+        self.tag
+    }
+
+    pub fn msg(&self) -> &str {
+        &self.msg
     }
 }
 
@@ -380,14 +388,14 @@ impl OutputPage {
         let imp = self.imp();
 
         // Add errors to model
-        let errors: Vec<BoxedAnyObject> = output.errors.iter()
+        let errors: Vec<BoxedAnyObject> = output.errors().iter()
             .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Error, msg)))
             .collect();
 
         imp.error_model.splice(0, 0, &errors);
 
         // Add stats to model
-        let stats: Vec<BoxedAnyObject> = output.stats.iter()
+        let stats: Vec<BoxedAnyObject> = output.stats().iter()
             .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Stat, msg)))
             .collect();
 
@@ -396,7 +404,7 @@ impl OutputPage {
         // Spawn task to process messages
         let (sender, receiver) = async_channel::bounded(10);
 
-        let messages = output.messages.clone();
+        let messages = output.messages().to_vec();
 
         gio::spawn_blocking(
             move || {

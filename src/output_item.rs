@@ -62,19 +62,20 @@ impl OutputItem {
     pub fn bind(&self, obj: &OutputObject) {
         let imp = self.imp();
 
-        let msg = &obj.msg;
+        let tag = obj.tag();
+        let msg = obj.msg();
 
         imp.label.set_label(msg);
 
         self.set_css_classes(
-            if obj.tag == RsyncMsg::Error {
+            if tag == RsyncMsg::Error {
                 &["error"]
             } else {
                 &[]
             }
         );
 
-        imp.image.set_icon_name(match obj.tag {
+        imp.image.set_icon_name(match tag {
             RsyncMsg::Error => Some("rsync-error-symbolic"),
             RsyncMsg::Stat => Some("stats-symbolic"),
             RsyncMsg::Info => {

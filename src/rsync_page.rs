@@ -95,9 +95,9 @@ pub enum RsyncMsg {
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
 pub struct RsyncOutput {
-    pub messages: Vec<(RsyncMsg, String)>,
-    pub stats: Vec<String>,
-    pub errors: Vec<String>
+    messages: Vec<(RsyncMsg, String)>,
+    stats: Vec<String>,
+    errors: Vec<String>
 }
 
 impl RsyncOutput {
@@ -120,6 +120,18 @@ impl RsyncOutput {
     pub fn is_empty(&self) -> bool {
         self.messages.is_empty() && self.stats.is_empty() && self.errors.is_empty()
     }
+
+    pub fn messages(&self) -> &[(RsyncMsg, String)] {
+        &self.messages
+    }
+
+    pub fn stats(&self) -> &[String] {
+        &self.stats
+    }
+
+    pub fn errors(&self) -> &[String] {
+        &self.errors
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -127,11 +139,11 @@ impl RsyncOutput {
 //------------------------------------------------------------------------------
 #[derive(Default, Debug)]
 pub struct RsyncStats {
-    pub source_items: String,
-    pub transferred_items: String,
-    pub source_size: String,
-    pub transferred_size: String,
-    pub speed: String
+    source_items: String,
+    transferred_items: String,
+    source_size: String,
+    transferred_size: String,
+    speed: String
 }
 
 //------------------------------------------------------------------------------

@@ -59,7 +59,7 @@ impl OutputHeader {
     //---------------------------------------
     pub fn bind(&self, obj: &OutputObject) {
         self.imp().label.set_label(
-            match obj.tag {
+            match obj.tag() {
                 RsyncMsg::Error => "Errors",
                 RsyncMsg::Stat => "Statistics",
                 _ => "Output",
