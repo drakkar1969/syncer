@@ -44,49 +44,63 @@
           </object>
         </child>
         <property name="content">
-          <object class="GtkScrolledWindow" id="scroll_window">
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
+          <object class="GtkOverlay">
             <property name="child">
-              <object class="GtkListView" id="view">
-                <property name="tab-behavior">item</property>
-                <property name="model">
-                  <object class="GtkNoSelection" id="selection">
+              <object class="GtkScrolledWindow" id="scroll_window">
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="child">
+                  <object class="GtkListView" id="view">
+                    <property name="tab-behavior">item</property>
                     <property name="model">
-                      <object class="GtkFilterListModel" id="filter_model">
-                        <property name="incremental">true</property>
+                      <object class="GtkNoSelection" id="selection">
                         <property name="model">
-                          <object class="GtkFlattenListModel">
+                          <object class="GtkFilterListModel" id="filter_model">
+                            <property name="incremental">true</property>
                             <property name="model">
-                              <object class="GListStore">
-                                <child>
-                                  <object class="GListStore" id="error_model"/>
-                                </child>
-                                <child>
-                                  <object class="GListStore" id="stat_model"/>
-                                </child>
-                                <child>
-                                  <object class="GListStore" id="message_model"/>
-                                </child>
+                              <object class="GtkFlattenListModel">
+                                <property name="model">
+                                  <object class="GListStore">
+                                    <child>
+                                      <object class="GListStore" id="error_model"/>
+                                    </child>
+                                    <child>
+                                      <object class="GListStore" id="stat_model"/>
+                                    </child>
+                                    <child>
+                                      <object class="GListStore" id="message_model"/>
+                                    </child>
+                                  </object>
+                                </property>
                               </object>
+                            </property>
+                            <property name="filter">
+                              <object class="GtkCustomFilter" id="filter"/>
                             </property>
                           </object>
                         </property>
-                        <property name="filter">
-                          <object class="GtkCustomFilter" id="filter"/>
-                        </property>
                       </object>
+                    </property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="item_factory"/>
+                    </property>
+                    <property name="header-factory">
+                      <object class="GtkSignalListItemFactory" id="header_factory"/>
                     </property>
                   </object>
                 </property>
-                <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="item_factory"/>
-                </property>
-                <property name="header-factory">
-                  <object class="GtkSignalListItemFactory" id="header_factory"/>
-                </property>
               </object>
             </property>
+            <child type="overlay">
+              <object class="AdwStatusPage" id="empty_status">
+                <property name="visible">false</property>
+                <property name="icon-name">edit-find-symbolic</property>
+                <property name="title">No Items Found</property>
+                <style>
+                  <class name="compact"/>
+                </style>
+              </object>
+            </child>
           </object>
         </property>
         <child type="bottom">

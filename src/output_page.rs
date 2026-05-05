@@ -123,6 +123,8 @@ mod imp {
         pub(super) item_factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
         pub(super) header_factory: TemplateChild<gtk::SignalListItemFactory>,
+        #[template_child]
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
@@ -345,6 +347,18 @@ impl OutputPage {
                 window.show_spinner(true);
 
                 imp.filter.changed(gtk::FilterChange::Different);
+            }
+        ));
+
+        // Selection items changed signal
+        imp.selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let visible = selection.n_items() == 0;
+
+                if visible != imp.empty_status.is_visible() {
+                    imp.empty_status.set_visible(visible);
+                }
             }
         ));
 
