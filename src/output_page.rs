@@ -338,13 +338,13 @@ impl OutputPage {
 
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = page)] self,
             move |entry| {
-                let imp = window.imp();
+                let imp = page.imp();
 
                 imp.search_term.replace(entry.text().to_ascii_lowercase());
 
-                window.update_footer(true);
+                page.update_footer(true);
 
                 imp.filter.changed(gtk::FilterChange::Different);
             }
@@ -364,10 +364,10 @@ impl OutputPage {
 
         // Filter model pending property notify signal
         imp.filter_model.connect_pending_notify(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = page)] self,
             move |model| {
                 if model.pending() == 0 {
-                    window.update_footer(false);
+                    page.update_footer(false);
                 }
             }
         ));
@@ -390,7 +390,7 @@ impl OutputPage {
 
         // Set filter function
         imp.filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = page)] self,
             #[upgrade_or] false,
             move |obj| {
                 let output_object = obj
@@ -401,7 +401,7 @@ impl OutputPage {
                 let tag = output_object.tag;
                 let msg = &output_object.msg;
 
-                let search_term = window.imp().search_term.borrow();
+                let search_term = page.imp().search_term.borrow();
 
                 // Return if output text doesn’t contain the search string (ignore case)
                 if !search_term.is_empty()
@@ -409,7 +409,7 @@ impl OutputPage {
                         return false;
                     }
 
-                match window.filter_type() {
+                match page.filter_type() {
                     OutputFilter::All => true,
                     OutputFilter::Info => tag == RsyncMsg::Info,
                     OutputFilter::Files => tag == RsyncMsg::File,
