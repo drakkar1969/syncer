@@ -222,6 +222,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -347,15 +348,22 @@ impl RsyncPage {
     }
 
     //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        self.ui_reset();
+    }
+
+    //---------------------------------------
     // UI reset function
     //---------------------------------------
     pub fn ui_reset(&self) {
         let imp = self.imp();
 
         self.ui_status_format(&["heading"], "rsync-status-symbolic");
-        self.ui_status("");
+        self.ui_status("Waiting…");
 
-        self.ui_message("");
+        self.ui_message("---");
 
         self.ui_transferred("0");
         self.ui_speed("n/a");
