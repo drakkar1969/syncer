@@ -237,7 +237,9 @@ mod imp {
             // Pause rsync action
             klass.install_action("rsync.pause", None, |page, _, _| {
                 if page.state() == RsyncState::Paused {
-                    if page.rsync_resume().is_err() {
+                    let result = page.rsync_resume();
+
+                    if result.is_err() {
                         let window = page.root()
                             .and_downcast::<AppWindow>()
                             .expect("Could not get main window");
@@ -245,7 +247,9 @@ mod imp {
                         window.show_toast("Error: Failed to resume rsync");
                     }
                 } else if page.state() == RsyncState::Running {
-                    if page.rsync_pause().is_err() {
+                    let result = page.rsync_pause();
+
+                    if result.is_err() {
                         let window = page.root()
                             .and_downcast::<AppWindow>()
                             .expect("Could not get main window");
