@@ -91,9 +91,9 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="filters_label">
-                                <property name="xalign">0</property>
-                                <property name="ellipsize">end</property>
+                              <object class="AdwWrapBox" id="filters_wrap">
+                                <property name="child-spacing">6</property>
+                                <property name="line-spacing">8</property>
                               </object>
                             </child>
                           </object>

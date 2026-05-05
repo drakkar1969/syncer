@@ -178,7 +178,7 @@ mod imp {
         #[template_child]
         pub(super) source_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) filters_label: TemplateChild<gtk::Label>,
+        pub(super) filters_wrap: TemplateChild<adw::WrapBox>,
 
         #[template_child]
         pub(super) button_stack: TemplateChild<gtk::Stack>,
@@ -317,20 +317,43 @@ impl RsyncPage {
             // Set source folder
             imp.source_label.set_label(&profile.source());
 
-            // Set filter rules
-            let filters = if profile.filters().is_empty() {
-                "None".into()
-            } else {
-                profile.filters().iter()
-                    .filter_map(|filter| filter.split_once(' '))
-                    .map(|(rule, pattern)| {
-                        format!("{} {pattern}", case::capitalize_first(rule))
-                    })
-                    .collect::<Vec<String>>()
-                    .join(" \u{2022} ")
+            // Helper closure to add tag labels for filters
+            let add_filter_tag = |title: &str, dimmed: bool| {
+                let css_classes = if dimmed {
+                    vec!["caption-heading", "tag", "dimmed"]
+                } else {
+                    vec!["caption-heading", "tag"]
+                };
+
+                let label = gtk::Label::builder()
+                    .label(title)
+                    .css_classes(css_classes)
+                    .build();
+
+                imp.filters_wrap.append(&label);
             };
 
-            imp.filters_label.set_label(&filters);
+            // Set filter rules
+            let max = 6;
+            let mut i = 0;
+
+            imp.filters_wrap.remove_all();
+
+            if profile.filters().is_empty() {
+                add_filter_tag("None", true)
+            } else {
+                for filter in profile.filters() {
+                    if i < max && let Some((rule, pattern)) = filter.split_once(' ') {
+                        add_filter_tag(&format!("{} {pattern}", case::capitalize_first(rule)), false);
+                    } else if i == max {
+                        add_filter_tag(" ... ", false);
+
+                        break;
+                    }
+
+                    i += 1;
+                } 
+            };
         });
 
         // State property notify signal
