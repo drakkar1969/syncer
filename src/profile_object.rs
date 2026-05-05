@@ -367,20 +367,15 @@ impl ProfileObject {
 
         // Recurse mode
         if let Some(mode) = self.recurse_mode().switches() {
-            options.extend(
-                mode.split(' ').map(ToOwned::to_owned)
-            );
+            options.extend(mode.split(' ').map(ToOwned::to_owned));
         }
 
         // Advanced options
         options.extend(
             IndexMap::from(ADVANCED_OPTIONS).iter()
                 .filter_map(|(&nick, &arg)| {
-                    let value = self.property_value(nick)
-                        .get::<bool>()
-                        .ok()?;
-
-                    value.then_some(arg).map(ToOwned::to_owned)
+                    self.property::<bool>(nick)
+                        .then_some(arg.to_owned())
                 })
         );
 
