@@ -16,16 +16,44 @@ use crate::{
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone)]
 pub struct OutputObject {
+    icon: Option<String>,
     tag: RsyncMsg,
     msg: String
 }
 
 impl OutputObject {
     pub fn new(tag: RsyncMsg, msg: &str) -> Self {
+        let icon = match tag {
+            RsyncMsg::Error => Some("rsync-error-symbolic"),
+            RsyncMsg::Stat => Some("stats-symbolic"),
+            RsyncMsg::Info => {
+                let msg_lower = msg.to_ascii_lowercase();
+
+                if msg_lower.starts_with("deleting") {
+                    Some("user-trash-symbolic")
+                } else if msg_lower.starts_with("skipping") {
+                    Some("edit-undo-symbolic")
+                } else {
+                    Some("info-outline-symbolic")
+                }
+            }
+            RsyncMsg::File => Some("stats-file-symbolic"),
+            RsyncMsg::Directory => Some("stats-dir-symbolic"),
+            RsyncMsg::Link => Some("stats-link-symbolic"),
+            RsyncMsg::Device | RsyncMsg::Special => Some("stats-special-symbolic"),
+            RsyncMsg::None => None
+        }
+        .map(ToOwned::to_owned);
+
         Self {
+            icon,
             tag,
             msg: msg.to_owned()
         }
+    }
+
+    pub fn icon(&self) -> Option<&str> {
+        self.icon.as_deref()
     }
 
     pub fn tag(&self) -> RsyncMsg {

@@ -62,39 +62,16 @@ impl OutputItem {
     pub fn bind(&self, obj: &OutputObject) {
         let imp = self.imp();
 
-        let tag = obj.tag();
-        let msg = obj.msg();
-
-        imp.label.set_label(msg);
+        imp.image.set_icon_name(obj.icon());
+        imp.label.set_label(obj.msg());
 
         self.set_css_classes(
-            if tag == RsyncMsg::Error {
+            if obj.tag() == RsyncMsg::Error {
                 &["error"]
             } else {
                 &[]
             }
         );
-
-        imp.image.set_icon_name(match tag {
-            RsyncMsg::Error => Some("rsync-error-symbolic"),
-            RsyncMsg::Stat => Some("stats-symbolic"),
-            RsyncMsg::Info => {
-                let msg_lower = msg.to_ascii_lowercase();
-
-                if msg_lower.starts_with("deleting") {
-                    Some("user-trash-symbolic")
-                } else if msg_lower.starts_with("skipping") {
-                    Some("edit-undo-symbolic")
-                } else {
-                    Some("info-outline-symbolic")
-                }
-            }
-            RsyncMsg::File => Some("stats-file-symbolic"),
-            RsyncMsg::Directory => Some("stats-dir-symbolic"),
-            RsyncMsg::Link => Some("stats-link-symbolic"),
-            RsyncMsg::Device | RsyncMsg::Special => Some("stats-special-symbolic"),
-            RsyncMsg::None => None
-        });
     }
 }
 
