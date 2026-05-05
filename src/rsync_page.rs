@@ -67,7 +67,7 @@ enum RsyncSend {
 }
 
 //------------------------------------------------------------------------------
-// ENUM: RsyncMsgType
+// ENUM: RsyncMsg
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, glib::Enum, EnumString)]
 #[repr(u32)]
