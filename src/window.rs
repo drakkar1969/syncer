@@ -31,6 +31,8 @@ mod imp {
         pub(super) status_new_button: TemplateChild<gtk::Button>,
 
         #[template_child]
+        pub(super) toast_overlay: TemplateChild<adw::ToastOverlay>,
+        #[template_child]
         pub(super) navigation_view: TemplateChild<adw::NavigationView>,
         #[template_child]
         pub(super) options_page: TemplateChild<OptionsPage>,
@@ -99,7 +101,9 @@ mod imp {
                     move |_, _| {
                         imp.close_request.set(true);
 
-                        let _ = imp.rsync_page.rsync_terminate();
+                        if imp.rsync_page.rsync_terminate().is_err() {
+                            imp.obj().show_toast("Error: Failed to terminate rsync");
+                        }
                     }
                 ));
 
@@ -108,7 +112,9 @@ mod imp {
                 return glib::Propagation::Stop;
             }
 
-            let _ = self.options_page.save_config();
+            if self.options_page.save_config().is_err() {
+                self.obj().show_toast("Error: Failed to save config to file");
+            }
 
             glib::Propagation::Proceed
         }
@@ -136,6 +142,22 @@ impl AppWindow {
         glib::Object::builder()
             .property("application", app)
             .build()
+    }
+
+    //---------------------------------------
+    // Show toast function
+    //---------------------------------------
+    pub fn show_toast(&self, message: &str){
+        let toast = adw::Toast::builder()
+            .custom_title(
+                &gtk::Label::builder()
+                    .label(message)
+                    .css_classes(["error"])
+                    .build()
+            )
+            .build();
+
+        self.imp().toast_overlay.add_toast(toast);
     }
 
     //---------------------------------------
@@ -219,6 +241,8 @@ impl AppWindow {
             .build();
 
         // Load profiles from config file
-        let _ = imp.options_page.load_config();
+        if imp.options_page.load_config().is_err() {
+            self.show_toast("Error: Failed to save config to file");
+        }
     }
 }

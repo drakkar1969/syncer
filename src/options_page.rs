@@ -10,6 +10,7 @@ use glib::{clone, VariantTy};
 use serde_json::{json, to_string_pretty, from_str, Map as JsonMap, Value as JsonValue};
 
 use crate::{
+    window::AppWindow,
     profile_object::{CheckMode, RecurseMode, ProfileObject},
     profile_dialog::ProfileDialog,
     rsync_page::RsyncPage
@@ -247,7 +248,13 @@ mod imp {
                             .expect("Could not activate 'navigation.push' action");
 
                         // Start rsync
-                        let _ = rsync_page.start_rsync(dry_run).await;
+                        if rsync_page.start_rsync(dry_run).await.is_err() {
+                            let window = page.root()
+                                .and_downcast::<AppWindow>()
+                                .expect("Could not get main window");
+
+                            window.show_toast("Error: Failed to start rsync");
+                        }
 
                         rsync_page.set_can_pop(true);
                     }

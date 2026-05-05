@@ -41,24 +41,28 @@
           <object class="GtkStackPage">
             <property name="name">main</property>
             <property name="child">
-              <object class="AdwNavigationView" id="navigation_view">
-                <property name="hhomogeneous">true</property>
-                <property name="vhomogeneous">true</property>
-                <child>
-                  <object class="OptionsPage" id="options_page"/>
-                </child>
-                <child>
-                  <object class="AdvancedPage" id="advanced_page"/>
-                </child>
-                <child>
-                  <object class="FiltersPage" id="filters_page"/>
-                </child>
-                <child>
-                  <object class="RsyncPage" id="rsync_page"/>
-                </child>
-                <child>
-                  <object class="OutputPage" id="output_page"/>
-                </child>
+              <object class="AdwToastOverlay" id="toast_overlay">
+                <property name="child">
+                  <object class="AdwNavigationView" id="navigation_view">
+                    <property name="hhomogeneous">true</property>
+                    <property name="vhomogeneous">true</property>
+                    <child>
+                      <object class="OptionsPage" id="options_page"/>
+                    </child>
+                    <child>
+                      <object class="AdvancedPage" id="advanced_page"/>
+                    </child>
+                    <child>
+                      <object class="FiltersPage" id="filters_page"/>
+                    </child>
+                    <child>
+                      <object class="RsyncPage" id="rsync_page"/>
+                    </child>
+                    <child>
+                      <object class="OutputPage" id="output_page"/>
+                    </child>
+                  </object>
+                </property>
               </object>
             </property>
           </object>

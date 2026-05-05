@@ -24,6 +24,7 @@ use nix::{
 use regex::Regex;
 
 use crate::{
+    window::AppWindow,
     profile_object::ProfileObject,
     output_page::OutputPage,
     utils::{case, convert}
@@ -235,15 +236,33 @@ mod imp {
             // Pause rsync action
             klass.install_action("rsync.pause", None, |page, _, _| {
                 if page.state() == RsyncState::Paused {
-                    let _ = page.rsync_resume();
+                    if page.rsync_resume().is_err() {
+                        let window = page.root()
+                            .and_downcast::<AppWindow>()
+                            .expect("Could not get main window");
+
+                        window.show_toast("Error: Failed to resume rsync");
+                    }
                 } else if page.state() == RsyncState::Running {
-                    let _ = page.rsync_pause();
+                    if page.rsync_pause().is_err() {
+                        let window = page.root()
+                            .and_downcast::<AppWindow>()
+                            .expect("Could not get main window");
+
+                        window.show_toast("Error: Failed to pause rsync");
+                    }
                 }
             });
 
             // Stop rsync action
             klass.install_action("rsync.stop", None, |page, _, _| {
-                let _ = page.rsync_terminate();
+                if page.rsync_terminate().is_err() {
+                    let window = page.root()
+                        .and_downcast::<AppWindow>()
+                        .expect("Could not get main window");
+
+                    window.show_toast("Error: Failed to terminate rsync");
+                }
             });
 
             // Rsync output action
