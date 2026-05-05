@@ -152,7 +152,7 @@ impl AppWindow {
             .custom_title(
                 &gtk::Label::builder()
                     .label(message)
-                    .css_classes(["error"])
+                    .css_classes(["heading", "error"])
                     .build()
             )
             .build();
