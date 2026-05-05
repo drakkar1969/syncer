@@ -233,12 +233,12 @@ glib::wrapper! {
 
 impl OutputPage {
     //---------------------------------------
-    // Show spinner function
+    // Update footer function
     //---------------------------------------
-    fn show_spinner(&self, show: bool) {
+    fn update_footer(&self, show_spinner: bool) {
         let imp = self.imp();
 
-        if show {
+        if show_spinner {
             glib::timeout_add_local_once(Duration::from_millis(100), clone!(
                 #[weak] imp,
                 move || {
@@ -268,7 +268,7 @@ impl OutputPage {
         self.connect_filter_type_notify(|window| {
             let imp = window.imp();
 
-            window.show_spinner(true);
+            window.update_footer(true);
 
             imp.filter.changed(gtk::FilterChange::Different);
 
@@ -344,7 +344,7 @@ impl OutputPage {
 
                 imp.search_term.replace(entry.text().to_ascii_lowercase());
 
-                window.show_spinner(true);
+                window.update_footer(true);
 
                 imp.filter.changed(gtk::FilterChange::Different);
             }
@@ -367,7 +367,7 @@ impl OutputPage {
             #[weak(rename_to = window)] self,
             move |model| {
                 if model.pending() == 0 {
-                    window.show_spinner(false);
+                    window.update_footer(false);
                 }
             }
         ));
