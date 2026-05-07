@@ -18,17 +18,18 @@ use crate::{
 pub struct OutputObject {
     icon: Option<String>,
     tag: RsyncMsg,
-    msg: String
+    msg: String,
+    msg_lower: String
 }
 
 impl OutputObject {
     pub fn new(tag: RsyncMsg, msg: &str) -> Self {
+        let msg_lower = msg.to_ascii_lowercase();
+
         let icon = match tag {
             RsyncMsg::Error => Some("rsync-error-symbolic"),
             RsyncMsg::Stat => Some("stats-symbolic"),
             RsyncMsg::Info => {
-                let msg_lower = msg.to_ascii_lowercase();
-
                 if msg_lower.starts_with("deleting") {
                     Some("user-trash-symbolic")
                 } else if msg_lower.starts_with("skipping") {
@@ -48,7 +49,8 @@ impl OutputObject {
         Self {
             icon,
             tag,
-            msg: msg.to_owned()
+            msg: msg.to_owned(),
+            msg_lower
         }
     }
 
@@ -62,6 +64,10 @@ impl OutputObject {
 
     pub fn msg(&self) -> &str {
         &self.msg
+    }
+
+    pub fn msg_lower(&self) -> &str {
+        &self.msg_lower
     }
 }
 
@@ -118,7 +124,9 @@ mod imp {
         #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
-        pub(super) filter: TemplateChild<gtk::CustomFilter>,
+        pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
+        #[template_child]
+        pub(super) type_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) item_factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
@@ -268,7 +276,7 @@ impl OutputPage {
 
             page.update_footer(true);
 
-            imp.filter.changed(gtk::FilterChange::Different);
+            imp.type_filter.changed(gtk::FilterChange::Different);
 
             let icon = match page.filter_type() {
                 OutputFilter::All => "stats-symbolic",
@@ -344,7 +352,7 @@ impl OutputPage {
 
                 page.update_footer(true);
 
-                imp.filter.changed(gtk::FilterChange::Different);
+                imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
@@ -374,8 +382,24 @@ impl OutputPage {
             .sync_create()
             .build();
 
-        // Set filter function
-        imp.filter.set_filter_func(clone!(
+        // Set search filter function
+        imp.search_filter.set_filter_func(clone!(
+            #[weak(rename_to = page)] self,
+            #[upgrade_or] false,
+            move |obj| {
+                let output_object = obj
+                    .downcast_ref::<BoxedAnyObject>()
+                    .expect("Could not downcast to 'BoxedAnyObject'")
+                    .borrow::<OutputObject>();
+
+                let search_term = page.imp().search_term.borrow();
+
+                search_term.is_empty() || output_object.msg_lower.contains(&*search_term)
+            }
+        ));
+
+        // Set type filter function
+        imp.type_filter.set_filter_func(clone!(
             #[weak(rename_to = page)] self,
             #[upgrade_or] false,
             move |obj| {
@@ -385,15 +409,6 @@ impl OutputPage {
                     .borrow::<OutputObject>();
 
                 let tag = output_object.tag;
-                let msg = &output_object.msg;
-
-                let search_term = page.imp().search_term.borrow();
-
-                // Return if output text doesn’t contain the search string (ignore case)
-                if !search_term.is_empty()
-                    && !msg.to_ascii_lowercase().contains(&*search_term) {
-                        return false;
-                    }
 
                 match page.filter_type() {
                     OutputFilter::All => true,

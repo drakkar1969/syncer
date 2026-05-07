@@ -73,7 +73,14 @@
                           </object>
                         </property>
                         <property name="filter">
-                          <object class="GtkCustomFilter" id="filter"/>
+                          <object class="GtkEveryFilter">
+                            <child>
+                              <object class="GtkCustomFilter" id="search_filter"/>
+                            </child>
+                            <child>
+                              <object class="GtkCustomFilter" id="type_filter"/>
+                            </child>
+                          </object>
                         </property>
                       </object>
                     </property>
