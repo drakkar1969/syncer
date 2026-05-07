@@ -544,7 +544,7 @@ impl RsyncPage {
             imp.output_button.set_visible(true);
             imp.output_button.grab_focus();
 
-            // Populate output window
+            // Populate output page
             glib::idle_add_local_once(clone!(
                 #[weak(rename_to = page)] self,
                 #[strong] output,
