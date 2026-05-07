@@ -123,8 +123,6 @@ mod imp {
         pub(super) item_factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
         pub(super) header_factory: TemplateChild<gtk::SignalListItemFactory>,
-        #[template_child]
-        pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
@@ -213,8 +211,8 @@ mod imp {
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Search key binding
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
-                window.imp().search_bar.set_search_mode(true);
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |page| {
+                page.imp().search_bar.set_search_mode(true);
 
                 glib::Propagation::Stop
             });
@@ -265,14 +263,14 @@ impl OutputPage {
         let imp = self.imp();
 
         // Filter type property notify signal 
-        self.connect_filter_type_notify(|window| {
-            let imp = window.imp();
+        self.connect_filter_type_notify(|page| {
+            let imp = page.imp();
 
-            window.update_footer(true);
+            page.update_footer(true);
 
             imp.filter.changed(gtk::FilterChange::Different);
 
-            let icon = match window.filter_type() {
+            let icon = match page.filter_type() {
                 OutputFilter::All => "stats-symbolic",
                 OutputFilter::Info => "info-outline-symbolic",
                 OutputFilter::Files => "stats-file-symbolic",
@@ -347,18 +345,6 @@ impl OutputPage {
                 page.update_footer(true);
 
                 imp.filter.changed(gtk::FilterChange::Different);
-            }
-        ));
-
-        // Selection items changed signal
-        imp.selection.connect_items_changed(clone!(
-            #[weak] imp,
-            move |selection, _, _, _| {
-                let visible = selection.n_items() == 0;
-
-                if visible != imp.empty_status.is_visible() {
-                    imp.empty_status.set_visible(visible);
-                }
             }
         ));
 
