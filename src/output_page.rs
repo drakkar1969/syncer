@@ -239,32 +239,6 @@ glib::wrapper! {
 
 impl OutputPage {
     //---------------------------------------
-    // Update footer function
-    //---------------------------------------
-    fn update_footer(&self, show_spinner: bool) {
-        let imp = self.imp();
-
-        if show_spinner {
-            glib::timeout_add_local_once(Duration::from_millis(100), clone!(
-                #[weak] imp,
-                move || {
-                    if imp.filter_model.pending() != 0 {
-                        imp.spinner.set_visible(true);
-                    }
-                }
-            ));
-        } else {
-            let n_items = imp.selection.n_items();
-
-            imp.footer_label.set_label(
-                &format!("{n_items} item{}", if n_items == 1 { "" } else { "s" })
-            );
-
-            imp.spinner.set_visible(false);
-        }
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -274,10 +248,17 @@ impl OutputPage {
         self.connect_filter_type_notify(|page| {
             let imp = page.imp();
 
-            page.update_footer(true);
+            // Show spinner in footer
+            glib::timeout_add_local_once(Duration::from_millis(100), clone!(
+                #[weak] imp,
+                move || {
+                    if imp.filter_model.pending() != 0 {
+                        imp.spinner.set_visible(true);
+                    }
+                }
+            ));
 
-            imp.type_filter.changed(gtk::FilterChange::Different);
-
+            // Set filter button icon
             let icon = match page.filter_type() {
                 OutputFilter::All => "stats-symbolic",
                 OutputFilter::Info => "info-outline-symbolic",
@@ -288,6 +269,9 @@ impl OutputPage {
             };
 
             imp.filter_button.set_icon_name(icon);
+
+            // Update type filter
+            imp.type_filter.changed(gtk::FilterChange::Different);
         });
 
         // Item factory setup signal
@@ -348,20 +332,37 @@ impl OutputPage {
             move |entry| {
                 let imp = page.imp();
 
+                // Store lowercase search term
                 imp.search_term.replace(entry.text().to_ascii_lowercase());
 
-                page.update_footer(true);
+                // Show spinner in footer
+                glib::timeout_add_local_once(Duration::from_millis(100), clone!(
+                    #[weak] imp,
+                    move || {
+                        if imp.filter_model.pending() != 0 {
+                            imp.spinner.set_visible(true);
+                        }
+                    }
+                ));
 
+                // Update search filter
                 imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
         // Filter model pending property notify signal
         imp.filter_model.connect_pending_notify(clone!(
-            #[weak(rename_to = page)] self,
+            #[weak] imp,
             move |model| {
                 if model.pending() == 0 {
-                    page.update_footer(false);
+                    // Update footer text and hide spinner
+                    let n_items = imp.selection.n_items();
+
+                    imp.footer_label.set_label(
+                        &format!("{n_items} item{}", if n_items == 1 { "" } else { "s" })
+                    );
+
+                    imp.spinner.set_visible(false);
                 }
             }
         ));
