@@ -87,7 +87,7 @@
                             <property name="tooltip-text">Filter Rules</property>
                             <child>
                               <object class="GtkImage" id="filters_image">
-                                <property name="icon-name">options-filter-symbolic</property>
+                                <property name="icon-name">rsync-filter-symbolic</property>
                               </object>
                             </child>
                             <child>

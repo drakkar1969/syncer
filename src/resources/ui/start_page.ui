@@ -64,7 +64,7 @@
                         <property name="spacing">8</property>
                         <child>
                           <object class="GtkToggleButton" id="copy_by_name_button">
-                            <property name="icon-name">options-copy-byname-symbolic</property>
+                            <property name="icon-name">rsync-copy-byname-symbolic</property>
                             <property name="tooltip-text">Copy Source Directory by Name</property>
                             <style>
                               <class name="flat"/>
@@ -73,7 +73,7 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="swap_paths_button">
-                            <property name="icon-name">options-swap-symbolic</property>
+                            <property name="icon-name">rsync-swap-symbolic</property>
                             <property name="tooltip-text">Swap Source With Destination</property>
                             <style>
                               <class name="flat"/>
@@ -166,7 +166,7 @@
                         <child type="prefix">
                           <object class="GtkImage">
                             <property name="valign">center</property>
-                            <property name="icon-name">options-recurse-symbolic</property>
+                            <property name="icon-name">rsync-recurse-symbolic</property>
                             <style>
                               <class name="bubble"/>
                             </style>
@@ -216,7 +216,7 @@
                         <child type="prefix">
                           <object class="GtkImage">
                             <property name="valign">center</property>
-                            <property name="icon-name">options-filter-symbolic</property>
+                            <property name="icon-name">rsync-filter-symbolic</property>
                             <style>
                               <class name="bubble"/>
                             </style>

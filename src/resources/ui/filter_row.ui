@@ -28,7 +28,7 @@
     <child type="suffix">
       <object class="GtkButton" id="delete_button">
         <property name="valign">center</property>
-        <property name="icon-name">options-clear-symbolic</property>
+        <property name="icon-name">rsync-clear-symbolic</property>
         <property name="tooltip-text">Delete Rule</property>
         <style>
           <class name="circular"/>
