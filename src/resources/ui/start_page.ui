@@ -2,6 +2,7 @@
 <interface>
   <!--// StartPage template //-->
   <template class="StartPage" parent="AdwNavigationPage">
+    <property name="title">Start</property>
     <property name="tag">start</property>
     <property name="child">
       <object class="AdwToolbarView">
