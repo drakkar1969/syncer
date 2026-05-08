@@ -340,7 +340,7 @@ impl RsyncPage {
             imp.filters_wrap.remove_all();
 
             if profile.filters().is_empty() {
-                add_filter_tag("None", true)
+                add_filter_tag("None", true);
             } else {
                 for filter in profile.filters() {
                     if i < max && let Some((rule, pattern)) = filter.split_once(' ') {
@@ -353,7 +353,7 @@ impl RsyncPage {
 
                     i += 1;
                 } 
-            };
+            }
         });
 
         // State property notify signal
