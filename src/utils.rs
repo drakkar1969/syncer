@@ -39,3 +39,17 @@ pub mod convert {
         i.to_formatted_string(sys_locale())
     }
 }
+
+//------------------------------------------------------------------------------
+// MODULE: Size
+//------------------------------------------------------------------------------
+pub mod size {
+    pub fn format(size: &str) -> String {
+        size.find(|ch: char| ch.is_alphabetic())
+            .map_or_else(|| size.to_owned(), |i| {
+                let (num, unit) = size.split_at(i);
+
+                format!("{num}\u{202F}{unit}")
+            })
+    }
+}

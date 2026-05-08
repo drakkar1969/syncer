@@ -27,7 +27,7 @@ use crate::{
     window::AppWindow,
     profile_object::ProfileObject,
     output_page::OutputPage,
-    utils::{case, convert}
+    utils::{case, convert, size}
 };
 
 //------------------------------------------------------------------------------
@@ -866,10 +866,10 @@ impl RsyncPage {
                 }
 
                 RsyncSend::Progress(size, speed, progress) => {
-                    self.ui_transferred(&size);
+                    self.ui_transferred(&size::format(&size));
 
                     if !self.imp().dry_run.get() {
-                        self.ui_speed(&speed);
+                        self.ui_speed(&size::format(&speed));
                     }
 
                     self.ui_bar_progress(progress);
@@ -1024,9 +1024,9 @@ impl RsyncPage {
                 RsyncStats {
                     source_items,
                     transferred_items,
-                    source_size: regex_match("ssize"),
-                    transferred_size: regex_match("tsize"),
-                    speed: regex_match("speed")
+                    source_size: size::format(&regex_match("ssize")),
+                    transferred_size: size::format(&regex_match("tsize")),
+                    speed: size::format(&regex_match("speed"))
                 }
             })
     }
