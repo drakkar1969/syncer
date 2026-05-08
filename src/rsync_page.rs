@@ -756,7 +756,7 @@ impl RsyncPage {
         // Get args
         let profile = self.profile();
 
-        let args: Vec<String> = profile.options(false)
+        let args: Vec<String> = profile.switches(false)
             .into_iter()
             .chain(dry_run.then_some("--dry-run".into()))
             .chain(
