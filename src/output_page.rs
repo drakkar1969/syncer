@@ -230,6 +230,22 @@ glib::wrapper! {
 
 impl OutputPage {
     //---------------------------------------
+    // Show spinner function
+    //---------------------------------------
+    fn show_spinner(&self) {
+        let imp = self.imp();
+
+        glib::timeout_add_local_once(Duration::from_millis(100), clone!(
+            #[weak] imp,
+            move || {
+                if imp.filter_model.pending() != 0 {
+                    imp.spinner.set_visible(true);
+                }
+            }
+        ));
+    }
+
+    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -240,14 +256,7 @@ impl OutputPage {
             let imp = page.imp();
 
             // Show spinner in footer
-            glib::timeout_add_local_once(Duration::from_millis(100), clone!(
-                #[weak] imp,
-                move || {
-                    if imp.filter_model.pending() != 0 {
-                        imp.spinner.set_visible(true);
-                    }
-                }
-            ));
+            page.show_spinner();
 
             // Set filter button icon
             let icon = match page.filter_type() {
@@ -327,14 +336,7 @@ impl OutputPage {
                 imp.search_term.replace(entry.text().to_ascii_lowercase());
 
                 // Show spinner in footer
-                glib::timeout_add_local_once(Duration::from_millis(100), clone!(
-                    #[weak] imp,
-                    move || {
-                        if imp.filter_model.pending() != 0 {
-                            imp.spinner.set_visible(true);
-                        }
-                    }
-                ));
+                page.show_spinner();
 
                 // Update search filter
                 imp.search_filter.changed(gtk::FilterChange::Different);
