@@ -188,19 +188,10 @@ mod imp {
         //---------------------------------------
         fn shown(&self) {
             if !self.shown.get() {
-                // Scroll to start
-                glib::idle_add_local_once(clone!(
-                    #[weak(rename_to = imp)] self,
-                    move || {
-                        let v_adjust = imp.scroll_window.vadjustment();
-                        v_adjust.set_value(v_adjust.lower());
-                    }
-                ));
-
-                self.shown.set(true);
-
                 // Set initial focus on view
                 self.view.grab_focus();
+
+                self.shown.set(true);
             }
         }
     }
