@@ -349,10 +349,10 @@ impl OutputPage {
             move |model| {
                 if model.pending() == 0 {
                     // Update footer text and hide spinner
-                    let n_items = imp.selection.n_items();
+                    let n_lines = imp.selection.n_items();
 
                     imp.footer_label.set_label(
-                        &format!("{n_items} item{}", if n_items == 1 { "" } else { "s" })
+                        &format!("{n_lines} line{}", if n_lines == 1 { "" } else { "s" })
                     );
 
                     imp.spinner.set_visible(false);
