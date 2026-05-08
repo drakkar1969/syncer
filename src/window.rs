@@ -6,7 +6,7 @@ use glib::clone;
 
 use crate::{
     Application,
-    options_page::OptionsPage,
+    start_page::StartPage,
     advanced_page::AdvancedPage,
     filters_page::FiltersPage,
     rsync_page::{RsyncPage, RsyncState},
@@ -35,7 +35,7 @@ mod imp {
         #[template_child]
         pub(super) navigation_view: TemplateChild<adw::NavigationView>,
         #[template_child]
-        pub(super) options_page: TemplateChild<OptionsPage>,
+        pub(super) start_page: TemplateChild<StartPage>,
         #[template_child]
         pub(super) advanced_page: TemplateChild<AdvancedPage>,
         #[template_child]
@@ -112,7 +112,7 @@ mod imp {
                 return glib::Propagation::Stop;
             }
 
-            if self.options_page.save_config().is_err() {
+            if self.start_page.save_config().is_err() {
                 self.obj().show_toast("Error: Failed to save config to file");
             }
 
@@ -170,17 +170,17 @@ impl AppWindow {
         imp.status_new_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                imp.options_page.activate_action("profile.new", None)
+                imp.start_page.activate_action("profile.new", None)
                     .expect("Could not activate action 'new-profile'");
             }
         ));
 
         // Profile model items changed signal
-        imp.options_page.profile_model().connect_items_changed(clone!(
+        imp.start_page.profile_model().connect_items_changed(clone!(
             #[weak] imp,
             move |model, _, _, _| {
                 if model.n_items() == 0 {
-                    imp.navigation_view.pop_to_tag("options");
+                    imp.navigation_view.pop_to_tag("start");
 
                     imp.status_stack.set_visible_child_name("status");
                 } else {
@@ -219,14 +219,14 @@ impl AppWindow {
         let imp = self.imp();
 
         // Set page widget properties
-        imp.options_page.set_rsync_page(imp.rsync_page.get());
+        imp.start_page.set_rsync_page(imp.rsync_page.get());
 
         imp.rsync_page.set_output_page(imp.output_page.get());
 
-        // Bind selected profile to options page
-        let profile_dropdown = imp.options_page.profile_dropdown();
+        // Bind selected profile to start page
+        let profile_dropdown = imp.start_page.profile_dropdown();
 
-        profile_dropdown.bind_property("selected-item", &imp.options_page.get(), "profile")
+        profile_dropdown.bind_property("selected-item", &imp.start_page.get(), "profile")
             .sync_create()
             .build();
 
@@ -241,7 +241,7 @@ impl AppWindow {
             .build();
 
         // Load profiles from config file
-        if imp.options_page.load_config().is_err() {
+        if imp.start_page.load_config().is_err() {
             self.show_toast("Error: Failed to save config to file");
         }
     }

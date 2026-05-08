@@ -47,7 +47,7 @@
                     <property name="hhomogeneous">true</property>
                     <property name="vhomogeneous">true</property>
                     <child>
-                      <object class="OptionsPage" id="options_page"/>
+                      <object class="StartPage" id="start_page"/>
                     </child>
                     <child>
                       <object class="AdvancedPage" id="advanced_page"/>

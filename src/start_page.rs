@@ -17,7 +17,7 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
-// MODULE: OptionsPage
+// MODULE: StartPage
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -26,9 +26,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::OptionsPage)]
-    #[template(resource = "/com/github/Syncer/ui/options_page.ui")]
-    pub struct OptionsPage {
+    #[properties(wrapper_type = super::StartPage)]
+    #[template(resource = "/com/github/Syncer/ui/start_page.ui")]
+    pub struct StartPage {
         #[property(get)]
         #[template_child]
         pub(super) profile_dropdown: TemplateChild<gtk::DropDown>,
@@ -68,9 +68,9 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for OptionsPage {
-        const NAME: &'static str = "OptionsPage";
-        type Type = super::OptionsPage;
+    impl ObjectSubclass for StartPage {
+        const NAME: &'static str = "StartPage";
+        type Type = super::StartPage;
         type ParentType = adw::NavigationPage;
 
         fn class_init(klass: &mut Self::Class) {
@@ -88,7 +88,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for OptionsPage {
+    impl ObjectImpl for StartPage {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -101,10 +101,10 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for OptionsPage {}
-    impl NavigationPageImpl for OptionsPage {}
+    impl WidgetImpl for StartPage {}
+    impl NavigationPageImpl for StartPage {}
 
-    impl OptionsPage {
+    impl StartPage {
         //---------------------------------------
         // Install profile actions
         //---------------------------------------
@@ -324,15 +324,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: OptionsPage
+// IMPLEMENTATION: StartPage
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct OptionsPage(ObjectSubclass<imp::OptionsPage>)
+    pub struct StartPage(ObjectSubclass<imp::StartPage>)
         @extends adw::NavigationPage, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl OptionsPage {
+impl StartPage {
     //---------------------------------------
     // Select folder helper function
     //---------------------------------------

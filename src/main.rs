@@ -2,7 +2,7 @@ mod app;
 mod window;
 mod profile_object;
 mod profile_dialog;
-mod options_page;
+mod start_page;
 mod advanced_page;
 mod advanced_switch;
 mod filters_page;
