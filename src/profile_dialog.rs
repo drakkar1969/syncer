@@ -114,7 +114,7 @@ impl ProfileDialog {
 
                 if let Some(profile) = existing_profile {
                     imp.error_label
-                        .set_label(&format!("Profile '{profile}' already exists"));
+                        .set_label(&format!("Profile “{profile}” already exists"));
                     imp.error_label.set_visible(true);
                 } else {
                     imp.error_label.set_visible(false);

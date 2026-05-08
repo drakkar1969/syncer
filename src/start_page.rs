@@ -139,7 +139,7 @@ mod imp {
 
                     let dialog = adw::AlertDialog::builder()
                         .heading("Delete Profile?")
-                        .body(format!("Permamenently delete the '{}' profile.",
+                        .body(format!("Permamenently delete the “{}” profile.",
                             profile.name()))
                         .default_response("delete")
                         .build();
@@ -185,7 +185,7 @@ mod imp {
                 if let Some(profile) = page.profile() {
                     let dialog = adw::AlertDialog::builder()
                         .heading("Reset Profile?")
-                        .body(format!("Reset the '{}' profile to default values.",
+                        .body(format!("Reset the “{}” profile to default values.",
                             profile.name()))
                         .default_response("reset")
                         .build();
