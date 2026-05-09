@@ -44,12 +44,14 @@ pub mod convert {
 // MODULE: Size
 //------------------------------------------------------------------------------
 pub mod size {
-    pub fn format(size: &str) -> String {
+    use std::borrow::Cow;
+
+    pub fn format(size: &str) -> Cow<'_, str> {
         size.find(|ch: char| ch.is_alphabetic())
-            .map_or_else(|| size.to_owned(), |i| {
+            .map_or_else(|| Cow::Borrowed(size), |i| {
                 let (num, unit) = size.split_at(i);
 
-                format!("{num}\u{202F}{unit}")
+                Cow::Owned(format!("{num}\u{202F}{unit}"))
             })
     }
 }
