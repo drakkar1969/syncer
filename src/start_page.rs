@@ -232,7 +232,7 @@ mod imp {
             // Rsync start action
             klass.install_action_async("rsync.start", Some(VariantTy::BOOLEAN),
                 async |page, _, param| {
-                    if let Some(profile) = page.profile() {
+                    if let Some(profile) = page.profile().as_ref() {
                         // Get dry run
                         let dry_run = param
                             .and_then(|param| param.get::<bool>())
@@ -248,7 +248,7 @@ mod imp {
                             .expect("Could not activate 'navigation.push' action");
 
                         // Start rsync
-                        if rsync_page.start_rsync(dry_run).await.is_err() {
+                        if rsync_page.rsync().start(profile, dry_run).await.is_err() {
                             let window = page.root()
                                 .and_downcast::<AppWindow>()
                                 .expect("Could not get main window");

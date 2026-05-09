@@ -9,7 +9,8 @@ use crate::{
     start_page::StartPage,
     advanced_page::AdvancedPage,
     filters_page::FiltersPage,
-    rsync_page::{RsyncPage, RsyncState},
+    rsync_page::RsyncPage,
+    rsync::RsyncState,
     output_page::OutputPage
 };
 
@@ -86,7 +87,9 @@ mod imp {
         // Close request function
         //---------------------------------------
         fn close_request(&self) -> glib::Propagation {
-            if self.rsync_page.state() != RsyncState::Stopped {
+            let rsync = self.rsync_page.rsync();
+
+            if rsync.state() != RsyncState::Stopped {
                 let dialog = adw::AlertDialog::builder()
                     .heading("Exit Syncer?")
                     .body("Terminate transfer process and exit.")
@@ -101,7 +104,7 @@ mod imp {
                     move |_, _| {
                         imp.close_request.set(true);
 
-                        if imp.rsync_page.rsync_terminate().is_err() {
+                        if rsync.terminate().is_err() {
                             imp.obj().show_toast("Error: Failed to terminate rsync");
                         }
                     }
@@ -190,7 +193,7 @@ impl AppWindow {
         ));
 
         // Rsync page state property notify signal
-        imp.rsync_page.connect_state_notify(clone!(
+        imp.rsync_page.rsync().connect_state_notify(clone!(
             #[weak(rename_to = window)] self,
             move |page| {
                 let imp = window.imp();

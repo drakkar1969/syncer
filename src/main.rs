@@ -8,6 +8,7 @@ mod advanced_switch;
 mod filters_page;
 mod filter_row;
 mod filter_dialog;
+mod rsync;
 mod rsync_page;
 mod output_page;
 mod output_item;

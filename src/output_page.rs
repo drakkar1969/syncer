@@ -8,7 +8,7 @@ use glib::{clone, BoxedAnyObject};
 use crate::{
     output_item::OutputItem,
     output_header::OutputHeader,
-    rsync_page::{RsyncMsg, RsyncOutput}
+    rsync::{RsyncMsg, RsyncOutput}
 };
 
 //------------------------------------------------------------------------------

@@ -2,7 +2,7 @@ use gtk::{prelude::WidgetExt, subclass::prelude::*, glib};
 
 use crate::{
     output_page::OutputObject,
-    rsync_page::RsyncMsg
+    rsync::RsyncMsg
 };
 
 //------------------------------------------------------------------------------
