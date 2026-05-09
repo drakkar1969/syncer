@@ -27,7 +27,7 @@ use crate::{
     window::AppWindow,
     profile_object::ProfileObject,
     output_page::OutputPage,
-    utils::{case, convert, size}
+    utils::{case::capitalize_first, convert, size}
 };
 
 //------------------------------------------------------------------------------
@@ -347,7 +347,9 @@ impl RsyncPage {
             } else {
                 for filter in profile.filters() {
                     if i < max && let Some((rule, pattern)) = filter.split_once(' ') {
-                        add_filter_tag(&format!("{} {pattern}", case::capitalize_first(rule)), false);
+                        add_filter_tag(
+                            &format!("{} {pattern}", capitalize_first(rule)), false
+                        );
                     } else if i == max {
                         add_filter_tag(" ... ", false);
 
@@ -592,22 +594,22 @@ impl RsyncPage {
                 .split_whitespace()
                 .collect();
 
-            if parts.len() >= 3 && let (size, speed, Ok(progress)) = (
-                parts[0],
-                parts[2],
+            if parts.len() < 6 {
+                return;
+            }
+
+            if let (size, speed, Ok(progress)) = (
+                parts[0].to_owned(),
+                parts[2].to_owned(),
                 parts[1].trim_end_matches('%').parse::<f64>()
             ) {
                 sender
-                    .send(RsyncSend::Progress(
-                        size.into(),
-                        speed.into(),
-                        progress
-                    ))
+                    .send(RsyncSend::Progress(size, speed, progress))
                     .await
                     .expect("Could not send through channel");
             }
 
-            if parts.len() >= 6 && parts[5].contains("to-chk") {
+            if parts[5].contains("to-chk") {
                 sender
                     .send(RsyncSend::RecurseComplete)
                     .await
@@ -625,7 +627,7 @@ impl RsyncPage {
             .split_once(' ') {
                 if flags.starts_with('*') {
                     let msg = format!("{} {}",
-                        case::capitalize_first(flags.trim_start_matches('*')),
+                        capitalize_first(flags.trim_start_matches('*')),
                         msg
                     );
 
@@ -639,7 +641,7 @@ impl RsyncPage {
                             .expect("Could not send through channel");
                 }
             } else {
-                let msg = case::capitalize_first(line);
+                let msg = capitalize_first(line);
 
                 sender.send(RsyncSend::Message(RsyncMsg::Info, msg))
                     .await
@@ -683,7 +685,7 @@ impl RsyncPage {
 
                     for chunk in line.split_terminator('\r') {
                         if chunk.starts_with("building file list ...") {
-                            sender.send(RsyncSend::ListBegin(case::capitalize_first(chunk)))
+                            sender.send(RsyncSend::ListBegin(capitalize_first(chunk)))
                                 .await
                                 .expect("Could not send through channel");
                         } else {
@@ -766,7 +768,7 @@ impl RsyncPage {
             let error = String::from_utf8_lossy(&buffer[..read]);
 
             for line in error.lines().filter(|&line| !line.is_empty()) {
-                sender.send(RsyncSend::Error(case::capitalize_first(line)))
+                sender.send(RsyncSend::Error(capitalize_first(line)))
                     .await
                     .expect("Could not send through channel");
             }
@@ -1083,7 +1085,7 @@ impl RsyncPage {
                         .replace("Rsync warning: ", "")
                         .replace("[sender]", "");
 
-                    case::capitalize_first(s.trim())
+                    capitalize_first(s.trim())
                 })
         };
 
