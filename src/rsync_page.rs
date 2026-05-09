@@ -56,9 +56,10 @@ pub enum RsyncState {
 #[repr(u32)]
 enum RsyncSend {
     Start(Option<i32>),
-    RecurseBegin(String),
-    Recurse(String),
-    RecurseEnd(String),
+    ListBegin(String),
+    ListItem(String),
+    ListEnd(String),
+    RecurseComplete,
     Progress(String, String, f64),
     Message(RsyncMsg, String),
     Stats(String),
@@ -171,6 +172,8 @@ mod imp {
         pub(super) transferred_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) speed_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) recurse_spinner: TemplateChild<adw::Spinner>,
         #[template_child]
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -408,6 +411,8 @@ impl RsyncPage {
         self.ui_speed("n/a");
         self.ui_bar_progress(0.0);
 
+        self.ui_recursion(false);
+
         imp.button_stack.set_visible_child_name("empty");
 
         self.output_page().clear();
@@ -464,6 +469,19 @@ impl RsyncPage {
     //---------------------------------------
     fn ui_speed(&self, speed: &str) {
         self.imp().speed_label.set_label(speed);
+    }
+
+    //---------------------------------------
+    // UI recursion function
+    //---------------------------------------
+    fn ui_recursion(&self, complete: bool) {
+        let imp = self.imp();
+
+        let visible = imp.recurse_spinner.is_visible();
+
+        if visible == complete {
+            self.imp().recurse_spinner.set_visible(!complete);
+        }
     }
 
     //---------------------------------------
@@ -588,6 +606,13 @@ impl RsyncPage {
                     .await
                     .expect("Could not send through channel");
             }
+
+            if parts.len() >= 6 && parts[5].contains("to-chk") {
+                sender
+                    .send(RsyncSend::RecurseComplete)
+                    .await
+                    .expect("Could not send through channel");
+            }
         }
     }
 
@@ -652,17 +677,17 @@ impl RsyncPage {
 
             // Process stdout line by line
             for line in text.lines().filter(|&line| !line.is_empty()) {
-                // Recursion start line
+                // File list start line
                 if line.contains("building file list") {
                     recurse_mode = true;
 
                     for chunk in line.split_terminator('\r') {
                         if chunk.starts_with("building file list ...") {
-                            sender.send(RsyncSend::RecurseBegin(case::capitalize_first(chunk)))
+                            sender.send(RsyncSend::ListBegin(case::capitalize_first(chunk)))
                                 .await
                                 .expect("Could not send through channel");
                         } else {
-                            sender.send(RsyncSend::Recurse(chunk.into()))
+                            sender.send(RsyncSend::ListItem(chunk.into()))
                                 .await
                                 .expect("Could not send through channel");
                         }
@@ -671,19 +696,19 @@ impl RsyncPage {
                     continue;
                 }
 
-                // Recursion line
+                // File list line
                 if recurse_mode {
                     if line.ends_with("to consider") {
-                        // Recursion end line
+                        // File list end line
                         recurse_mode = false;
 
                         for chunk in line.split('\r') {
                             if chunk.ends_with("to consider") {
-                                sender.send(RsyncSend::RecurseEnd(chunk.into()))
+                                sender.send(RsyncSend::ListEnd(chunk.into()))
                                     .await
                                     .expect("Could not send through channel");
                             } else {
-                                sender.send(RsyncSend::Recurse(chunk.into()))
+                                sender.send(RsyncSend::ListItem(chunk.into()))
                                     .await
                                     .expect("Could not send through channel");
                             }
@@ -692,7 +717,7 @@ impl RsyncPage {
                         continue;
                     } else if line.starts_with(' ') && line.contains("files...") {
                         for chunk in line.split_terminator('\r') {
-                            sender.send(RsyncSend::Recurse(chunk.into()))
+                            sender.send(RsyncSend::ListItem(chunk.into()))
                                 .await
                                 .expect("Could not send through channel");
                         }
@@ -846,23 +871,29 @@ impl RsyncPage {
                     self.ui_start();
                 }
 
-                RsyncSend::RecurseBegin(msg) => {
+                RsyncSend::ListBegin(msg) => {
                     self.ui_status(&msg);
 
                     output.push_message(RsyncMsg::Info, msg);
                 }
 
-                RsyncSend::Recurse(msg) => {
+                RsyncSend::ListItem(msg) => {
                     self.ui_message(&msg);
                 }
 
-                RsyncSend::RecurseEnd(msg) => {
+                RsyncSend::ListEnd(msg) => {
                     self.ui_status(&format!("Syncing to {}", profile.destination()));
                     sync_shown = true;
 
                     self.ui_message(&msg);
 
+                    self.ui_recursion(true);
+
                     output.push_message(RsyncMsg::Info, msg);
+                }
+
+                RsyncSend::RecurseComplete => {
+                    self.ui_recursion(true);
                 }
 
                 RsyncSend::Progress(size, speed, progress) => {

@@ -185,9 +185,14 @@
                             <property name="end-widget">
                               <object class="GtkBox">
                                 <property name="spacing">10</property>
-                                <property name="tooltip-text">Progress</property>
+                                <child>
+                                  <object class="AdwSpinner" id="recurse_spinner">
+                                    <property name="tooltip-text">Recursion</property>
+                                  </object>
+                                </child>
                                 <child>
                                   <object class="GtkLabel" id="progress_label">
+                                    <property name="tooltip-text">Progress</property>
                                     <style>
                                       <class name="numeric"/>
                                     </style>
