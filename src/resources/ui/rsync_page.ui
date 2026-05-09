@@ -281,10 +281,19 @@
                               <object class="GtkButton" id="output_button">
                                 <property name="action-name">rsync.output</property>
                                 <property name="child">
-                                  <object class="AdwButtonContent">
-                                    <property name="icon-name">go-next-symbolic</property>
-                                    <property name="label">Rsync _Output</property>
-                                    <property name="use-underline">true</property>
+                                  <object class="GtkBox">
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkImage" id="output_image">
+                                        <property name="icon-name">go-next-symbolic</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="output_label">
+                                        <property name="label">Rsync _Output</property>
+                                        <property name="use-underline">true</property>
+                                      </object>
+                                    </child>
                                   </object>
                                 </property>
                                 <style>

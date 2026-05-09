@@ -59,6 +59,8 @@ mod imp {
         pub(super) stop_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) output_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) output_image: TemplateChild<gtk::Image>,
 
         #[property(get, set)]
         profile: RefCell<ProfileObject>,
@@ -484,20 +486,25 @@ impl RsyncPage {
         }
 
         // Show details
-        imp.button_stack.set_visible_child_name("output");
+        if !output.is_empty() {
+            let spinner = adw::SpinnerPaintable::new(Some(&imp.output_image.get()));
 
-        if output.is_empty() {
-            imp.output_button.set_visible(false);
-        } else {
-            imp.output_button.set_visible(true);
-            imp.output_button.grab_focus();
+            imp.output_button.set_sensitive(false);
+            imp.output_image.set_paintable(Some(&spinner));
+            imp.button_stack.set_visible_child_name("output");
 
             // Populate output page
             glib::idle_add_local_once(clone!(
                 #[weak(rename_to = page)] self,
                 #[strong] output,
                 move || {
+                    let imp = page.imp();
+
                     page.output_page().load(&output);
+
+                    imp.output_image.set_icon_name(Some("go-next-symbolic"));
+                    imp.output_button.set_sensitive(true);
+                    imp.output_button.grab_focus();
                 }
             ));
         }
