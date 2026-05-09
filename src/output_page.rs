@@ -230,19 +230,30 @@ glib::wrapper! {
 
 impl OutputPage {
     //---------------------------------------
-    // Show spinner function
+    // Update bottom bar function
     //---------------------------------------
-    fn show_spinner(&self) {
+    fn update_bottom_bar(&self, show: bool) {
         let imp = self.imp();
 
-        glib::timeout_add_local_once(Duration::from_millis(100), clone!(
-            #[weak] imp,
-            move || {
-                if imp.filter_model.pending() != 0 {
-                    imp.spinner.set_visible(true);
+        if show {
+            glib::timeout_add_local_once(Duration::from_millis(100), clone!(
+                #[weak] imp,
+                move || {
+                    if imp.filter_model.pending() != 0 {
+                        imp.footer_label.set_label("Searching…");
+                        imp.spinner.set_visible(true);
+                    }
                 }
-            }
-        ));
+            ));
+        } else {
+            let n_lines = imp.selection.n_items();
+
+            imp.spinner.set_visible(false);
+
+            imp.footer_label.set_label(
+                &format!("{n_lines} line{}", if n_lines == 1 { "" } else { "s" })
+            );
+        }
     }
 
     //---------------------------------------
@@ -255,8 +266,8 @@ impl OutputPage {
         self.connect_filter_type_notify(|page| {
             let imp = page.imp();
 
-            // Show spinner in footer
-            page.show_spinner();
+            // Update footer
+            page.update_bottom_bar(true);
 
             // Set filter button icon
             let icon = match page.filter_type() {
@@ -336,7 +347,7 @@ impl OutputPage {
                 imp.search_term.replace(entry.text().to_ascii_lowercase());
 
                 // Show spinner in footer
-                page.show_spinner();
+                page.update_bottom_bar(true);
 
                 // Update search filter
                 imp.search_filter.changed(gtk::FilterChange::Different);
@@ -345,17 +356,10 @@ impl OutputPage {
 
         // Filter model pending property notify signal
         imp.filter_model.connect_pending_notify(clone!(
-            #[weak] imp,
+            #[weak(rename_to = page)] self,
             move |model| {
                 if model.pending() == 0 {
-                    // Update footer text and hide spinner
-                    let n_lines = imp.selection.n_items();
-
-                    imp.footer_label.set_label(
-                        &format!("{n_lines} line{}", if n_lines == 1 { "" } else { "s" })
-                    );
-
-                    imp.spinner.set_visible(false);
+                    page.update_bottom_bar(false);
                 }
             }
         ));
