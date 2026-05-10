@@ -518,15 +518,15 @@ impl Rsync {
                     recurse_mode = true;
 
                     for chunk in line.split_terminator('\r') {
-                        if chunk.starts_with("building file list ...") {
-                            sender.send(RsyncSend::ListBegin(capitalize_first(chunk)))
-                                .await
-                                .expect("Could not send through channel");
+                        let send_msg = if chunk.starts_with("building file list ...") {
+                            RsyncSend::ListBegin(capitalize_first(chunk))
                         } else {
-                            sender.send(RsyncSend::ListItem(chunk.into()))
-                                .await
-                                .expect("Could not send through channel");
-                        }
+                            RsyncSend::ListItem(chunk.trim_start().into())
+                        };
+
+                        sender.send(send_msg)
+                            .await
+                            .expect("Could not send through channel");
                     }
 
                     continue;
@@ -539,21 +539,21 @@ impl Rsync {
                         recurse_mode = false;
 
                         for chunk in line.split('\r') {
-                            if chunk.ends_with("to consider") {
-                                sender.send(RsyncSend::ListEnd(chunk.into()))
-                                    .await
-                                    .expect("Could not send through channel");
+                            let send_msg = if chunk.ends_with("to consider") {
+                                RsyncSend::ListEnd(chunk.into())
                             } else {
-                                sender.send(RsyncSend::ListItem(chunk.into()))
-                                    .await
-                                    .expect("Could not send through channel");
-                            }
+                                RsyncSend::ListItem(chunk.trim_start().into())
+                            };
+
+                            sender.send(send_msg)
+                                .await
+                                .expect("Could not send through channel");
                         }
 
                         continue;
                     } else if line.starts_with(' ') && line.contains("files...") {
                         for chunk in line.split_terminator('\r') {
-                            sender.send(RsyncSend::ListItem(chunk.into()))
+                            sender.send(RsyncSend::ListItem(chunk.trim_start().into()))
                                 .await
                                 .expect("Could not send through channel");
                         }
