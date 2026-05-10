@@ -21,7 +21,7 @@
                     <property name="title">Welcome to Syncer</property>
                     <property name="description">Create a new profile to get started</property>
                     <property name="child">
-                      <object class="GtkButton" id="status_new_button">
+                      <object class="GtkButton" id="new_profile_button">
                         <property name="halign">center</property>
                         <property name="label">Create _New Profile</property>
                         <property name="use-underline">true</property>

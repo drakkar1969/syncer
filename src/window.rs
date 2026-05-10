@@ -29,7 +29,7 @@ mod imp {
         #[template_child]
         pub(super) status_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) status_new_button: TemplateChild<gtk::Button>,
+        pub(super) new_profile_button: TemplateChild<gtk::Button>,
 
         #[template_child]
         pub(super) toast_overlay: TemplateChild<adw::ToastOverlay>,
@@ -169,8 +169,8 @@ impl AppWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Status new button clicked signal
-        imp.status_new_button.connect_clicked(clone!(
+        // New profile button clicked signal
+        imp.new_profile_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
                 imp.start_page.activate_action("profile.new", None)
