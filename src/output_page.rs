@@ -22,12 +22,12 @@ pub struct OutputObject {
 }
 
 impl OutputObject {
-    pub fn new(tag: RsyncMsg, msg: &str) -> Self {
-        Self {
+    pub fn new_boxed(tag: RsyncMsg, msg: &str) -> BoxedAnyObject {
+        BoxedAnyObject::new(Self {
             tag,
             msg: msg.to_owned(),
             msg_lower: msg.to_lowercase()
-        }
+        })
     }
 
     pub fn tag(&self) -> RsyncMsg {
@@ -423,14 +423,14 @@ impl OutputPage {
 
         // Add errors to model
         let errors: Vec<BoxedAnyObject> = output.errors().iter()
-            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Error, msg)))
+            .map(|msg| OutputObject::new_boxed(RsyncMsg::Error, msg))
             .collect();
 
         imp.error_model.splice(0, imp.error_model.n_items(), &errors);
 
         // Add stats to model
         let stats: Vec<BoxedAnyObject> = output.stats().iter()
-            .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Stat, msg)))
+            .map(|msg| OutputObject::new_boxed(RsyncMsg::Stat, msg))
             .collect();
 
         imp.stat_model.splice(0, imp.stat_model.n_items(), &stats);
@@ -457,9 +457,7 @@ impl OutputPage {
                 while let Ok(chunk) = receiver.recv().await {
                     // Add messages to model
                     let messages: Vec<BoxedAnyObject> = chunk.into_iter()
-                        .map(|(flag, msg)| BoxedAnyObject::new(
-                            OutputObject::new(flag, &msg)
-                        ))
+                        .map(|(flag, msg)| OutputObject::new_boxed(flag, &msg))
                         .collect();
 
                     imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
