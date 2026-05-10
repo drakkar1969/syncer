@@ -425,7 +425,7 @@ impl OutputPage {
     //---------------------------------------
     // Load function
     //---------------------------------------
-    pub fn load(&self, output: &RsyncOutput) {
+    pub fn load(&self, output: RsyncOutput) {
         let imp = self.imp();
 
         // Add errors to model
@@ -433,23 +433,23 @@ impl OutputPage {
             .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Error, msg)))
             .collect();
 
-        imp.error_model.splice(0, 0, &errors);
+        imp.error_model.splice(0, imp.error_model.n_items(), &errors);
 
         // Add stats to model
         let stats: Vec<BoxedAnyObject> = output.stats().iter()
             .map(|msg| BoxedAnyObject::new(OutputObject::new(RsyncMsg::Stat, msg)))
             .collect();
 
-        imp.stat_model.splice(0, 0, &stats);
+        imp.stat_model.splice(0, imp.stat_model.n_items(), &stats);
 
         // Spawn task to process messages
         let (sender, receiver) = async_channel::bounded(10);
 
-        let messages = output.messages().to_vec();
+        imp.message_model.remove_all();
 
         gio::spawn_blocking(
             move || {
-                for chunk in messages.chunks(500) {
+                for chunk in output.messages().chunks(500) {
                     sender
                         .send_blocking(chunk.to_vec())
                         .expect("Could not send through channel");
@@ -473,23 +473,6 @@ impl OutputPage {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Clear function
-    //---------------------------------------
-    pub fn clear(&self) {
-        let imp = self.imp();
-
-        imp.error_model.remove_all();
-        imp.stat_model.remove_all();
-        imp.message_model.remove_all();
-
-        imp.search_bar.set_search_mode(false);
-
-        self.set_filter_type(OutputFilter::default());
-
-        imp.shown.set(false);
     }
 }
 

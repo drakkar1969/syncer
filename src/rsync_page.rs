@@ -346,8 +346,6 @@ impl RsyncPage {
         self.ui_recursion(false);
 
         imp.button_stack.set_visible_child_name("empty");
-
-        self.output_page().clear();
     }
 
     //---------------------------------------
@@ -493,14 +491,15 @@ impl RsyncPage {
             imp.output_image.set_paintable(Some(&spinner));
             imp.button_stack.set_visible_child_name("output");
 
+            let output_owned = output.to_owned();
+
             // Populate output page
             glib::idle_add_local_once(clone!(
                 #[weak(rename_to = page)] self,
-                #[strong] output,
                 move || {
                     let imp = page.imp();
 
-                    page.output_page().load(&output);
+                    page.output_page().load(output_owned);
 
                     imp.output_image.set_icon_name(Some("go-next-symbolic"));
                     imp.output_button.set_sensitive(true);
