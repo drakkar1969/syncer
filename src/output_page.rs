@@ -1,5 +1,4 @@
 use std::cell::{Cell, RefCell};
-use std::time::Duration;
 
 use adw::{prelude::*, subclass::prelude::*};
 use gtk::{glib, gio, gdk};
@@ -229,7 +228,7 @@ impl OutputPage {
         let imp = self.imp();
 
         if show {
-            glib::timeout_add_local_once(Duration::from_millis(100), clone!(
+            glib::idle_add_local_once(clone!(
                 #[weak] imp,
                 move || {
                     if imp.filter_model.pending() != 0 {
