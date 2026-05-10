@@ -353,7 +353,7 @@ impl RsyncPage {
     //---------------------------------------
     fn ui_start(&self) {
         // Show pause and terminate buttons
-        glib::timeout_add_local_once(Duration::from_millis(150), clone!(
+        glib::timeout_add_local_once(Duration::from_millis(200), clone!(
             #[weak(rename_to = page)] self,
             move || {
                 if page.rsync().state() != RsyncState::Stopped {
