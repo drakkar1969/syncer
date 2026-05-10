@@ -255,7 +255,7 @@ impl Rsync {
     //---------------------------------------
     #[allow(clippy::future_not_send)]
     pub async fn start(&self, profile: &ProfileObject, dry_run: bool) -> io::Result<()> {
-        // Get args
+        // Get rsync args
         let args: Vec<String> = profile.switches(false)
             .into_iter()
             .chain(dry_run.then_some("--dry-run".into()))
@@ -279,7 +279,7 @@ impl Rsync {
 
         let rsync_task = Self::runtime().spawn(
             async move {
-                // Start rsync
+                // Run rsync
                 let mut rsync_process = Command::new("rsync")
                     .args(args)
                     .stdout(Stdio::piped())
@@ -759,7 +759,7 @@ impl Rsync {
             return ("Unknown error".into(), "n/a".into());
         };
 
-        // Get error string
+        // Get error strings
         let main_error = format!("{} ({code})", match code {
             // Terminated by user
             20 => "Terminated by user".into(),

@@ -192,7 +192,7 @@ impl AppWindow {
             }
         ));
 
-        // Rsync page state property notify signal
+        // Rsync page rsync state property notify signal
         imp.rsync_page.rsync().connect_state_notify(clone!(
             #[weak(rename_to = window)] self,
             move |page| {

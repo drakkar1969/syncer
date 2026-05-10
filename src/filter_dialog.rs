@@ -113,7 +113,7 @@ impl FilterDialog {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind properties to widget
+        // Bind properties to widgets
         self.bind_property("rule", &imp.rule_combo.get(), "selected")
             .sync_create()
             .bidirectional()

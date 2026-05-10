@@ -203,7 +203,7 @@ impl RsyncPage {
                 imp.filters_wrap.append(&label);
             };
 
-            // Set filter rules
+            // Add filter tags
             let max = 6;
             let mut i = 0;
 
@@ -228,7 +228,7 @@ impl RsyncPage {
             }
         });
 
-        // State property notify signal
+        // Rsync state property notify signal
         let rsync = self.rsync();
 
         rsync.connect_state_notify(clone!(
@@ -478,12 +478,12 @@ impl RsyncPage {
             }
         }
 
-        // Show other stats
+        // Show final transfer speed
         if !self.rsync().dry_run() && let Some(stats) = stats_table {
             self.ui_speed(&format!("{}B/s", stats.speed()));
         }
 
-        // Show details
+        // Show output
         if !output.is_empty() {
             let spinner = adw::SpinnerPaintable::new(Some(&imp.output_image.get()));
 

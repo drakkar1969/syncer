@@ -338,7 +338,7 @@ impl OutputPage {
                 // Store lowercase search term
                 imp.search_term.replace(entry.text().to_ascii_lowercase());
 
-                // Show spinner in footer
+                // Update footer
                 page.update_bottom_bar(true);
 
                 // Update search filter

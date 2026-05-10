@@ -231,7 +231,7 @@ impl FilterRow {
         // Create drop target
         let drop_target = gtk::DropTarget::new(gtk::Widget::static_type(), gdk::DragAction::MOVE);
 
-        // Connect drop target drop begin signal
+        // Connect drop target drop signal
         drop_target.connect_drop(clone!(
             #[weak(rename_to = row)] self,
             #[upgrade_or] false,

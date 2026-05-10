@@ -133,7 +133,7 @@ impl ProfileDialog {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind properties to widget
+        // Bind properties to widgets
         self.bind_property("profile-name", &imp.profile_entry.get(), "text")
             .sync_create()
             .bidirectional()
