@@ -68,6 +68,8 @@ mod imp {
         rsync: RefCell<Rsync>,
 
         #[property(get, set)]
+        navigation_view: RefCell<adw::NavigationView>,
+        #[property(get, set)]
         output_page: RefCell<OutputPage>,
     }
 
@@ -107,7 +109,19 @@ mod imp {
     }
 
     impl WidgetImpl for RsyncPage {}
-    impl NavigationPageImpl for RsyncPage {}
+
+    impl NavigationPageImpl for RsyncPage {
+        //---------------------------------------
+        // Hidden virtual method
+        //---------------------------------------
+        fn hidden(&self) {
+            let obj = self.obj();
+
+            if obj.navigation_view().visible_page_tag() != obj.output_page().tag() {
+                obj.ui_reset();
+            }
+        }
+    }
 
     impl RsyncPage {
         //---------------------------------------
@@ -331,7 +345,7 @@ impl RsyncPage {
     //---------------------------------------
     // UI reset function
     //---------------------------------------
-    pub fn ui_reset(&self) {
+    fn ui_reset(&self) {
         let imp = self.imp();
 
         self.ui_status_format(&["heading"], "rsync-status-symbolic");

@@ -203,16 +203,6 @@ impl AppWindow {
                 }
             }
         ));
-
-        // Navigation view popped signal
-        imp.navigation_view.connect_popped(clone!(
-            #[weak] imp,
-            move |_, page| {
-                if page.tag() == imp.rsync_page.tag() {
-                    imp.rsync_page.ui_reset();
-                }
-            }
-        ));
     }
 
     //---------------------------------------
@@ -224,6 +214,7 @@ impl AppWindow {
         // Set page widget properties
         imp.start_page.set_rsync_page(imp.rsync_page.get());
 
+        imp.rsync_page.set_navigation_view(imp.navigation_view.get());
         imp.rsync_page.set_output_page(imp.output_page.get());
 
         // Bind selected profile to start page
