@@ -245,7 +245,7 @@ impl AppWindow {
 
         // Load profiles from config file
         if imp.start_page.load_config().is_err() {
-            self.show_toast("Error: Failed to save config to file");
+            self.show_toast("Error: Failed to load config from file");
         }
     }
 }
