@@ -134,7 +134,7 @@ mod imp {
 
         pub(super) search_term: RefCell<String>,
 
-        pub(super) shown: Cell<bool>,
+        pub(super) first_show: Cell<bool>,
     }
 
     //---------------------------------------
@@ -179,11 +179,11 @@ mod imp {
         // Shown function
         //---------------------------------------
         fn shown(&self) {
-            if !self.shown.get() {
+            if self.first_show.get() {
                 // Set initial focus on view
                 self.view.grab_focus();
 
-                self.shown.set(true);
+                self.first_show.set(false);
             }
         }
     }
@@ -461,6 +461,8 @@ impl OutputPage {
 
                     imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
                 }
+
+                imp.first_show.set(true);
             }
         ));
     }
