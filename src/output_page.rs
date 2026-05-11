@@ -176,7 +176,7 @@ mod imp {
     impl WidgetImpl for OutputPage {}
     impl NavigationPageImpl for OutputPage {
         //---------------------------------------
-        // Shown function
+        // Shown virtual method
         //---------------------------------------
         fn shown(&self) {
             if self.first_show.get() {

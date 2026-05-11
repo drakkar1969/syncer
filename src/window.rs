@@ -84,7 +84,7 @@ mod imp {
     impl WidgetImpl for AppWindow {}
     impl WindowImpl for AppWindow {
         //---------------------------------------
-        // Close request function
+        // Close request virtual method
         //---------------------------------------
         fn close_request(&self) -> glib::Propagation {
             let rsync = self.rsync_page.rsync();
