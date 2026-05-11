@@ -235,6 +235,7 @@
                             <property name="spacing">36</property>
                             <child>
                               <object class="GtkButton" id="pause_button">
+                                <property name="action-name">rsync.pause</property>
                                 <property name="child">
                                   <object class="AdwButtonContent" id="pause_content">
                                     <property name="icon-name">media-playback-pause-symbolic</property>
@@ -242,7 +243,6 @@
                                     <property name="use-underline">true</property>
                                   </object>
                                 </property>
-                                <property name="action-name">rsync.pause</property>
                                 <style>
                                   <class name="pill"/>
                                 </style>
@@ -250,6 +250,7 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="stop_button">
+                                <property name="action-name">rsync.stop</property>
                                 <property name="child">
                                   <object class="AdwButtonContent">
                                     <property name="icon-name">media-playback-stop-symbolic</property>
@@ -257,7 +258,6 @@
                                     <property name="use-underline">true</property>
                                   </object>
                                 </property>
-                                <property name="action-name">rsync.stop</property>
                                 <style>
                                   <class name="pill"/>
                                   <class name="destructive-action"/>
