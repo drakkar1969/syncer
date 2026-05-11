@@ -417,7 +417,8 @@ impl OutputPage {
     //---------------------------------------
     // Load function
     //---------------------------------------
-    pub fn load(&self, output: RsyncOutput) {
+    #[allow(clippy::future_not_send)]
+    pub async fn load(&self, output: RsyncOutput) {
         let imp = self.imp();
 
         // Add errors to model
@@ -439,7 +440,7 @@ impl OutputPage {
 
         imp.message_model.remove_all();
 
-        gio::spawn_blocking(
+        let task = gio::spawn_blocking(
             move || {
                 for chunk in output.messages().chunks(500) {
                     sender
@@ -450,21 +451,21 @@ impl OutputPage {
         );
 
         // Attach receiver for task
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            async move {
-                while let Ok(chunk) = receiver.recv().await {
-                    // Add messages to model
-                    let messages: Vec<BoxedAnyObject> = chunk.into_iter()
-                        .map(|(flag, msg)| OutputObject::new_boxed(flag, &msg))
-                        .collect();
+        while let Ok(chunk) = receiver.recv().await {
+            // Add messages to model
+            let messages: Vec<BoxedAnyObject> = chunk.into_iter()
+                .map(|(flag, msg)| OutputObject::new_boxed(flag, &msg))
+                .collect();
 
-                    imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
-                }
+            imp.message_model.splice(imp.message_model.n_items(), 0, &messages);
+        }
 
-                imp.first_show.set(true);
-            }
-        ));
+        // Set first show
+        imp.first_show.set(true);
+
+        // Wait for task to complete
+        task.await
+            .expect("Failed to complete task");
     }
 }
 

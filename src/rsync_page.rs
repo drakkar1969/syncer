@@ -508,12 +508,12 @@ impl RsyncPage {
             let output_owned = output.to_owned();
 
             // Populate output page
-            glib::idle_add_local_once(clone!(
+            glib::spawn_future_local(clone!(
                 #[weak(rename_to = page)] self,
-                move || {
+                async move {
                     let imp = page.imp();
 
-                    page.output_page().load(output_owned);
+                    page.output_page().load(output_owned).await;
 
                     imp.output_image.set_icon_name(Some("go-next-symbolic"));
                     imp.output_button.set_sensitive(true);
