@@ -60,8 +60,6 @@ mod imp {
         rsync_page: RefCell<RsyncPage>,
 
         pub(super) bindings: RefCell<Option<Vec<glib::Binding>>>,
-
-        pub(super) config_json: RefCell<String>,
     }
 
     //---------------------------------------
@@ -542,9 +540,6 @@ impl StartPage {
 
         let json_map: JsonMap<String, JsonValue> = from_str(&json_str)?;
 
-        // Store config
-        imp.config_json.replace(json_str);
-
         // Get profile list
         let profile_map = json_map.get("profiles")
             .and_then(|value| value.as_object())
@@ -593,14 +588,10 @@ impl StartPage {
 
         let json_str = to_string_pretty(&json_map)?;
 
-        // Save config only if different from stored config
-        if json_str == *imp.config_json.borrow() {
-            Ok(())
-        } else {
-            let config_path = xdg::BaseDirectories::new()
-                .place_config_file("Syncer/config.json")?;
+        // Save config
+        let config_path = xdg::BaseDirectories::new()
+            .place_config_file("Syncer/config.json")?;
 
-            fs::write(config_path, json_str.as_bytes())
-        }
+        fs::write(config_path, json_str.as_bytes())
     }
 }
