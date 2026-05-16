@@ -14,6 +14,19 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
+// ENUM: RsyncResult
+//------------------------------------------------------------------------------
+#[derive(Debug, Clone)]
+#[repr(u32)]
+enum RsyncResult {
+    None,
+    Error,
+    Warning,
+    Success
+}
+
+
+//------------------------------------------------------------------------------
 // MODULE: RsyncPage
 //------------------------------------------------------------------------------
 mod imp {
@@ -348,7 +361,7 @@ impl RsyncPage {
     fn ui_reset(&self) {
         let imp = self.imp();
 
-        self.ui_status_format(&["heading"], "rsync-status-symbolic");
+        self.ui_status_format(RsyncResult::None);
         self.ui_status("Waiting…");
 
         self.ui_message("---");
@@ -387,11 +400,30 @@ impl RsyncPage {
     //---------------------------------------
     // UI status format function
     //---------------------------------------
-    fn ui_status_format(&self, css_classes: &[&str], icon: &str) {
+    fn ui_status_format(&self, result: RsyncResult) {
         let imp = self.imp();
 
-        imp.status_box.set_css_classes(css_classes);
-        imp.status_image.set_icon_name(Some(icon));
+        match result {
+            RsyncResult::None => {
+                imp.status_box.set_css_classes(&["heading"]);
+                imp.status_image.set_icon_name(Some("rsync-status-symbolic"));
+            }
+
+            RsyncResult::Error => {
+                imp.status_box.set_css_classes(&["error", "heading"]);
+                imp.status_image.set_icon_name(Some("rsync-error-symbolic"));
+            }
+
+            RsyncResult::Warning => {
+                imp.status_box.set_css_classes(&["warning", "heading"]);
+                imp.status_image.set_icon_name(Some("rsync-status-symbolic"));
+            }
+
+            RsyncResult::Success => {
+                imp.status_box.set_css_classes(&["success", "heading"]);
+                imp.status_image.set_icon_name(Some("rsync-success-symbolic"));
+            }
+        }
     }
 
     //---------------------------------------
@@ -466,12 +498,12 @@ impl RsyncPage {
                         stats.source_items()
                     );
 
-                    self.ui_status_format(&["success", "heading"], "rsync-success-symbolic");
+                    self.ui_status_format(RsyncResult::Success);
                     self.ui_status(&status);
 
                     self.ui_message(&msg);
                 } else {
-                    self.ui_status_format(&["warning", "heading"], "rsync-success-symbolic");
+                    self.ui_status_format(RsyncResult::Warning);
                     self.ui_status("Success: could not retrieve stats");
 
                     self.ui_message("Transfer information not available");
@@ -481,14 +513,14 @@ impl RsyncPage {
             Some(code) => {
                 let (error, details) = Rsync::errors(code, output.errors());
 
-                self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
+                self.ui_status_format(RsyncResult::Error);
                 self.ui_status(&error);
 
                 self.ui_message(&details);
             }
 
             None => {
-                self.ui_status_format(&["error", "heading"], "rsync-error-symbolic");
+                self.ui_status_format(RsyncResult::Error);
                 self.ui_status("Unknown error");
 
                 self.ui_message("Error details not available");
