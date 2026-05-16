@@ -262,21 +262,19 @@ mod imp {
             // Rsync show cmdline action
             klass.install_action("rsync.show-cmdline", None, |page, _, _| {
                 if let Some(profile) = page.profile() {
-                    // Get profile switches
-                    let args = profile.args(true).into_iter()
-                        .collect::<Vec<String>>()
-                        .join(" ");
+                    // Get rsync command line
+                    let args = profile.args(true).join(" ");
+
+                    let cmd_line = format!("rsync {args} \"{}\" \"{}\"",
+                        profile.source(),
+                        profile.destination()
+                    );
 
                     // Build command line dialog
                     let dialog = adw::AlertDialog::builder()
                         .width_request(450)
                         .heading("Rsync Command Line")
-                        .body(
-                            format!("rsync {args} \"{}\" \"{}\"",
-                                profile.source(),
-                                profile.destination()
-                            )
-                        )
+                        .body(cmd_line)
                         .default_response("copy")
                         .close_response("close")
                         .build();
