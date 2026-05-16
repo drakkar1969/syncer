@@ -324,7 +324,7 @@ impl RsyncPage {
         rsync.connect_closure("progress", false, closure_local!(
             #[weak(rename_to = page)] self,
             move |rsync: Rsync, size: String, speed: String, progress: f64| {
-                page.ui_transferred(&size::format(&size));
+                page.ui_transferred(&size);
 
                 if !rsync.dry_run() {
                     page.ui_speed(&size::format(&speed));
@@ -437,7 +437,7 @@ impl RsyncPage {
     // UI transferred function
     //---------------------------------------
     fn ui_transferred(&self, size: &str) {
-        self.imp().transferred_label.set_label(&format!("{size}B"));
+        self.imp().transferred_label.set_label(&format!("{}B", size::format(size)));
     }
 
     //---------------------------------------

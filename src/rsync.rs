@@ -722,9 +722,9 @@ impl Rsync {
                 RsyncStats {
                     source_items,
                     transferred_items,
-                    source_size: size::format(&regex_match("ssize")).into_owned(),
-                    transferred_size: size::format(&regex_match("tsize")).into_owned(),
-                    speed: size::format(&regex_match("speed")).into_owned()
+                    source_size: size::format(&regex_match("ssize")),
+                    transferred_size: size::format(&regex_match("tsize")),
+                    speed: size::format(&regex_match("speed"))
                 }
             })
     }
