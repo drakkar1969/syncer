@@ -31,8 +31,8 @@ pub enum CheckMode {
 }
 
 impl CheckMode {
-    pub fn desc<'a>(self) -> Option<&'a str> {
-        self.get_str("Desc")
+    pub fn desc<'a>(self) -> &'a str {
+        self.get_str("Desc").unwrap_or_default()
     }
 
     pub fn switch<'a>(self) -> Option<&'a str> {
@@ -60,8 +60,8 @@ pub enum RecurseMode {
 }
 
 impl RecurseMode {
-    pub fn desc<'a>(self) -> Option<&'a str> {
-        self.get_str("Desc")
+    pub fn desc<'a>(self) -> &'a str {
+        self.get_str("Desc").unwrap_or_default()
     }
 
     pub fn switches<'a>(self) -> Option<&'a str> {
@@ -358,16 +358,16 @@ impl ProfileObject {
     }
 
     //---------------------------------------
-    // Switched function
+    // Switches function
     //---------------------------------------
     pub fn switches(&self, quoted: bool) -> Vec<String> {
         // Check mode
         let mut switches: Vec<String> = self.check_mode().switch()
-            .map_or_else(Vec::new, |mode| vec![mode.to_owned()]);
+            .map_or_else(Vec::new, |check| vec![check.to_owned()]);
 
         // Recurse mode
-        if let Some(mode) = self.recurse_mode().switches() {
-            switches.extend(mode.split(' ').map(ToOwned::to_owned));
+        if let Some(recurse) = self.recurse_mode().switches() {
+            switches.extend(recurse.split(' ').map(ToOwned::to_owned));
         }
 
         // Advanced options

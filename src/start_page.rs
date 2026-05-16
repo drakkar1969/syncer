@@ -407,7 +407,7 @@ impl StartPage {
                         .build(),
 
                     profile.bind_property("check-mode", &imp.check_mode_combo.get(), "subtitle")
-                        .transform_to(|_, mode: CheckMode| mode.desc())
+                        .transform_to(|_, mode: CheckMode| Some(mode.desc()))
                         .sync_create()
                         .build(),
 
@@ -417,7 +417,7 @@ impl StartPage {
                         .build(),
 
                     profile.bind_property("recurse-mode", &imp.recurse_mode_combo.get(), "subtitle")
-                        .transform_to(|_, mode: RecurseMode| mode.desc())
+                        .transform_to(|_, mode: RecurseMode| Some(mode.desc()))
                         .sync_create()
                         .build(),
 
