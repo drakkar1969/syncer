@@ -18,7 +18,9 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/advanced_switch.ui")]
     pub struct AdvancedSwitch {
         #[template_child]
-        pub(super) reset_image: TemplateChild<gtk::Image>,
+        pub(super) reset_box: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub(super) reset_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) switch: TemplateChild<gtk::Switch>,
 
@@ -84,17 +86,26 @@ impl AdvancedSwitch {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
+        let imp = self.imp();
+
         // Active property notify signal
         self.connect_active_notify(clone!(
             move |switch| {
                 let imp = switch.imp();
 
-                let visible = imp.reset_image.is_visible();
                 let show = switch.active() != switch.default();
 
-                if visible != show {
-                    imp.reset_image.set_visible(show);
+                if show != imp.reset_box.is_visible() {
+                    imp.reset_box.set_visible(show);
                 }
+            }
+        ));
+
+        // Reset button clicked signal
+        imp.reset_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.switch.set_active(!imp.switch.is_active());
             }
         ));
     }

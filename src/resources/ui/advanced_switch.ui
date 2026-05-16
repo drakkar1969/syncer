@@ -6,12 +6,26 @@
     <property name="activatable-widget">switch</property>
     <child>
       <object class="GtkBox">
-        <property name="valign">center</property>
         <property name="spacing">16</property>
         <child>
-          <object class="GtkImage" id="reset_image">
+          <object class="GtkBox" id="reset_box">
+            <property name="valign">center</property>
+            <property name="spacing">12</property>
             <property name="visible">false</property>
-            <property name="icon-name">document-edit-symbolic</property>
+            <child>
+              <object class="GtkButton" id="reset_button">
+                <property name="icon-name">edit-undo-symbolic</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator">
+                <property name="margin-top">4</property>
+                <property name="margin-bottom">4</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
