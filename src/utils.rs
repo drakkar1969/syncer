@@ -35,6 +35,7 @@ pub mod convert {
             .unwrap_or_default()
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     pub fn num_to_string<T: ToFormattedString>(i: T) -> String {
         i.to_formatted_string(sys_locale())
     }
