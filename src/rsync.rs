@@ -428,11 +428,7 @@ impl Rsync {
                 .split_whitespace()
                 .collect();
 
-            if parts.len() < 6 {
-                return;
-            }
-
-            if let (size, speed, Ok(progress)) = (
+            if parts.len() >= 3 && let (size, speed, Ok(progress)) = (
                 parts[0].to_owned(),
                 parts[2].to_owned(),
                 parts[1].trim_end_matches('%').parse::<f64>()
@@ -443,7 +439,7 @@ impl Rsync {
                     .expect("Could not send through channel");
             }
 
-            if parts[5].contains("to-chk") {
+            if parts.len() >= 6 && parts[5].contains("to-chk") {
                 sender
                     .send(RsyncSend::RecurseComplete)
                     .await
