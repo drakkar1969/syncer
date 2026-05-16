@@ -446,6 +446,9 @@ impl RsyncPage {
 
         let stats_table = Rsync::stats(output);
 
+        // Hide recursion spinner
+        self.ui_recursion(true);
+
         // Show exit status
         match code {
             Some(0) => {
