@@ -256,7 +256,7 @@ impl Rsync {
     #[allow(clippy::future_not_send)]
     pub async fn start(&self, profile: &ProfileObject, dry_run: bool) -> io::Result<()> {
         // Get rsync args
-        let args: Vec<String> = profile.switches(false)
+        let args: Vec<String> = profile.args(false)
             .into_iter()
             .chain(dry_run.then_some("--dry-run".into()))
             .chain(

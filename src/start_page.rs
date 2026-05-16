@@ -263,7 +263,7 @@ mod imp {
             klass.install_action("rsync.show-cmdline", None, |page, _, _| {
                 if let Some(profile) = page.profile() {
                     // Get profile switches
-                    let switches = profile.switches(true).into_iter()
+                    let args = profile.args(true).into_iter()
                         .collect::<Vec<String>>()
                         .join(" ");
 
@@ -272,8 +272,7 @@ mod imp {
                         .width_request(450)
                         .heading("Rsync Command Line")
                         .body(
-                            format!("rsync {} \"{}\" \"{}\"",
-                                switches,
+                            format!("rsync {args} \"{}\" \"{}\"",
                                 profile.source(),
                                 profile.destination()
                             )

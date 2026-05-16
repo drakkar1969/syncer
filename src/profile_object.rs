@@ -358,20 +358,20 @@ impl ProfileObject {
     }
 
     //---------------------------------------
-    // Switches function
+    // Args function
     //---------------------------------------
-    pub fn switches(&self, quoted: bool) -> Vec<String> {
+    pub fn args(&self, quoted: bool) -> Vec<String> {
         // Check mode
-        let mut switches: Vec<String> = self.check_mode().switch()
+        let mut args: Vec<String> = self.check_mode().switch()
             .map_or_else(Vec::new, |check| vec![check.to_owned()]);
 
         // Recurse mode
         if let Some(recurse) = self.recurse_mode().switches() {
-            switches.extend(recurse.split(' ').map(ToOwned::to_owned));
+            args.extend(recurse.split(' ').map(ToOwned::to_owned));
         }
 
         // Advanced options
-        switches.extend(
+        args.extend(
             IndexMap::from(ADVANCED_OPTIONS).iter()
                 .filter_map(|(&nick, &arg)| {
                     self.property::<bool>(nick)
@@ -382,7 +382,7 @@ impl ProfileObject {
         // Filters
         let quote_char = if quoted { "'" } else { "" };
 
-        switches.extend(
+        args.extend(
             self.filters().into_iter()
                 .filter_map(|filter| {
                     let (s, pattern) = filter.split_once(' ')?;
@@ -395,7 +395,7 @@ impl ProfileObject {
                 })
         );
 
-        switches
+        args
     }
 }
 
