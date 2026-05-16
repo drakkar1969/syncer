@@ -460,15 +460,17 @@ impl StartPage {
                 let source = imp.source_row.subtitle().unwrap_or_default();
                 let destination = imp.destination_row.subtitle().unwrap_or_default();
 
-                if imp.copy_by_name_button.is_active() {
+                if imp.copy_by_name_button.is_active() || destination.is_empty() {
                     imp.source_row.set_subtitle(destination.trim_end_matches('/'));
-                } else if !destination.is_empty() && !destination.ends_with('/') {
-                    imp.source_row.set_subtitle(&format!("{destination}/"));
                 } else {
                     imp.source_row.set_subtitle(&destination);
                 }
 
-                imp.destination_row.set_subtitle(source.trim_end_matches('/'));
+                if source.ends_with('/') || source.is_empty() {
+                    imp.destination_row.set_subtitle(&source);
+                } else {
+                    imp.destination_row.set_subtitle(&format!("{source}/"));
+                }
             }
         ));
 
@@ -500,7 +502,7 @@ impl StartPage {
 
         // Destination row activated signal
         imp.destination_row.connect_activated(|row| {
-            Self::select_folder(row, false);
+            Self::select_folder(row, true);
         });
     }
 
