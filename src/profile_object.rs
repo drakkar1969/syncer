@@ -388,9 +388,9 @@ impl ProfileObject {
                     let (s, pattern) = filter.split_once(' ')?;
 
                     FilterRule::from_str(s).ok()?
-                        .get_str("Rule")
-                        .map(|rule| {
-                            format!("-f{quote_char}{rule} {pattern}{quote_char}")
+                        .prefix()
+                        .map(|prefix| {
+                            format!("-f{quote_char}{prefix} {pattern}{quote_char}")
                         })
                 })
         );

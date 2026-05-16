@@ -17,19 +17,25 @@ use strum::{EnumProperty, FromRepr, EnumString, AsRefStr};
 #[enum_type(name = "FilterRule")]
 #[strum(serialize_all = "kebab-case")]
 pub enum FilterRule {
-    #[strum(props(Rule="-"))]
+    #[strum(props(Prefix="-"))]
     Exclude,
-    #[strum(props(Rule="+"))]
+    #[strum(props(Prefix="+"))]
     Include,
     #[default]
-    #[strum(props(Rule="H"))]
+    #[strum(props(Prefix="H"))]
     Hide,
-    #[strum(props(Rule="S"))]
+    #[strum(props(Prefix="S"))]
     Show,
-    #[strum(props(Rule="P"))]
+    #[strum(props(Prefix="P"))]
     Protect,
-    #[strum(props(Rule="R"))]
+    #[strum(props(Prefix="R"))]
     Risk
+}
+
+impl FilterRule {
+    pub fn prefix(&self) -> Option<&str> {
+        self.get_str("Prefix")
+    }
 }
 
 //------------------------------------------------------------------------------
