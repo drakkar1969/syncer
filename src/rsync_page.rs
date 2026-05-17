@@ -5,6 +5,8 @@ use adw::{prelude::*, subclass::prelude::*};
 use gtk::glib;
 use glib::{clone, closure_local};
 
+use strum::EnumProperty;
+
 use crate::{
     window::AppWindow,
     profile_object::ProfileObject,
@@ -16,15 +18,29 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: RsyncResult
 //------------------------------------------------------------------------------
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, EnumProperty)]
 #[repr(u32)]
 enum RsyncResult {
+    #[strum(props(Classes="heading", Icon="rsync-status-symbolic"))]
     None,
+    #[strum(props(Classes="error,heading", Icon="rsync-error-symbolic"))]
     Error,
+    #[strum(props(Classes="warning,heading", Icon="rsync-success-symbolic"))]
     Warning,
+    #[strum(props(Classes="success,heading", Icon="rsync-success-symbolic"))]
     Success
 }
 
+impl RsyncResult {
+    fn classes(&self) -> Vec<&str> {
+        self.get_str("Classes")
+            .map_or_else(|| Vec::new(), |s| s.split(',').collect::<Vec<&str>>())
+    }
+
+    fn icon(&self) -> Option<&str> {
+        self.get_str("Icon")
+    }
+}
 
 //------------------------------------------------------------------------------
 // MODULE: RsyncPage
@@ -403,27 +419,8 @@ impl RsyncPage {
     fn ui_status_format(&self, result: RsyncResult) {
         let imp = self.imp();
 
-        match result {
-            RsyncResult::None => {
-                imp.status_box.set_css_classes(&["heading"]);
-                imp.status_image.set_icon_name(Some("rsync-status-symbolic"));
-            }
-
-            RsyncResult::Error => {
-                imp.status_box.set_css_classes(&["error", "heading"]);
-                imp.status_image.set_icon_name(Some("rsync-error-symbolic"));
-            }
-
-            RsyncResult::Warning => {
-                imp.status_box.set_css_classes(&["warning", "heading"]);
-                imp.status_image.set_icon_name(Some("rsync-status-symbolic"));
-            }
-
-            RsyncResult::Success => {
-                imp.status_box.set_css_classes(&["success", "heading"]);
-                imp.status_image.set_icon_name(Some("rsync-success-symbolic"));
-            }
-        }
+        imp.status_box.set_css_classes(&result.classes());
+        imp.status_image.set_icon_name(result.icon());
     }
 
     //---------------------------------------
