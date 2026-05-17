@@ -34,7 +34,7 @@ enum RsyncResult {
 impl RsyncResult {
     fn classes(&self) -> Vec<&str> {
         self.get_str("Classes")
-            .map_or_else(|| Vec::new(), |s| s.split(',').collect::<Vec<&str>>())
+            .map_or_else(Vec::new, |s| s.split(',').collect::<Vec<&str>>())
     }
 
     fn icon(&self) -> Option<&str> {
