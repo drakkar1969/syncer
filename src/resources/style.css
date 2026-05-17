@@ -14,6 +14,6 @@ image.bubble {
 /* Filter tag labels */
 label.tag {
 	border-radius: 9999px;
-	background: color-mix(in srgb, currentColor 12%, transparent);
+	background: color-mix(in srgb, var(--accent-bg-color) 25%, transparent);
 	padding: 4px 10px;
 }
