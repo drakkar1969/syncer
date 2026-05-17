@@ -40,7 +40,7 @@
                       <object class="AdwButtonRow" id="delete_button">
                         <property name="title">_Remove All</property>
                         <property name="use-underline">true</property>
-                        <property name="start-icon-name">user-trash-symbolic</property>
+                        <property name="start-icon-name">list-remove-all-symbolic</property>
                         <style>
                           <class name="destructive-action"/>
                         </style>
