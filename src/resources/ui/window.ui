@@ -17,7 +17,7 @@
                 </child>
                 <property name="content">
                   <object class="AdwStatusPage">
-                    <property name="icon-name">document-edit-symbolic</property>
+                    <property name="icon-name">syncer</property>
                     <property name="title">Welcome to Syncer</property>
                     <property name="description">Create a new profile to get started</property>
                     <property name="child">
