@@ -21,12 +21,12 @@ pub enum CheckMode {
     #[default]
     #[strum(props(Desc="Check file size and modification time"))]
     Default,
-    #[strum(props(Desc="No check performed (all files updated)", Switch="--ignore-times"))]
+    #[strum(props(Desc="No check performed (all files updated)", Arg="--ignore-times"))]
     Ignore,
     #[enum_value(name = "Size Only")]
-    #[strum(props(Desc="Check file size only", Switch="--size-only"))]
+    #[strum(props(Desc="Check file size only", Arg="--size-only"))]
     SizeOnly,
-    #[strum(props(Desc="Compare checksum for files with matching size", Switch="--checksum"))]
+    #[strum(props(Desc="Compare checksum for files with matching size", Arg="--checksum"))]
     Checksum,
 }
 
@@ -35,8 +35,8 @@ impl CheckMode {
         self.get_str("Desc").unwrap_or_default()
     }
 
-    pub fn switch<'a>(self) -> Option<&'a str> {
-        self.get_str("Switch")
+    pub fn arg<'a>(self) -> Option<&'a str> {
+        self.get_str("Arg")
     }
 }
 
@@ -49,13 +49,13 @@ impl CheckMode {
 #[strum(serialize_all = "kebab-case")]
 pub enum RecurseMode {
     #[default]
-    #[strum(props(Desc="Recurse into directories incrementally", Switches="-r"))]
+    #[strum(props(Desc="Recurse into directories incrementally", Args="-r"))]
     Incremental,
     #[enum_value(name = "Non-Incremental")]
-    #[strum(props(Desc="Recurse into directories (non-incremental)", Switches="-r --no-i-r"))]
+    #[strum(props(Desc="Recurse into directories (non-incremental)", Args="-r --no-i-r"))]
     NonIncremental,
     #[enum_value(name = "No Recursion")]
-    #[strum(props(Desc="Don't recurse into directories", Switches="-d"))]
+    #[strum(props(Desc="Don't recurse into directories", Args="-d"))]
     NoRecursion,
 }
 
@@ -64,8 +64,8 @@ impl RecurseMode {
         self.get_str("Desc").unwrap_or_default()
     }
 
-    pub fn switches<'a>(self) -> Option<&'a str> {
-        self.get_str("Switches")
+    pub fn args<'a>(self) -> Option<&'a str> {
+        self.get_str("Args")
     }
 }
 
@@ -362,11 +362,11 @@ impl ProfileObject {
     //---------------------------------------
     pub fn args(&self, quoted: bool) -> Vec<String> {
         // Check mode
-        let mut args: Vec<String> = self.check_mode().switch()
+        let mut args: Vec<String> = self.check_mode().arg()
             .map_or_else(Vec::new, |check| vec![check.to_owned()]);
 
         // Recurse mode
-        if let Some(recurse) = self.recurse_mode().switches() {
+        if let Some(recurse) = self.recurse_mode().args() {
             args.extend(recurse.split(' ').map(ToOwned::to_owned));
         }
 
