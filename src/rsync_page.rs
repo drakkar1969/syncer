@@ -390,6 +390,7 @@ impl RsyncPage {
         self.ui_recursion(false);
 
         imp.button_stack.set_visible_child_name("empty");
+        imp.output_button.set_sensitive(false);
     }
 
     //---------------------------------------
@@ -401,7 +402,10 @@ impl RsyncPage {
             #[weak(rename_to = page)] self,
             move || {
                 if page.rsync().state() != RsyncState::Stopped {
-                    page.imp().button_stack.set_visible_child_name("rsync");
+                    let imp = page.imp();
+
+                    imp.button_stack.set_visible_child_name("rsync");
+                    imp.pause_button.grab_focus();
                 }
             }
         ));

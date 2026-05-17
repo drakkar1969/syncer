@@ -285,6 +285,7 @@
                             <property name="spacing">36</property>
                             <child>
                               <object class="GtkButton" id="output_button">
+                                <property name="sensitive">false</property>
                                 <property name="action-name">rsync.output</property>
                                 <property name="child">
                                   <object class="GtkBox">
