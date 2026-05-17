@@ -378,6 +378,8 @@ impl RsyncPage {
     fn ui_reset(&self) {
         let imp = self.imp();
 
+        self.set_can_pop(false);
+
         self.ui_status_format(RsyncResult::None);
         self.ui_status("Waiting…");
 
@@ -555,6 +557,8 @@ impl RsyncPage {
                     imp.output_image.set_icon_name(Some("go-next-symbolic"));
                     imp.output_button.set_sensitive(true);
                     imp.output_button.grab_focus();
+
+                    page.set_can_pop(true);
                 }
             ));
         }

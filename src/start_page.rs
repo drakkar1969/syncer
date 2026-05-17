@@ -239,7 +239,6 @@ mod imp {
                         // Show rsync page
                         let rsync_page = page.rsync_page();
 
-                        rsync_page.set_can_pop(false);
                         rsync_page.set_profile(profile);
 
                         page.activate_action("navigation.push", Some(&"rsync".to_variant()))
@@ -253,8 +252,6 @@ mod imp {
 
                             window.show_toast("Error: Failed to start rsync");
                         }
-
-                        rsync_page.set_can_pop(true);
                     }
                 }
             );
