@@ -56,6 +56,9 @@ mod imp {
     #[template(resource = "/com/github/Syncer/ui/rsync_page.ui")]
     pub struct RsyncPage {
         #[template_child]
+        pub(super) recurse_box: TemplateChild<gtk::Box>,
+
+        #[template_child]
         pub(super) status_box: TemplateChild<gtk::Box>,
         #[template_child]
         pub(super) status_image: TemplateChild<gtk::Image>,
@@ -67,8 +70,6 @@ mod imp {
         pub(super) transferred_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) speed_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) recurse_spinner: TemplateChild<adw::Spinner>,
         #[template_child]
         pub(super) progress_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -450,10 +451,10 @@ impl RsyncPage {
     fn ui_recursion(&self, complete: bool) {
         let imp = self.imp();
 
-        let visible = imp.recurse_spinner.is_visible();
+        let visible = imp.recurse_box.is_visible();
 
         if visible == complete {
-            self.imp().recurse_spinner.set_visible(!complete);
+            self.imp().recurse_box.set_visible(!complete);
         }
     }
 

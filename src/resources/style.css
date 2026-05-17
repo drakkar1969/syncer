@@ -11,11 +11,6 @@ image.bubble {
 	min-height: 2em;
 }
 
-image.bubble.accent {
-	background: var(--accent-bg-color);
-	color: var(--accent-fg-color);
-}
-
 /* Filter tag labels */
 label.tag {
 	border-radius: 9999px;
