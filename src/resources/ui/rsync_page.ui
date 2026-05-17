@@ -25,7 +25,6 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <property name="title">Rsync Transfer</property>
-                    <property name="can-focus">false</property>
                     <property name="header-suffix">
                       <object class="GtkBox" id="recurse_box">
                         <property name="spacing">10</property>
@@ -45,6 +44,8 @@
                     <child>
                       <object class="AdwPreferencesRow">
                         <property name="title">test</property>
+                        <property name="can-focus">false</property>
+                        <property name="activatable">false</property>
                         <child>
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
